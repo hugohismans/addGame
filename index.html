@@ -122,12 +122,12 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 @keyframes goalpop { 0% { transform: scale(.3); } 100% { transform: scale(1); } }
 
 .actions { display: flex; gap: 10px; align-items: center; }
-#opBtn {
+#opBtn, #swapBtn {
   width: 48px; height: 48px; border-radius: 50%; padding: 0; display: grid; place-items: center;
   border: 2px solid var(--ice); background: rgba(233, 253, 255, .06); color: var(--ice);
   box-shadow: 0 0 12px rgba(233, 253, 255, .35);
 }
-#opBtn svg { width: 24px; height: 24px; transition: transform .35s cubic-bezier(.3, 1.4, .5, 1); }
+#opBtn svg, #swapBtn svg { width: 24px; height: 24px; transition: transform .35s cubic-bezier(.3, 1.4, .5, 1); }
 #eqBtn {
   width: 64px; height: 48px; border-radius: 8px; padding: 0;
   font-family: var(--f-display); font-weight: 900; font-size: 30px; line-height: 1;
@@ -135,7 +135,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   box-shadow: 0 0 14px rgba(255, 157, 46, .5), inset 0 0 12px rgba(255, 157, 46, .2);
   text-shadow: 0 0 10px rgba(255, 157, 46, .9);
 }
-#opBtn:active, #eqBtn:active, .mode:active { transform: scale(.94); }
+#opBtn:active, #swapBtn:active, #eqBtn:active, .mode:active { transform: scale(.94); }
 .keyhint { display: none; }
 @media (hover: hover) and (pointer: fine) {
   .keyhint { display: inline; font-size: 10px; color: var(--muted); letter-spacing: .08em; }
@@ -146,6 +146,8 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   .mode .opt { font-size: 10px; letter-spacing: .06em; }
   .goal .lbl { display: none; }
   #eqBtn { width: 54px; }
+  .actions { gap: 6px; }
+  #opBtn, #swapBtn { width: 44px; height: 44px; }
 }
 
 /* ---------- Écrans ---------- */
@@ -265,6 +267,9 @@ kbd {
       <b id="goalVal">42</b>
     </div>
     <div class="actions">
+      <button id="swapBtn" aria-label="Inverser le sens de l'opération (touche S)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h15"/><path d="M15 4l4 4-4 4"/><path d="M20 16H5"/><path d="M9 12l-4 4 4 4"/></svg>
+      </button>
       <button id="opBtn" aria-label="Changer d'opération (touche O ou Tab)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 0 1-13.7 5.6"/><path d="M4 12a8 8 0 0 1 13.7-5.6"/><path d="M18 2.5v4.3h-4.3"/><path d="M6 21.5v-4.3h4.3"/></svg>
       </button>
@@ -290,7 +295,7 @@ kbd {
         <h2>COMMENT JOUER</h2>
         <ol>
           <li>Les <span class="b-cyan">bulles</span> valent de 1 à 9 : le 1 est petit et rapide, le 9 gros et lent. Quand des bulles se touchent, elles s'additionnent puis repartent en deux bulles, comme des billes de billard. Une bulle 0, ou 10 et plus, explose.</li>
-          <li>Une bulle qui touche l'opérateur au centre s'y accroche. Pour <b>−</b> et <b>÷</b>, le côté compte : gauche ou haut d'abord, droite ou bas ensuite.</li>
+          <li>Une bulle qui touche l'opérateur au centre s'y accroche. Pour <b>−</b> et <b>÷</b>, le côté compte : gauche ou haut d'abord, droite ou bas ensuite. Le bouton <b>⇄</b> fait pivoter l'opérateur d'un demi-tour pour inverser les côtés.</li>
           <li>Change d'opération avec <b>⟳</b>, puis appuie sur <b class="b-orange">=</b> pour obtenir une <span class="b-orange">brique</span>. Pas de résultat négatif ni de division qui tombe pas juste, et une brique plus grande que l'objectif explose.</li>
           <li>Gagne en créant une brique égale à l'objectif.</li>
         </ol>
@@ -298,7 +303,7 @@ kbd {
           <div><b>BLOW</b>Touche l'écran pour repousser tout ce qui est autour. Sur l'opérateur, ça décroche ce qui y est accroché.</div>
           <div class="fire"><b>FIREWORK</b>Lance une fusée qui erre 2 à 3 secondes et repousse ce qu'elle frôle, de moins en moins fort.</div>
         </div>
-        <div class="keys">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>M</kbd> mode · <kbd>R</kbd> rejouer · clic pour agir</div>
+        <div class="keys">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>S</kbd> inverser · <kbd>M</kbd> mode · <kbd>R</kbd> rejouer · clic pour agir</div>
       </div>
     </div>
   </section>
@@ -422,6 +427,11 @@ const Sfx = (() => {
       for (let i = 0; i < 3; i++) tone({ type: 'square', f: 1900 - i * 200, t: .025, v: .07, delay: i * .06 });
       tone({ type: 'triangle', f: 160, f2: 90, t: .18, v: .18, delay: .16 });
     },
+    swap() {
+      noise({ t: .35, v: .25, f: 600, f2: 2400, q: 1.5 });
+      tone({ type: 'triangle', f: 400, f2: 800, t: .18, v: .12 });
+      tone({ type: 'triangle', f: 800, f2: 400, t: .18, v: .12, delay: .18 });
+    },
     fuse() {
       tone({ type: 'sawtooth', f: 180, f2: 900, t: .5, v: .05 });
       tone({ f: 300, f2: 1400, t: .5, v: .1 });
@@ -515,7 +525,7 @@ function buildGrid() {
 /* ================= État ================= */
 const G = {
   items: [], merges: [], rockets: [], parts: [], waves: [], texts: [],
-  mode: 'blow', op: 0, opPrev: 0, opAnim: 1, ringRot: 0, ringTarget: 0, opShake: 0,
+  mode: 'blow', op: 0, opPrev: 0, opAnim: 1, swapAnim: 1, ringRot: 0, ringTarget: 0, opShake: 0,
   goal: 42, timeLimit: store.get('time', 60), timeLeft: 60, elapsed: 0, lastTick: -1,
   running: false, over: false, won: false, endT: -1, fwT: 0,
   spawnPending: false, spawnT: 0, shake: 0, fuse: null, now: 0, order: 0,
@@ -798,7 +808,9 @@ function updateAttached(dt) {
   const k = 1 - Math.exp(-dt * 11);
   for (const it of G.items) {
     if (it.state !== 'attached') continue;
-    it.ang += angDiff(it.tAng, it.ang) * k;
+    let d = angDiff(it.tAng, it.ang);
+    if (it.spinCW) { if (d < -.05) d += TAU; if (Math.abs(d) < .05) it.spinCW = false; }
+    it.ang += d * k;
     it.rad += (it.tRad - it.rad) * k;
     it.x = cx + Math.cos(it.ang) * it.rad;
     it.y = cy + Math.sin(it.ang) * it.rad;
@@ -813,6 +825,21 @@ function switchOp() {
   Sfx.switchOp();
 }
 let opIconRot = 0;
+
+// Demi-tour de l'opérateur : ce qui est à gauche (ou en haut) passe à droite (ou en bas), et inversement.
+let swapIconRot = 0;
+function swapSides() {
+  if (!G.running || G.over || G.fuse) return;
+  for (const it of G.items) {
+    if (it.state !== 'attached') continue;
+    it.side = it.side === 'A' ? 'B' : 'A';
+    it.spinCW = true;
+  }
+  G.ringTarget += PI;
+  G.swapAnim = 0;
+  swapIconRot += 180; $('#swapBtn svg').style.transform = `rotate(${swapIconRot}deg)`;
+  Sfx.swap();
+}
 
 function groupText(vals) { return vals.length > 1 ? '(' + vals.join('+') + ')' : String(vals[0]); }
 function pressEqual() {
@@ -1106,6 +1133,7 @@ function endLogic(dt) {
 function update(dt) {
   G.now += dt;
   G.opAnim = Math.min(1, G.opAnim + dt / .38);
+  G.swapAnim = Math.min(1, G.swapAnim + dt / .45);
   G.ringRot += (G.ringTarget - G.ringRot) * (1 - Math.exp(-dt * 9));
   G.opShake = Math.max(0, G.opShake - dt);
   G.shake = Math.max(0, G.shake - dt * 1.8);
@@ -1258,8 +1286,9 @@ function drawOperator() {
     glowStroke(p, COL.ice, L * .24, a, 2.2);
     ctx.restore();
   };
-  drawSym(G.opPrev, e * PI / 2, 1 - e, 1 - e * .3);
-  drawSym(G.op, -(1 - e) * PI / 2, e, .7 + e * .3);
+  const sw = (1 - easeInOut(G.swapAnim)) * -PI;
+  drawSym(G.opPrev, e * PI / 2 + sw, 1 - e, 1 - e * .3);
+  drawSym(G.op, -(1 - e) * PI / 2 + sw, e, .7 + e * .3);
   if (busy) {
     const p = clamp(G.fuse.t / .55, 0, 1);
     ctx.globalCompositeOperation = 'lighter';
@@ -1409,6 +1438,7 @@ cvs.addEventListener('pointerdown', (e) => {
 const onBtn = (id, fn) => $(id).addEventListener('click', (e) => { Sfx.init(); fn(); e.currentTarget.blur(); });
 onBtn('#modeBtn', toggleMode);
 onBtn('#opBtn', switchOp);
+onBtn('#swapBtn', swapSides);
 onBtn('#eqBtn', pressEqual);
 onBtn('#playBtn', newGame);
 onBtn('#againBtn', newGame);
@@ -1445,6 +1475,7 @@ window.addEventListener('keydown', (e) => {
   if (e.repeat) return;
   if (k === 'Enter' || k === ' ' || k === '=') { e.preventDefault(); pressEqual(); }
   else if (k === 'Tab' || k === 'o' || k === 'O') { e.preventDefault(); switchOp(); }
+  else if (k === 's' || k === 'S') swapSides();
   else if (k === 'm' || k === 'M' || k === 'Shift') { e.preventDefault(); toggleMode(); }
   else if (k === 'b' || k === 'B') setMode('blow');
   else if (k === 'f' || k === 'F') setMode('fire');
