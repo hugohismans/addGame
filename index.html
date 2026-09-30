@@ -552,8 +552,10 @@ function spawnBall() {
   burstRing(x, y, COL.cyan, 14, R * 2.2, true);
   Sfx.spawn();
 }
+// Au maximum 4 bulles en tout, y compris celles accrochées à l'opérateur (les briques ne comptent pas)
+const COUNTED = ['free', 'spawn', 'merging', 'attached', 'fusing'];
 function roamingBalls() {
-  return G.items.filter((i) => i.kind === 'ball' && !i.dead && (i.state === 'free' || i.state === 'spawn' || i.state === 'merging')).length;
+  return G.items.filter((i) => i.kind === 'ball' && !i.dead && COUNTED.includes(i.state)).length;
 }
 function spawnLogic(dt) {
   if (G.over) return;
