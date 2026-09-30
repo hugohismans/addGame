@@ -289,7 +289,7 @@ kbd {
       <div class="rules">
         <h2>COMMENT JOUER</h2>
         <ol>
-          <li>Les <span class="b-cyan">bulles</span> valent de 1 à 9. Quand deux bulles se touchent, elles s'additionnent puis se redivisent au hasard. Une bulle 0 ou 10 explose.</li>
+          <li>Les <span class="b-cyan">bulles</span> valent de 1 à 9 : le 1 est petit et rapide, le 9 gros et lent. Quand des bulles se touchent, elles s'additionnent puis repartent en deux bulles, comme des billes de billard. Une bulle 0, ou 10 et plus, explose.</li>
           <li>Une bulle qui touche l'opérateur au centre s'y accroche. Pour <b>−</b> et <b>÷</b>, le côté compte : gauche ou haut d'abord, droite ou bas ensuite.</li>
           <li>Change d'opération avec <b>⟳</b>, puis appuie sur <b class="b-orange">=</b> pour obtenir une <span class="b-orange">brique</span>. Pas de résultat négatif ni de division qui tombe pas juste.</li>
           <li>Gagne en créant une brique égale à l'objectif.</li>
@@ -475,12 +475,12 @@ function resize() {
   DPR = Math.min(2, window.devicePixelRatio || 1);
   cvs.width = Math.round(W * DPR); cvs.height = Math.round(H * DPR);
   S = Math.min(W, H);
-  R = clamp(S * .07, 17, 38);
+  R = clamp(S * .075, 18, 40);
   OPR = R * 1.45;
   BASE = clamp(S * .22, 55, 150);
   cx = W / 2; cy = H / 2;
   for (const it of G.items) {
-    it.r = R;
+    it.r = it.kind === 'ball' ? ballR(it.value) : R;
     it.x = clamp(it.x, R, W - R); it.y = clamp(it.y, R, H - R);
   }
   buildGrid();
@@ -521,9 +521,14 @@ const G = {
   spawnPending: false, spawnT: 0, shake: 0, fuse: null, now: 0, order: 0,
 };
 let uid = 0;
+// Taille, masse et vitesse de croisière dépendent de la valeur : le 1 est petit et rapide, le 9 gros et lent.
+const ballR = (v) => R * (v <= 0 ? .5 : v >= 10 ? 1.25 : .6 + .075 * (v - 1));
+const massOf = (it) => (it.kind === 'brick' ? 5 : clamp(it.value, 1, 12));
+const cruise = (it) => (it.kind === 'brick' ? BASE * .75 : BASE * clamp(1.55 - .1 * (it.value - 1), .7, 1.6));
+const inertia = (it) => Math.sqrt(5 / massOf(it));
 function makeItem(kind, value, x, y, ang, speed) {
   return {
-    id: ++uid, kind, value, x, y, vx: Math.cos(ang) * speed, vy: Math.sin(ang) * speed, r: R,
+    id: ++uid, kind, value, x, y, vx: Math.cos(ang) * speed, vy: Math.sin(ang) * speed, r: kind === 'ball' ? ballR(value) : R,
     state: 'free', born: G.now, noAttach: 0, noMerge: 0,
     side: 'A', ang: 0, rad: 0, tAng: 0, tRad: 0, order: 0, scale: 1,
     trail: [], hidden: false, doomT: 0, dead: false,
@@ -539,7 +544,9 @@ function spawnBall() {
     ok = Math.hypot(x - cx, y - cy) > OPR + R * 4.5 &&
       G.items.every((o) => o.dead || Math.hypot(o.x - x, o.y - y) > R * 3.2);
   }
-  const b = makeItem('ball', randi(1, 9), x, y, rand(0, TAU), BASE);
+  const b = makeItem('ball', randi(1, 9), x, y, 0, 0);
+  const a = rand(0, TAU), sp = cruise(b);
+  b.vx = Math.cos(a) * sp; b.vy = Math.sin(a) * sp;
   b.state = 'spawn';
   G.items.push(b);
   burstRing(x, y, COL.cyan, 14, R * 2.2, true);
@@ -569,7 +576,7 @@ function integrate(h) {
     // la vitesse revient doucement vers la vitesse de croisière
     let sp = Math.hypot(it.vx, it.vy);
     if (sp < 1e-3) { const a = rand(0, TAU); it.vx = Math.cos(a); it.vy = Math.sin(a); sp = 1; }
-    const target = it.state === 'doomed' ? BASE * .4 : it.kind === 'brick' ? BASE * .75 : BASE;
+    const target = it.state === 'doomed' ? BASE * .4 : cruise(it);
     const ns = clamp(sp + (target - sp) * (1 - Math.exp(-h * 1.1)), 0, BASE * 7);
     it.vx *= ns / sp; it.vy *= ns / sp;
     it.x += it.vx * h; it.y += it.vy * h;
@@ -585,12 +592,18 @@ function integrate(h) {
   }
 }
 
+// Choc élastique entre deux disques de masses différentes (comme des billes de billard)
 function bounce(a, b) {
+  const ma = massOf(a), mb = massOf(b), mt = ma + mb;
   const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || .001;
   const nx = dx / d, ny = dy / d, ov = a.r + b.r - d;
-  if (ov > 0) { a.x -= nx * ov / 2; a.y -= ny * ov / 2; b.x += nx * ov / 2; b.y += ny * ov / 2; }
+  if (ov > 0) { a.x -= nx * ov * mb / mt; a.y -= ny * ov * mb / mt; b.x += nx * ov * ma / mt; b.y += ny * ov * ma / mt; }
   const rv = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
-  if (rv < 0) { a.vx += rv * nx; a.vy += rv * ny; b.vx -= rv * nx; b.vy -= rv * ny; }
+  if (rv < 0) {
+    const j = 2 * rv / mt;
+    a.vx += j * mb * nx; a.vy += j * mb * ny;
+    b.vx -= j * ma * nx; b.vy -= j * ma * ny;
+  }
 }
 function bounceStatic(it, sx, sy, sr) {
   const dx = it.x - sx, dy = it.y - sy, d = Math.hypot(dx, dy) || .001;
@@ -600,18 +613,38 @@ function bounceStatic(it, sx, sy, sr) {
   if (vn < 0) { it.vx -= 2 * vn * nx; it.vy -= 2 * vn * ny; }
 }
 
+const mergeable = (i) => i.kind === 'ball' && i.state === 'free' && !i.dead && G.now >= i.noMerge;
 function collide() {
   const free = G.items.filter((i) => i.state === 'free' && !i.dead);
+  // une bulle qui touche une fusion en cours la rejoint
+  for (const m of G.merges) {
+    if (m.t >= .45) continue;
+    for (const it of free) if (mergeable(it) && Math.hypot(it.x - m.x, it.y - m.y) < it.r + m.r) { addToMerge(m, it); Sfx.merge(); }
+  }
+  // contacts : les bulles qui se touchent forment des groupes qui fusionnent ensemble, le reste rebondit
+  const links = new Map();
+  const link = (a, b) => { if (!links.has(a)) links.set(a, []); links.get(a).push(b); };
   for (let i = 0; i < free.length; i++) {
     const a = free[i];
+    if (a.state !== 'free') continue;
     for (let j = i + 1; j < free.length; j++) {
       const b = free[j];
-      if (a.state !== 'free' || b.state !== 'free') continue;
-      const d = Math.hypot(b.x - a.x, b.y - a.y);
-      if (d >= a.r + b.r) continue;
-      if (a.kind === 'ball' && b.kind === 'ball' && G.now >= a.noMerge && G.now >= b.noMerge) startMerge(a, b);
+      if (b.state !== 'free') continue;
+      if (Math.hypot(b.x - a.x, b.y - a.y) >= a.r + b.r) continue;
+      if (mergeable(a) && mergeable(b)) { link(a, b); link(b, a); }
       else bounce(a, b);
     }
+  }
+  const seen = new Set();
+  for (const a of links.keys()) {
+    if (seen.has(a)) continue;
+    const group = [], stack = [a];
+    seen.add(a);
+    while (stack.length) {
+      const x = stack.pop(); group.push(x);
+      for (const y of links.get(x)) if (!seen.has(y)) { seen.add(y); stack.push(y); }
+    }
+    startMerge(group);
   }
   const att = attachedItems();
   for (const it of G.items) {
@@ -625,45 +658,85 @@ function collide() {
   }
 }
 
-/* ================= Fusion de deux bulles ================= */
-function startMerge(a, b) {
-  a.state = b.state = 'merging';
-  const m = {
-    a, b, t: 0, split: false,
-    x: clamp((a.x + b.x) / 2, R * 1.3, W - R * 1.3), y: clamp((a.y + b.y) / 2, R * 1.3, H - R * 1.3),
-    ax: a.x, ay: a.y, bx: b.x, by: b.y, sum: a.value + b.value, dir: Math.atan2(b.y - a.y, b.x - a.x),
-  };
+/* ================= Fusion de bulles (2, 3, 4…) ================= */
+function startMerge(group) {
+  const m = { balls: [], t: 0, split: false, flash: false, x: 0, y: 0, r: R, sum: 0 };
+  for (const b of group) addToMerge(m, b);
   G.merges.push(m);
   Sfx.merge();
+}
+function addToMerge(m, b) {
+  b.state = 'merging';
+  m.balls.push({ it: b, t0: m.t, x0: b.x, y0: b.y, vx: b.vx, vy: b.vy, m: massOf(b), v: b.value });
+  let M = 0, X = 0, Y = 0;
+  for (const e of m.balls) { M += e.m; X += e.x0 * e.m; Y += e.y0 * e.m; }
+  m.sum = m.balls.reduce((t, e) => t + e.v, 0);
+  m.r = R * Math.min(1.8, .9 + .035 * m.sum);
+  m.x = clamp(X / M, m.r, W - m.r); m.y = clamp(Y / M, m.r, H - m.r);
 }
 function updateMerges(dt) {
   for (const m of G.merges) {
     m.t += dt;
-    const p = clamp(m.t / .2, 0, 1), e = easeIn(p);
-    m.a.x = m.ax + (m.x - m.ax) * e; m.a.y = m.ay + (m.y - m.ay) * e;
-    m.b.x = m.bx + (m.x - m.bx) * e; m.b.y = m.by + (m.y - m.by) * e;
-    if (m.t >= .2 && !m.a.hidden) {
-      m.a.hidden = m.b.hidden = true;
-      burstRing(m.x, m.y, COL.cyan, 18, R * 2.5);
-      G.waves.push({ x: m.x, y: m.y, t: 0, life: .35, r: R * 2.2, c: COL.cyan });
+    for (const e of m.balls) {
+      const p = clamp((m.t - e.t0) / .2, 0, 1), k = easeIn(p);
+      e.it.x = e.x0 + (m.x - e.x0) * k; e.it.y = e.y0 + (m.y - e.y0) * k;
+      if (p >= 1) e.it.hidden = true;
     }
-    if (m.t >= .75 && !m.split) {
-      m.split = true;
-      m.a.dead = m.b.dead = true;
-      const v1 = randi(Math.max(0, m.sum - 10), Math.min(10, m.sum)), v2 = m.sum - v1;
-      const ang = m.dir + PI / 2 + rand(-.6, .6);
-      [[v1, 1], [v2, -1]].forEach(([v, s]) => {
-        const nx = Math.cos(ang) * s, ny = Math.sin(ang) * s;
-        const it = makeItem('ball', v, m.x + nx * R * 1.1, m.y + ny * R * 1.1, 0, 0);
-        it.vx = nx * BASE * 1.6; it.vy = ny * BASE * 1.6;
-        it.born = G.now - .12; it.noMerge = G.now + .35;
-        if (v === 0 || v === 10) { it.state = 'doomed'; it.doomT = .4; }
-        G.items.push(it);
-      });
-      Sfx.split();
+    if (!m.flash && m.t >= .2) {
+      m.flash = true;
+      burstRing(m.x, m.y, COL.cyan, 18, m.r * 2);
+      G.waves.push({ x: m.x, y: m.y, t: 0, life: .35, r: m.r * 1.8, c: COL.cyan });
     }
+    if (m.t >= .75 && !m.split) splitMerge(m);
   }
   G.merges = G.merges.filter((m) => !m.split);
+}
+// Redivision : deux bulles repartent comme après un choc de billard.
+// On se place dans le repère du centre de masse, on coupe le groupe en deux le long de l'axe d'impact,
+// et on renvoie la quantité de mouvement de chaque moitié (composante normale inversée, tangentielle conservée).
+function splitMerge(m) {
+  m.split = true;
+  for (const e of m.balls) e.it.dead = true;
+  const S = m.sum;
+  const v1 = S <= 20 ? randi(Math.max(0, S - 10), Math.min(10, S)) : randi(0, S);
+  const v2 = S - v1;
+  let M = 0, X = 0, Y = 0, PX = 0, PY = 0;
+  for (const e of m.balls) { M += e.m; X += e.x0 * e.m; Y += e.y0 * e.m; PX += e.vx * e.m; PY += e.vy * e.m; }
+  const Cx = X / M, Cy = Y / M, Vx = PX / M, Vy = PY / M;
+  let sxx = 0, syy = 0, sxy = 0;
+  for (const e of m.balls) { const dx = e.x0 - Cx, dy = e.y0 - Cy; sxx += e.m * dx * dx; syy += e.m * dy * dy; sxy += e.m * dx * dy; }
+  let nx, ny;
+  if (sxx + syy < 1e-6) { const a = rand(0, TAU); nx = Math.cos(a); ny = Math.sin(a); }
+  else { const th = .5 * Math.atan2(2 * sxy, sxx - syy); nx = Math.cos(th); ny = Math.sin(th); }
+  let Mp = 0, Mn = 0, Px = 0, Py = 0;
+  for (const e of m.balls) {
+    const ux = e.vx - Vx, uy = e.vy - Vy;
+    if ((e.x0 - Cx) * nx + (e.y0 - Cy) * ny >= 0) { Mp += e.m; Px += e.m * ux; Py += e.m * uy; } else Mn += e.m;
+  }
+  if (!Mp || !Mn) { Mp = Mn = M / 2; Px = Py = 0; }
+  const pn = Px * nx + Py * ny;
+  if (pn < 0) { Px -= 2 * pn * nx; Py -= 2 * pn * ny; }
+  const out = [
+    { v: v1, s: 1, vx: Vx + Px / Mp, vy: Vy + Py / Mp },
+    { v: v2, s: -1, vx: Vx - Px / Mn, vy: Vy - Py / Mn },
+  ];
+  // garantit que les deux bulles s'écartent franchement
+  const sep = (out[0].vx - out[1].vx) * nx + (out[0].vy - out[1].vy) * ny, minSep = BASE * 1.4;
+  if (sep < minSep) {
+    const d = (minSep - sep) / 2;
+    out[0].vx += nx * d; out[0].vy += ny * d; out[1].vx -= nx * d; out[1].vy -= ny * d;
+  }
+  for (const o of out) {
+    const it = makeItem('ball', o.v, 0, 0, 0, 0);
+    it.x = clamp(m.x + nx * o.s * (it.r + 2), it.r, W - it.r);
+    it.y = clamp(m.y + ny * o.s * (it.r + 2), it.r, H - it.r);
+    const sp = Math.hypot(o.vx, o.vy), cap = BASE * 4;
+    it.vx = sp > cap ? o.vx * cap / sp : o.vx; it.vy = sp > cap ? o.vy * cap / sp : o.vy;
+    it.born = G.now - .12; it.noMerge = G.now + .35;
+    if (o.v === 0 || o.v >= 10) { it.state = 'doomed'; it.doomT = .4; }
+    G.items.push(it);
+  }
+  Sfx.split();
 }
 
 function explodeItem(it) {
@@ -703,18 +776,19 @@ function layoutSlots() {
   for (const side of ['A', 'B']) {
     const list = G.items.filter((i) => i.state === 'attached' && i.side === side).sort((a, b) => a.order - b.order);
     const c = side === 'A' ? (vertical ? -PI / 2 : PI) : (vertical ? PI / 2 : 0);
-    let idx = 0, ring = 0;
+    let idx = 0, base = OPR + 4;
     while (idx < list.length) {
-      const rad = OPR + R + 5 + ring * (2 * R + 6);
-      const step = 2 * Math.asin(Math.min(1, (R + 3) / rad));
-      const cap = Math.max(1, Math.floor((PI * .95) / step));
-      const n = Math.min(cap, list.length - idx);
-      for (let j = 0; j < n; j++) {
-        const it = list[idx + j];
-        it.tAng = c + (j - (n - 1) / 2) * step;
-        it.tRad = rad;
+      const row = [];
+      let total = 0, maxR = 0;
+      while (idx < list.length) {
+        const it = list[idx], rad = base + it.r;
+        const w = 2 * Math.asin(Math.min(1, (it.r + 3) / rad));
+        if (row.length && total + w > PI * .95) break;
+        row.push([it, rad, w]); total += w; maxR = Math.max(maxR, it.r); idx++;
       }
-      idx += n; ring++;
+      let a = c - total / 2;
+      for (const [it, rad, w] of row) { it.tAng = a + w / 2; it.tRad = rad; a += w; }
+      base += maxR * 2 + 6;
     }
   }
 }
@@ -832,7 +906,7 @@ function blow(px, py) {
     const k = Math.pow(1 - d / (BR + it.r), .6);
     let nx, ny;
     if (d < 1) { const a = rand(0, TAU); nx = Math.cos(a); ny = Math.sin(a); } else { nx = dx / d; ny = dy / d; }
-    const imp = BASE * 6 * k;
+    const imp = BASE * 6 * k * inertia(it);
     if (it.state === 'attached') {
       if (k < .3) continue;
       detach(it, nx, ny, Math.max(imp, BASE * 2));
@@ -878,7 +952,8 @@ function updateRockets(dt) {
           continue;
         }
         if (it.state === 'spawn') it.state = 'free';
-        it.vx += nx * F * k * dt; it.vy += ny * F * k * dt;
+        const q = inertia(it);
+        it.vx += nx * F * k * q * dt; it.vy += ny * F * k * q * dt;
       }
       if (Math.random() < .8) {
         G.parts.push({ x: r.x, y: r.y, vx: rand(-40, 40), vy: rand(-40, 40), t: 0, life: rand(.3, .6), c: Math.random() < .5 ? COL.pink : COL.gold, s: rand(1.5, 3) * (1 - p * .6), drag: 2 });
@@ -1191,19 +1266,22 @@ function drawOperator() {
 }
 function drawMerges() {
   for (const m of G.merges) {
-    if (m.t < .2) continue;
+    if (!m.flash) continue;
     const t = m.t - .2;
     const s = easeBack(clamp(t / .18, 0, 1));
     const wob = 1 + Math.sin(t * 30) * .06 * (1 - clamp(t / .5, 0, 1));
-    const r = R * 1.3 * s * wob;
-    const big = m.sum >= 10;
-    const c = big ? COL.gold : COL.cyan;
+    const r = m.r * s * wob;
+    if (r <= .5) continue;
+    const c = m.sum >= 10 ? COL.gold : COL.cyan;
     ctx.fillStyle = 'rgba(2,12,22,0.92)';
     ctx.beginPath(); ctx.arc(m.x, m.y, r, 0, TAU); ctx.fill();
     const p = new Path2D(); p.arc(m.x, m.y, r, 0, TAU);
     glowStroke(p, c, 3, 1);
-    const label = t < .22 ? m.a.value + '+' + m.b.value : '=' + m.sum;
-    ctx.font = `700 ${r * (label.length > 3 ? .62 : .75)}px ${FONT}`;
+    const label = t < .22 ? m.balls.map((e) => e.v).join('+') : '=' + m.sum;
+    let size = r * .78;
+    ctx.font = `700 ${size}px ${FONT}`;
+    const w = ctx.measureText(label).width;
+    if (w > r * 1.7) { size *= (r * 1.7) / w; ctx.font = `700 ${size}px ${FONT}`; }
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = rgba(COL.ice, 1); ctx.fillText(label, m.x, m.y + r * .04);
   }
