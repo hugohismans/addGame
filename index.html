@@ -156,9 +156,10 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   overflow-y: auto; touch-action: pan-y;
   padding: calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
   background: radial-gradient(ellipse at 50% 40%, rgba(3, 10, 20, .55), rgba(3, 6, 13, .92) 75%);
-  display: grid; place-items: center;
+  display: flex; flex-direction: column;
   -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
 }
+.overlay > * { margin: auto; }
 .home-grid {
   width: min(960px, 100%);
   display: grid; gap: 22px; align-items: center;
@@ -182,6 +183,40 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   color: var(--cyan); border-color: var(--cyan); background: rgba(62, 240, 255, .12);
   box-shadow: 0 0 12px rgba(62, 240, 255, .45); text-shadow: 0 0 8px rgba(62, 240, 255, .8);
 }
+.opts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; }
+.optop {
+  width: 44px; height: 40px; border-radius: 6px; padding: 0;
+  border: 1px solid var(--line); background: rgba(62, 240, 255, .04);
+  font-family: var(--f-display); font-weight: 900; font-size: 20px; color: var(--muted);
+}
+.optop[aria-pressed="true"] {
+  color: var(--ice); border-color: var(--ice); background: rgba(233, 253, 255, .1);
+  box-shadow: 0 0 10px rgba(233, 253, 255, .35); text-shadow: 0 0 8px rgba(62, 240, 255, .9);
+}
+.optop.shake { animation: shake .3s; }
+@keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.switch {
+  display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px 0 6px; margin-left: 6px;
+  border: 1px solid var(--line); border-radius: 20px; background: rgba(0, 0, 0, .3);
+  font-family: var(--f-display); font-weight: 700; font-size: 12px; letter-spacing: .12em; color: var(--muted);
+}
+.switch .knob {
+  position: relative; width: 38px; height: 24px; border-radius: 12px; border: 1px solid var(--line); background: rgba(62, 240, 255, .05);
+}
+.switch .knob::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--muted); transition: transform .2s cubic-bezier(.3, 1.4, .5, 1), background .2s, box-shadow .2s;
+}
+.switch[aria-checked="true"] { color: var(--gold); border-color: rgba(255, 224, 102, .5); }
+.switch[aria-checked="true"] .knob { border-color: var(--gold); background: rgba(255, 224, 102, .12); }
+.switch[aria-checked="true"] .knob::after { transform: translateX(14px); background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+#easyChip {
+  margin-left: 8px; align-self: center;
+  font-family: var(--f-display); font-weight: 700; font-size: 11px; letter-spacing: .14em;
+  color: var(--gold); border: 1px solid rgba(255, 224, 102, .5); border-radius: 4px; padding: 3px 7px;
+  background: rgba(3, 10, 18, .6);
+}
+#opBtn:disabled { opacity: .3; box-shadow: none; }
 .big-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   height: 54px; padding: 0 30px; border-radius: 8px;
@@ -223,10 +258,15 @@ kbd {
 .end-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 6px; }
 
 @media (max-height: 520px) and (min-width: 720px) {
-  .brand h1 { font-size: 52px; }
-  .brand p { margin: 6px 0 12px; font-size: 14px; }
-  .times { margin-bottom: 12px; }
-  .times button { height: 38px; }
+  .home-grid { align-items: start; }
+  .brand h1 { font-size: 46px; margin-bottom: 12px; }
+  .brand p { display: none; }
+  .switch { margin-left: 0; }
+  .times { margin-bottom: 10px; }
+  .times button { height: 36px; }
+  .opts { margin-bottom: 12px; }
+  .optop, .switch { height: 36px; }
+  .label { margin-bottom: 6px; }
   .big-btn { height: 46px; }
   .rules { padding: 12px 14px; font-size: 12.5px; line-height: 1.4; }
   .rules ol { gap: 3px; }
@@ -244,7 +284,7 @@ kbd {
   <div id="field">
     <canvas id="cv" aria-label="Terrain de jeu"></canvas>
     <div id="hudTop">
-      <div id="timer" aria-live="off">1:00</div>
+      <div style="display:flex"><div id="timer" aria-live="off">1:00</div><div id="easyChip" hidden>FACILE</div></div>
       <div class="hud-right">
         <button id="muteBtn" class="icon-btn" aria-label="Couper le son" aria-pressed="false">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="w1" d="M16.5 8.5a5 5 0 0 1 0 7"/><path class="w2" d="M19 6a8.5 8.5 0 0 1 0 12"/><path class="x" d="M16 9l6 6M22 9l-6 6" style="display:none"/></svg>
@@ -289,6 +329,14 @@ kbd {
           <button id="t600" role="radio" data-t="600" aria-checked="false">10 min</button>
           <button id="t0" role="radio" data-t="0" aria-checked="false">∞</button>
         </div>
+        <div class="label" id="optLbl">OPÉRATIONS</div>
+        <div class="opts" role="group" aria-labelledby="optLbl">
+          <button id="op0" class="optop" data-op="0" aria-pressed="true" aria-label="Addition">+</button>
+          <button id="op1" class="optop" data-op="1" aria-pressed="true" aria-label="Soustraction">−</button>
+          <button id="op2" class="optop" data-op="2" aria-pressed="true" aria-label="Multiplication">×</button>
+          <button id="op3" class="optop" data-op="3" aria-pressed="true" aria-label="Division">÷</button>
+          <button id="easyBtn" class="switch" role="switch" aria-checked="false"><span class="knob"></span>MODE FACILE</button>
+        </div>
         <button id="playBtn" class="big-btn">JOUER</button>
       </div>
       <div class="rules">
@@ -303,6 +351,7 @@ kbd {
           <div><b>BLOW</b>Touche l'écran pour repousser tout ce qui est autour. Sur l'opérateur, ça décroche ce qui y est accroché.</div>
           <div class="fire"><b>FIREWORK</b>Lance une fusée qui erre 2 à 3 secondes et repousse ce qu'elle frôle, de moins en moins fort.</div>
         </div>
+        <div class="keys"><b class="b-orange">Mode facile</b> : une bulle ne s'accroche à l'opérateur que si tu l'as poussée (elle brille en doré pendant 2,5 s). Sinon elle rebondit dessus.</div>
         <div class="keys">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>S</kbd> inverser · <kbd>M</kbd> mode · <kbd>R</kbd> rejouer · clic pour agir</div>
       </div>
     </div>
@@ -525,7 +574,9 @@ function buildGrid() {
 /* ================= État ================= */
 const G = {
   items: [], merges: [], rockets: [], parts: [], waves: [], texts: [],
-  mode: 'blow', op: 0, opPrev: 0, opAnim: 1, swapAnim: 1, ringRot: 0, ringTarget: 0, opShake: 0,
+  mode: 'blow', op: 0, opPrev: 0, opAnim: 1, swapAnim: 1,
+  ops: (() => { const o = store.get('ops', [true, true, true, true]); return Array.isArray(o) && o.length === 4 && o.some(Boolean) ? o.map(Boolean) : [true, true, true, true]; })(),
+  easy: !!store.get('easy', false), ringRot: 0, ringTarget: 0, opShake: 0,
   goal: 42, timeLimit: store.get('time', 60), timeLeft: 60, elapsed: 0, lastTick: -1,
   running: false, over: false, won: false, endT: -1, fwT: 0,
   spawnPending: false, spawnT: 0, shake: 0, fuse: null, now: 0, order: 0,
@@ -762,8 +813,10 @@ function explodeItem(it) {
 }
 
 /* ================= Opérateur ================= */
+const PUSH_TIME = 2.5;
+const isPushed = (it) => (it.pushedUntil || 0) > G.now;
 function canAttach(it) {
-  return G.running && !G.over && !G.fuse && G.now >= it.noAttach;
+  return G.running && !G.over && !G.fuse && G.now >= it.noAttach && (!G.easy || isPushed(it));
 }
 function attach(it) {
   it.state = 'attached'; it.vx = it.vy = 0;
@@ -819,7 +872,10 @@ function updateAttached(dt) {
 
 function switchOp() {
   if (!G.running || G.over || G.fuse) return;
-  G.opPrev = G.op; G.op = (G.op + 1) % 4; G.opAnim = 0;
+  let next = G.op;
+  do next = (next + 1) % 4; while (!G.ops[next]);
+  if (next === G.op) return;
+  G.opPrev = G.op; G.op = next; G.opAnim = 0;
   G.ringTarget += PI / 2;
   opIconRot += 180; $('#opBtn svg').style.transform = `rotate(${opIconRot}deg)`;
   Sfx.switchOp();
@@ -945,6 +1001,7 @@ function blow(px, py) {
     }
     if (it.state === 'spawn') it.state = 'free';
     it.vx += nx * imp; it.vy += ny * imp;
+    it.pushedUntil = G.now + PUSH_TIME;
   }
 }
 function launchRocket(px, py) {
@@ -985,6 +1042,7 @@ function updateRockets(dt) {
         if (it.state === 'spawn') it.state = 'free';
         const q = inertia(it);
         it.vx += nx * F * k * q * dt; it.vy += ny * F * k * q * dt;
+        it.pushedUntil = G.now + PUSH_TIME;
       }
       if (Math.random() < .8) {
         G.parts.push({ x: r.x, y: r.y, vx: rand(-40, 40), vy: rand(-40, 40), t: 0, life: rand(.3, .6), c: Math.random() < .5 ? COL.pink : COL.gold, s: rand(1.5, 3) * (1 - p * .6), drag: 2 });
@@ -1062,8 +1120,11 @@ function updateFx(dt) {
 function newGame() {
   Sfx.init();
   G.items = []; G.merges = []; G.rockets = []; G.parts = []; G.waves = []; G.texts = [];
-  G.op = 0; G.opPrev = 0; G.opAnim = 1; G.fuse = null; G.order = 0;
-  G.goal = randi(1, 99);
+  G.op = G.ops.indexOf(true); G.opPrev = G.op; G.opAnim = 1; G.swapAnim = 1; G.fuse = null; G.order = 0;
+  // sans + ni ×, les résultats restent petits : objectif entre 1 et 20
+  G.goal = randi(1, G.ops[0] || G.ops[2] ? 99 : 20);
+  $('#opBtn').disabled = G.ops.filter(Boolean).length < 2;
+  $('#easyChip').hidden = !G.easy;
   G.timeLeft = G.timeLimit; G.elapsed = 0; G.lastTick = -1;
   G.running = true; G.over = false; G.won = false; G.endT = -1;
   G.spawnPending = false;
@@ -1200,6 +1261,17 @@ function drawBall(it) {
   ctx.strokeStyle = rgba(c, .3 * flick); ctx.lineWidth = 1;
   ctx.beginPath(); ctx.arc(it.x, it.y, r * .78, 0, TAU); ctx.stroke();
   drawNumber(it.value, it.x, it.y, r * 1.02, c, flick);
+  drawPushed(it, r + 5);
+}
+function drawPushed(it, rr) {
+  if (!G.easy || !G.running || !isPushed(it) || it.state !== 'free') return;
+  const left = clamp((it.pushedUntil - G.now) / PUSH_TIME, 0, 1);
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.setLineDash([4, 5]); ctx.lineDashOffset = -G.now * 30;
+  ctx.strokeStyle = rgba(COL.gold, .35 + .5 * left); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(it.x, it.y, rr, -PI / 2, -PI / 2 + TAU * left); ctx.stroke();
+  ctx.restore();
 }
 function roundRect(x, y, w, h, rr) {
   const p = new Path2D();
@@ -1221,6 +1293,7 @@ function drawBrick(it) {
   const goal = !doomed && it.value === G.goal && G.won;
   if (goal) glowStroke(roundRect(it.x - h - 5, it.y - h - 5, h * 2 + 10, h * 2 + 10, h * .35), COL.gold, 1.5, .5 + .5 * Math.sin(G.now * 8));
   drawNumber(it.value, it.x, it.y, h * 1.9 * .6, c, flick);
+  drawPushed(it, h * 1.42 + 4);
 }
 function symbolPath(op, L) {
   const p = new Path2D();
@@ -1457,13 +1530,29 @@ function selectTime(t) {
   document.querySelectorAll('.times button').forEach((b) => b.setAttribute('aria-checked', String(+b.dataset.t === t)));
   G.timeLeft = t; updateTimer(true);
 }
+function syncOptions() {
+  document.querySelectorAll('.optop').forEach((b) => b.setAttribute('aria-pressed', String(G.ops[+b.dataset.op])));
+  $('#easyBtn').setAttribute('aria-checked', String(G.easy));
+}
+document.querySelectorAll('.optop').forEach((b) => b.addEventListener('click', () => {
+  Sfx.init();
+  const i = +b.dataset.op;
+  if (G.ops[i] && G.ops.filter(Boolean).length === 1) {
+    // il faut garder au moins une opération
+    b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+    Sfx.invalid(); return;
+  }
+  G.ops[i] = !G.ops[i]; store.set('ops', G.ops); syncOptions(); Sfx.tick();
+}));
+$('#easyBtn').addEventListener('click', () => { Sfx.init(); G.easy = !G.easy; store.set('easy', G.easy); syncOptions(); Sfx.tick(); });
 document.querySelectorAll('.times button').forEach((b) => b.addEventListener('click', () => { Sfx.init(); selectTime(+b.dataset.t); Sfx.tick(); }));
 
 window.addEventListener('keydown', (e) => {
   const k = e.key;
   const homeOpen = !$('#home').hidden, endOpen = !$('#end').hidden;
   if (homeOpen) {
-    if (k === 'Enter' || k === ' ') { e.preventDefault(); newGame(); }
+    const onOtherBtn = document.activeElement && document.activeElement.tagName === 'BUTTON' && document.activeElement.id !== 'playBtn';
+    if ((k === 'Enter' || k === ' ') && !onOtherBtn) { e.preventDefault(); newGame(); }
     else if (['1', '2', '3', '4'].includes(k)) selectTime([60, 300, 600, 0][+k - 1]);
     return;
   }
@@ -1489,6 +1578,7 @@ new ResizeObserver(resize).observe(field);
 resize();
 selectTime(G.timeLimit === 60 || G.timeLimit === 300 || G.timeLimit === 600 || G.timeLimit === 0 ? G.timeLimit : 60);
 syncMute();
+syncOptions();
 $('#goalVal').textContent = G.goal;
 // bulles de démonstration derrière l'écran d'accueil
 for (let i = 0; i < 4; i++) spawnBall();
