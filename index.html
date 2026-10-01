@@ -14,7 +14,7 @@
 <title>AddGame</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Tektur:wght@500;700;900&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tektur:wght@500;700;900&family=Chakra+Petch:wght@500;600;700&family=Cabin+Sketch:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
 <style>
 /* Layout : plein écran. Terrain en canvas au-dessus, barre de commande néon en bas, écrans (accueil / fin) en surimpression. */
 :root {
@@ -401,8 +401,14 @@ kbd {
 .end-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 6px; }
 
 @media (max-height: 520px) and (min-width: 720px) {
-  .home-grid { align-items: start; }
-  .brand h1 { font-size: 46px; margin-bottom: 12px; }
+  .home-grid { align-items: start; grid-template-columns: 1.2fr 1fr; gap: 24px; }
+  .brand h1 { font-size: 40px; margin-bottom: 10px; }
+  .titlerow { flex-wrap: nowrap; gap: 14px; margin-bottom: 4px; }
+  .da-wrap .label, .da-switch .dn { display: none; }
+  .da-switch button { height: 30px; padding: 0 9px; font-size: 11px; }
+  #nameInput { width: 120px; }
+  .big-btn { padding: 0 20px; }
+  .big-btn.small { padding: 0 12px; }
   .brand p { display: none; }
   .switch { margin-left: 0; }
   .times { margin-bottom: 10px; }
@@ -419,6 +425,104 @@ kbd {
   .rules .modes div { font-size: 12px; }
   .rules .keys { margin-top: 8px; }
 }
+/* ---------- Sélecteur d'ambiance ---------- */
+.titlerow { display: flex; align-items: center; gap: 14px 22px; flex-wrap: wrap; }
+.da-wrap .label { margin-bottom: 6px; }
+.da-switch { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.da-switch button {
+  height: 34px; padding: 0 12px; border: 0; background: transparent;
+  font-family: var(--f-display); font-weight: 700; font-size: 12px; letter-spacing: .12em; color: var(--muted);
+}
+.da-switch button[aria-checked="true"] { background: var(--cyan); color: var(--void); }
+
+/* ================= Ambiance « tableau noir » =================
+   Ardoise verte, craie, auget en bois ; règles, indice et tutoriel sur papier Seyès (cahier à grands carreaux). */
+html[data-da="craie"] {
+  --void: #1f3a2e; --deep: #5a3a1f; --cyan: #f0f0e8; --orange: #ffd660; --pink: #ff9ec4; --ice: #f6f6ee;
+  --danger: #ff7a7a; --gold: #ffe27a; --green: #a8e2a0; --muted: #b5c4b9; --line: rgba(246, 246, 238, .35);
+  --panel: rgba(24, 44, 34, .92);
+  --f-display: "Cabin Sketch", "Patrick Hand", "Segoe Print", "Comic Sans MS", cursive;
+  --f-ui: "Patrick Hand", "Segoe Print", "Comic Sans MS", cursive;
+}
+html[data-da="craie"] * { text-shadow: none !important; box-shadow: none !important; }
+html[data-da="craie"] body, html[data-da="craie"] #app { background: #1f3a2e; }
+html[data-da="craie"] #bar {
+  background: repeating-linear-gradient(90deg, rgba(0, 0, 0, .07) 0 2px, transparent 2px 13px),
+              linear-gradient(180deg, #82552e, #5e3d20 55%, #4a2f18);
+  border-top: 4px solid #3a2412;
+}
+/* contours « tracés à la main » */
+html[data-da="craie"] :is(#opBtn, #swapBtn, #eqBtn, .mode, .mode .thumb, .goal b, .icon-btn, .times button, .optop, .switch,
+  .big-btn, #timer, #opsChip, #easyChip, #assistChip, #nameInput, .da-switch, #clearScores) {
+  border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px;
+}
+html[data-da="craie"] :is(#opBtn, #swapBtn) { background: transparent; border: 2.5px solid var(--ice); }
+html[data-da="craie"] #eqBtn { background: transparent; border: 2.5px solid var(--orange); font-family: var(--f-ui); font-size: 34px; }
+html[data-da="craie"] .goal b { background: transparent; border: 2.5px solid var(--orange); font-family: var(--f-ui); font-size: 30px; }
+html[data-da="craie"] .goal .lbl, html[data-da="craie"] .label { letter-spacing: .14em; font-size: 13px; }
+html[data-da="craie"] .mode { background: rgba(0, 0, 0, .18); border: 1.5px solid rgba(246, 246, 238, .45); }
+html[data-da="craie"] .mode .thumb { background: rgba(255, 255, 255, .08); border: 2px solid var(--ice); }
+html[data-da="craie"] .mode[data-mode="fire"] .thumb { border-color: var(--pink); background: rgba(255, 158, 196, .1); }
+html[data-da="craie"] .mode[data-mode="target"] .thumb { border-color: var(--gold); background: rgba(255, 226, 122, .1); }
+html[data-da="craie"] .mode .opt { font-family: var(--f-ui); font-size: 14px; letter-spacing: 0; }
+@media (max-width: 460px) { html[data-da="craie"] .mode .opt { font-size: 12px; } }
+html[data-da="craie"] :is(#timer, #opsChip, #easyChip, #assistChip, .icon-btn) { background: rgba(0, 0, 0, .18); }
+html[data-da="craie"] #timer { color: var(--ice); font-family: var(--f-ui); font-size: 22px; padding: 2px 12px; }
+html[data-da="craie"] #timer.hot { color: var(--danger); }
+html[data-da="craie"] #opsChip b { font-family: var(--f-ui); font-size: 20px; }
+html[data-da="craie"] .overlay { background: radial-gradient(ellipse at 50% 40%, rgba(44, 76, 60, .93), rgba(26, 48, 38, .98) 75%); }
+html[data-da="craie"] #end.win { background: radial-gradient(ellipse at 50% 50%, rgba(36, 66, 52, .85), rgba(26, 48, 38, .55) 75%); }
+html[data-da="craie"] .brand h1 { color: var(--ice); letter-spacing: .03em; }
+html[data-da="craie"] .brand h1 span { color: var(--orange); }
+html[data-da="craie"] .brand p { color: #d8e3dc; font-size: 17px; }
+html[data-da="craie"] .big-btn { font-family: var(--f-display); letter-spacing: .08em; }
+html[data-da="craie"] #playBtn, html[data-da="craie"] #againBtn { background: var(--ice); color: #1f3a2e; }
+html[data-da="craie"] .big-btn.alt { background: transparent; color: var(--ice); border: 2.5px solid var(--ice); }
+html[data-da="craie"] :is(.times button, .optop, .switch) { background: transparent; border: 2px solid rgba(246, 246, 238, .4); font-family: var(--f-ui); font-size: 16px; }
+html[data-da="craie"] .times button[aria-checked="true"], html[data-da="craie"] .optop[aria-pressed="true"] { border-color: var(--ice); color: var(--ice); background: rgba(255, 255, 255, .08); }
+html[data-da="craie"] #nameInput { background: rgba(0, 0, 0, .18); border: 2px solid rgba(246, 246, 238, .4); font-family: var(--f-ui); font-size: 18px; }
+html[data-da="craie"] .end-card h2 { font-family: var(--f-display); color: var(--gold); }
+html[data-da="craie"] .end-card p { color: #e7eee9; font-size: 19px; }
+html[data-da="craie"] .calc { background: rgba(18, 36, 28, .7); border: 2px dashed rgba(246, 246, 238, .35); }
+html[data-da="craie"] .calc .main, html[data-da="craie"] .calc ol, html[data-da="craie"] .calc ul { font-family: var(--f-ui); }
+html[data-da="craie"] .calc .main { font-size: 24px; }
+/* papier Seyès */
+html[data-da="craie"] :is(.rules, #tutBox, #hintBox) {
+  --cyan: #2a46b8; --orange: #c0392b; --muted: #5b6475; --ice: #22307a; --line: rgba(42, 70, 184, .3);
+  --gold: #a86f00; --green: #1e7a3c; --danger: #c0392b; --pink: #b03080; --void: #fbfbf4;
+  color: #22307a; border: 0; border-radius: 2px;
+  background-color: #fbfbf4;
+  background-image:
+    linear-gradient(90deg, transparent 34px, rgba(214, 60, 60, .75) 34px, rgba(214, 60, 60, .75) 36px, transparent 36px),
+    repeating-linear-gradient(180deg, transparent 0 7px, rgba(120, 150, 225, .25) 7px 8px),
+    repeating-linear-gradient(180deg, transparent 0 31px, rgba(80, 110, 210, .5) 31px 32px),
+    repeating-linear-gradient(90deg, transparent 0 31px, rgba(120, 150, 225, .25) 31px 32px);
+  padding-left: 48px;
+}
+html[data-da="craie"] .rules { font-family: var(--f-ui); font-size: 16px; }
+html[data-da="craie"] .rules .keys, html[data-da="craie"] .hs-foot { color: #4a5368; }
+html[data-da="craie"] .tabs button { font-family: var(--f-display); font-size: 16px; letter-spacing: .06em; }
+html[data-da="craie"] kbd { background: #fff; color: #22307a; border-color: rgba(42, 70, 184, .45); font-family: var(--f-ui); }
+html[data-da="craie"] .hs { font-family: var(--f-ui); font-size: 16px; }
+html[data-da="craie"] .hs th { font-family: var(--f-ui); font-size: 13px; }
+html[data-da="craie"] .hs td { border-top-color: rgba(42, 70, 184, .18); }
+html[data-da="craie"] .hs td.g, html[data-da="craie"] .hs td.o, html[data-da="craie"] .hs td.r { font-family: var(--f-ui); }
+html[data-da="craie"] .rules .calc { background: rgba(255, 255, 255, .65); border: 1.5px dashed rgba(42, 70, 184, .35); }
+html[data-da="craie"] #clearScores { color: #4a5368; border-color: rgba(42, 70, 184, .35); }
+html[data-da="craie"] #tutBox .tx { color: #22307a; font-family: var(--f-ui); font-size: 17px; }
+html[data-da="craie"] #tutBox .tt { color: #2a46b8; font-family: var(--f-display); font-size: 14px; letter-spacing: .08em; }
+html[data-da="craie"] #tutBox .dots i { background: rgba(42, 70, 184, .2); }
+html[data-da="craie"] #tutBox .dots i.on { background: #2a46b8; }
+html[data-da="craie"] #tutBox button { font-family: var(--f-ui); font-size: 16px; letter-spacing: .04em; }
+html[data-da="craie"] #tutBox .pri { background: #2a46b8; color: #fff; }
+html[data-da="craie"] #tutBox .sec { border-color: #2a46b8; color: #2a46b8; }
+html[data-da="craie"] #tutBox .wait { color: #c0392b; font-size: 15px; }
+html[data-da="craie"] #hintBox .steps { color: #22307a; font-family: var(--f-ui); font-size: 22px; }
+html[data-da="craie"] #hintBox .t { color: #2a46b8; font-family: var(--f-display); }
+html[data-da="craie"] .tut-pulse { animation: tutPulseChalk .9s ease-in-out infinite; }
+@keyframes tutPulseChalk { 50% { transform: scale(1.14) rotate(-3deg); } }
+html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 15px; letter-spacing: .04em; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -471,7 +575,16 @@ kbd {
   <section id="home" class="overlay" aria-label="Accueil">
     <div class="home-grid">
       <div class="brand">
-        <h1>ADD<span>GAME</span></h1>
+        <div class="titlerow">
+          <h1>ADD<span>GAME</span></h1>
+          <div class="da-wrap">
+            <div class="label" id="daLbl">AMBIANCE</div>
+            <div class="da-switch" role="radiogroup" aria-labelledby="daLbl">
+              <button id="daNeon" role="radio" data-da="neon" aria-checked="true">NÉON</button>
+              <button id="daCraie" role="radio" data-da="craie" aria-checked="false">TABLEAU<span class="dn"> NOIR</span></button>
+            </div>
+          </div>
+        </div>
         <p>Fais rebondir les bulles jusqu'à l'opérateur et fabrique une brique égale à l'objectif, un nombre entre 1 et 99.</p>
         <div class="label" id="timeLbl">DURÉE</div>
         <div class="times" role="radiogroup" aria-labelledby="timeLbl">
@@ -570,7 +683,32 @@ const COL = {
 };
 const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 const OPS = ['+', '−', '×', '÷'];
-const FONT = '"Tektur", "Chakra Petch", ui-monospace, monospace';
+// Ambiances : « neon » (d'origine) et « craie » (tableau noir). Les couleurs de COL sont modifiées sur place
+// pour que toutes les références (FW_COLS…) suivent.
+const NEON_COL = Object.fromEntries(Object.entries(COL).map(([k, c]) => [k, c.slice()]));
+const THEMES = {
+  neon: { chalk: false, font: '"Tektur", "Chakra Petch", ui-monospace, monospace', col: NEON_COL,
+          ballFill: 'rgba(2,12,22,0.92)', brickFill: 'rgba(24,10,2,0.92)',
+          diskIn: 'rgba(62,240,255,0.14)', diskBusy: 'rgba(255,157,46,0.35)', diskOut: 'rgba(2,10,20,0.95)', meta: '#03060d' },
+  craie: { chalk: true, font: '"Patrick Hand", "Segoe Print", "Comic Sans MS", cursive',
+           col: { cyan: [240, 240, 232], orange: [255, 214, 96], pink: [255, 158, 196], red: [255, 118, 118],
+                  ice: [246, 246, 238], gold: [255, 226, 122], green: [168, 226, 160], violet: [196, 178, 255] },
+           ballFill: 'rgba(31,58,46,0.82)', brickFill: 'rgba(36,60,46,0.85)',
+           diskIn: 'rgba(255,255,255,0.07)', diskBusy: 'rgba(255,214,96,0.2)', diskOut: 'rgba(31,58,46,0.9)', meta: '#22402f' },
+};
+let TH = THEMES.neon;
+let FONT = TH.font;
+const ADD = () => (TH.chalk ? 'source-over' : 'lighter');
+function applyTheme(name) {
+  if (!THEMES[name]) name = 'neon';
+  TH = THEMES[name];
+  FONT = TH.font;
+  for (const k of Object.keys(COL)) COL[k].splice(0, 3, ...TH.col[k]);
+  document.documentElement.dataset.da = name;
+  const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.content = TH.meta;
+  document.querySelectorAll('.da-switch button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.da === name)));
+  if (typeof W !== 'undefined' && W > 1) buildGrid();
+}
 
 /* ================= Sons (synthétisés, aucun fichier) ================= */
 const Sfx = (() => {
@@ -612,10 +750,95 @@ const Sfx = (() => {
     s.start(t0, Math.random() * .8); s.stop(t0 + t + .05);
   }
   let lastPop = 0;
-  return {
-    init,
-    get muted() { return muted; },
-    setMuted(m) { muted = m; store.set('muted', m); },
+  // --- briques sonores « salle de classe » ---
+  function scratch({ t = .3, v = .25, f = 2600, rate = 28, delay = 0, q = 1.6 }) {   // craie qui écrit
+    if (!on()) return;
+    const t0 = ac.currentTime + delay;
+    const s = ac.createBufferSource(); s.buffer = nbuf;
+    const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = q;
+    bp.frequency.setValueAtTime(f, t0); bp.frequency.linearRampToValueAtTime(f * 1.15, t0 + t);
+    const am = ac.createGain(); am.gain.value = .5;
+    const lfo = ac.createOscillator(); lfo.type = 'sawtooth'; lfo.frequency.value = rate;
+    const lg = ac.createGain(); lg.gain.value = .5; lfo.connect(lg); lg.connect(am.gain);
+    const env = ac.createGain();
+    env.gain.setValueAtTime(.0001, t0); env.gain.exponentialRampToValueAtTime(v, t0 + .015);
+    env.gain.setValueAtTime(v, t0 + t * .7); env.gain.exponentialRampToValueAtTime(.0001, t0 + t);
+    s.connect(bp); bp.connect(am); am.connect(env); env.connect(master);
+    s.start(t0, Math.random() * .8); s.stop(t0 + t + .05); lfo.start(t0); lfo.stop(t0 + t + .05);
+  }
+  function squeak({ f = 2600, t = .15, v = .12, delay = 0, vib = 40 }) {               // craie qui grince
+    if (!on()) return;
+    const t0 = ac.currentTime + delay;
+    const o = ac.createOscillator(); o.type = 'sine';
+    o.frequency.setValueAtTime(f, t0); o.frequency.linearRampToValueAtTime(f * 1.08, t0 + t);
+    const lfo = ac.createOscillator(); lfo.frequency.value = 11 + Math.random() * 6;
+    const lg = ac.createGain(); lg.gain.value = vib; lfo.connect(lg); lg.connect(o.frequency);
+    const g = ac.createGain();
+    g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + .01);
+    g.gain.setValueAtTime(v, t0 + t * .75); g.gain.exponentialRampToValueAtTime(.0001, t0 + t);
+    o.connect(g); g.connect(master);
+    o.start(t0); lfo.start(t0); o.stop(t0 + t + .05); lfo.stop(t0 + t + .05);
+    noise({ t, v: v * .6, filter: 'bandpass', f: f * 1.3, q: 3, delay });
+  }
+  function tap({ f = 900, v = .3, delay = 0 }) {                                       // craie posée sur le tableau
+    tone({ f, f2: f * .35, t: .06, v, delay });
+    noise({ t: .025, v: v * .6, filter: 'highpass', f: 2500, delay });
+  }
+  function crumble(v = .25) {                                                           // craie qui s'effrite
+    for (let i = 0; i < 5; i++) noise({ t: .05, v, filter: 'lowpass', f: rand(900, 2200), delay: i * rand(.015, .04) });
+    tone({ f: 180, f2: 90, t: .12, v: v * .6 });
+  }
+  function bell({ t = 1.4, v = .22, delay = 0, ring = true }) {                         // sonnerie de l'école
+    if (!on()) return;
+    const t0 = ac.currentTime + delay;
+    const sum = ac.createGain(); sum.gain.value = 1;
+    [[1, 1], [2.02, .5], [2.76, .6], [4.1, .25], [5.4, .2]].forEach(([r, a]) => {
+      const o = ac.createOscillator(); o.frequency.value = 1180 * r;
+      const g = ac.createGain(); g.gain.value = a * .3; o.connect(g); g.connect(sum);
+      o.start(t0); o.stop(t0 + t + .05);
+    });
+    const am = ac.createGain();
+    if (ring) {
+      am.gain.value = .5;
+      const lfo = ac.createOscillator(); lfo.type = 'square'; lfo.frequency.value = 21;
+      const lg = ac.createGain(); lg.gain.value = .5; lfo.connect(lg); lg.connect(am.gain);
+      lfo.start(t0); lfo.stop(t0 + t + .05);
+    } else am.gain.value = 1;
+    const env = ac.createGain();
+    env.gain.setValueAtTime(.0001, t0); env.gain.exponentialRampToValueAtTime(v, t0 + .005);
+    if (ring) env.gain.setValueAtTime(v, t0 + t * .8);
+    env.gain.exponentialRampToValueAtTime(.0001, t0 + t);
+    sum.connect(am); am.connect(env); env.connect(master);
+  }
+  let ticTac = false;
+  const chalkFx = {
+    spawn() { tap({ f: 1300, v: .15 }); scratch({ t: .09, v: .08, f: 3200, rate: 40, delay: .02 }); },
+    merge() { tap({ f: 1000, v: .22 }); tap({ f: 1250, v: .18, delay: .07 }); squeak({ f: 2300, t: .07, v: .05, delay: .03 }); },
+    split() { tap({ f: 1500, v: .12 }); tap({ f: 1700, v: .1, delay: .05 }); },
+    pop() { const n = performance.now(); if (n - lastPop < 60) return; lastPop = n; crumble(); },
+    attach() { tap({ f: 620, v: .32 }); },
+    blow() {   // coup de chiffon
+      noise({ t: .45, v: .35, filter: 'lowpass', f: 400, f2: 1600, q: .4 });
+      noise({ t: .35, v: .15, filter: 'bandpass', f: 1200, f2: 500, q: .5, delay: .1 });
+    },
+    fireLaunch() { scratch({ t: .7, v: .28, f: 3000, rate: 34 }); squeak({ f: 2900, t: .25, v: .05, delay: .15 }); },
+    fireEnd() { crumble(.2); },
+    switchOp() { tap({ f: 1100, v: .18 }); tap({ f: 900, v: .18, delay: .08 }); },
+    swap() { scratch({ t: .22, v: .18, f: 2200, rate: 20 }); tap({ f: 800, v: .2, delay: .2 }); },
+    fuse() { scratch({ t: .5, v: .22, f: 2500, rate: 16 }); },
+    result() { scratch({ t: .18, v: .18, f: 2800, rate: 24 }); bell({ t: .7, v: .12, ring: false, delay: .15 }); },
+    invalid() { squeak({ f: 2700, t: .14, v: .1 }); },
+    brrr() {   // craie qui crisse + règle qui claque sur le bureau
+      squeak({ f: 3200, t: .8, v: .16, vib: 120 });
+      noise({ t: .5, v: .4, filter: 'lowpass', f: 700, f2: 120 });
+      tone({ f: 110, f2: 60, t: .25, v: .45 });
+    },
+    tick() { ticTac = !ticTac; tap({ f: ticTac ? 1400 : 1000, v: .12 }); },
+    win() { bell({ t: 1.8, v: .22, ring: true }); },
+    fwPop() { const n = performance.now(); if (n - lastPop < 90) return; lastPop = n; tap({ f: rand(900, 1500), v: .12 }); },
+    timeUp() { bell({ t: .9, v: .2, ring: true }); },
+  };
+  const neonFx = {
     spawn() { tone({ f: 260, f2: 880, t: .22, v: .08 }); },
     merge() { // « plouc »
       tone({ f: 170, f2: 760, t: .11, v: .32 });
@@ -689,6 +912,10 @@ const Sfx = (() => {
     },
     timeUp() { [440, 330, 220].forEach((f, i) => tone({ type: 'square', f, t: .25, v: .08, delay: i * .18 })); },
   };
+  // chaque son est joué dans la version de l'ambiance active
+  const api = { init, get muted() { return muted; }, setMuted(m) { muted = m; store.set('muted', m); } };
+  for (const k of Object.keys(neonFx)) api[k] = (...a) => ((TH.chalk && chalkFx[k]) ? chalkFx[k] : neonFx[k])(...a);
+  return api;
 })();
 
 /* ================= Canvas & dimensions ================= */
@@ -717,6 +944,7 @@ function buildGrid() {
   grid.width = cvs.width; grid.height = cvs.height;
   const g = gctx;
   g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if (TH.chalk) { buildBoard(g); return; }
   g.fillStyle = '#03060d'; g.fillRect(0, 0, W, H);
   const step = S / 9;
   g.lineWidth = 1;
@@ -733,10 +961,53 @@ function buildGrid() {
   vg.addColorStop(0, 'rgba(10,40,60,0.10)'); vg.addColorStop(1, 'rgba(0,0,0,0.65)');
   g.fillStyle = vg; g.fillRect(0, 0, W, H);
   // bord lumineux du terrain
-  g.globalCompositeOperation = 'lighter';
+  g.globalCompositeOperation = ADD();
   g.strokeStyle = rgba(COL.cyan, .12); g.lineWidth = 8; g.strokeRect(0, 0, W, H);
   g.strokeStyle = rgba(COL.cyan, .5); g.lineWidth = 1.5; g.strokeRect(1, 1, W - 2, H - 2);
   g.globalCompositeOperation = 'source-over';
+}
+
+// Tableau noir : ardoise verte, traces de chiffon, calculs mal effacés, date du jour, cadre en bois
+function buildBoard(g) {
+  const bg = g.createRadialGradient(cx, cy * .9, S * .1, cx, cy, Math.hypot(W, H) * .65);
+  bg.addColorStop(0, '#30523f'); bg.addColorStop(1, '#1a3026');
+  g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  let seed = 7;
+  const r = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  for (let i = 0; i < 34; i++) {
+    const x = r() * W, y = r() * H, rad = S * (.08 + r() * .28);
+    const gr = g.createRadialGradient(x, y, 0, x, y, rad);
+    gr.addColorStop(0, `rgba(255,255,255,${.02 + r() * .045})`); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.save(); g.translate(x, y); g.scale(1.6, .7 + r() * .4); g.translate(-x, -y);
+    g.fillStyle = gr; g.beginPath(); g.arc(x, y, rad, 0, TAU); g.fill(); g.restore();
+  }
+  g.lineCap = 'round';
+  for (let i = 0; i < 7; i++) {   // coups de chiffon
+    g.strokeStyle = `rgba(255,255,255,${.018 + r() * .02})`; g.lineWidth = S * (.08 + r() * .08);
+    const x = r() * W, y = r() * H;
+    g.beginPath(); g.arc(x, y, S * (.3 + r() * .4), r() * TAU, r() * TAU + 1.2); g.stroke();
+  }
+  const ghosts = ['3 + 4 = 7', '12 ÷ 4 = 3', '6 × 7 = 42', '9 − 5', '2 + 2 = 4', '8 × 8 = 64', '15 − 6 = 9', '7 × 3', '81 ÷ 9 = 9', '5 + 8 = 13'];
+  g.font = `${Math.max(16, S * .07)}px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  for (let i = 0; i < 9; i++) {
+    const x = r() * W, y = r() * H;
+    if (Math.hypot(x - cx, y - cy) < S * .3) continue;
+    g.save(); g.translate(x, y); g.rotate((r() - .5) * .3);
+    g.fillStyle = `rgba(255,255,255,${.035 + r() * .03})`; g.fillText(ghosts[i % ghosts.length], 0, 0); g.restore();
+  }
+  // la date du jour, comme en classe
+  let d = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  d = d.charAt(0).toUpperCase() + d.slice(1);
+  g.font = `${clamp(S * .06, 15, 26)}px ${FONT}`;
+  g.fillStyle = 'rgba(246,246,238,.55)';
+  const dy = 66;   // sous les compteurs et boutons du haut
+  g.fillText(d, cx, dy);
+  g.strokeStyle = 'rgba(246,246,238,.35)'; g.lineWidth = 1.5;
+  const tw = g.measureText(d).width, uy = dy + clamp(S * .035, 10, 16);
+  g.beginPath(); g.moveTo(cx - tw / 2, uy); g.lineTo(cx + tw / 2, uy); g.stroke();
+  // cadre en bois
+  g.lineWidth = 10; g.strokeStyle = '#6e4626'; g.strokeRect(0, 0, W, H);
+  g.lineWidth = 2; g.strokeStyle = 'rgba(0,0,0,.35)'; g.strokeRect(5, 5, W - 10, H - 10);
 }
 
 /* ================= État ================= */
@@ -1528,7 +1799,7 @@ function drawHint() {
   if (!G.hint || G.now > G.hint.until) return;
   const pulse = .5 + .5 * Math.sin(G.now * 9);
   ctx.save();
-  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalCompositeOperation = ADD();
   ctx.setLineDash([6, 5]); ctx.lineDashOffset = -G.now * 40;
   for (const it of G.hint.items) {
     if (it.dead || it.state === 'merging' || it.state === 'fusing') continue;
@@ -1542,7 +1813,7 @@ function drawHint() {
 function burst(x, y, c, n, speed, life, size) {
   for (let i = 0; i < n; i++) {
     const a = rand(0, TAU), s = rand(.2, 1) * speed;
-    G.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, life: rand(.5, 1) * life, c, s: rand(.6, 1.2) * size, drag: 3 });
+    G.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, life: rand(.5, 1) * life, c, s: rand(.6, 1.2) * size, drag: 3, grav: TH.chalk ? S * .7 : 0 });
   }
 }
 function burstRing(x, y, c, n, rad, inward) {
@@ -1624,11 +1895,13 @@ function newGame() {
 }
 function win() {
   G.won = true; G.over = true; G.endT = 1.4; G.fwT = 0;
+  $('#hintBox').hidden = true;
   G.texts.push({ text: 'OBJECTIF ATTEINT !', x: cx, y: Math.max(H * .2, 40), t: 0, life: 2.5, c: COL.gold, size: Math.min(46, S * .11), rise: 0 });
   Sfx.win();
 }
 function timeUp() {
   G.over = true; G.endT = .9;
+  $('#hintBox').hidden = true;
   G.texts.push({ text: 'TEMPS ÉCOULÉ', x: cx, y: Math.max(H * .2, 40), t: 0, life: 2, c: COL.red, size: Math.min(46, S * .11), rise: 0, glitch: true });
   Sfx.timeUp();
 }
@@ -1819,8 +2092,49 @@ function update(dt) {
 }
 
 /* ================= Rendu ================= */
+// Craie : un motif granuleux par couleur, et des contours légèrement tremblés
+let chalkPats = {};
+function chalkPattern(c) {
+  const key = c.join(',');
+  if (chalkPats[key]) return chalkPats[key];
+  const cv2 = document.createElement('canvas'); cv2.width = cv2.height = 64;
+  const x = cv2.getContext('2d');
+  x.fillStyle = rgba(c, .92); x.fillRect(0, 0, 64, 64);
+  x.globalCompositeOperation = 'destination-out';
+  for (let i = 0; i < 650; i++) { x.fillStyle = `rgba(0,0,0,${Math.random() * .8})`; x.fillRect(Math.random() * 64, Math.random() * 64, 1 + Math.random() * 1.6, 1 + Math.random() * 1.6); }
+  return (chalkPats[key] = ctx.createPattern(cv2, 'repeat'));
+}
+function chalkStroke(path, c, lw, a) {
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.globalAlpha = a; ctx.strokeStyle = chalkPattern(c); ctx.lineWidth = lw * 1.35; ctx.stroke(path);
+  ctx.globalAlpha = a * .35; ctx.translate(.9, -.7); ctx.lineWidth = lw * .8; ctx.stroke(path);
+  ctx.restore();
+}
+const sr = (seed, k) => { const v = Math.sin(seed * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v); };
+function wobbleCircle(x, y, r, seed) {
+  const p = new Path2D(), n = 26, ph = sr(seed, 1) * TAU, ph2 = sr(seed, 2) * TAU;
+  for (let i = 0; i <= n + 1; i++) {
+    const a = (i / n) * TAU + sr(seed, 3) * .4;
+    const rr = r * (1 + .045 * Math.sin(2 * a + ph) + .03 * Math.sin(3 * a + ph2)) + (i > n ? r * .06 : 0);
+    const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr;
+    i ? p.lineTo(px, py) : p.moveTo(px, py);
+  }
+  return p;
+}
+function wobbleRect(x, y, w, h, seed) {
+  const p = new Path2D(), j = (k) => (sr(seed, k) - .5) * Math.min(w, h) * .08;
+  const pts = [[x + j(1), y + j(2)], [x + w + j(3), y + j(4)], [x + w + j(5), y + h + j(6)], [x + j(7), y + h + j(8)]];
+  p.moveTo(pts[0][0] - w * .04, pts[0][1]);
+  for (let i = 1; i <= 4; i++) {
+    const [ax, ay] = pts[i - 1], [bx, by] = pts[i % 4];
+    p.quadraticCurveTo((ax + bx) / 2 + j(10 + i), (ay + by) / 2 + j(20 + i), bx, by);
+  }
+  p.lineTo(pts[0][0] + w * .06, pts[0][1] + j(30));
+  return p;
+}
 function glowStroke(path, c, lw, a, halo = 5) {
-  ctx.globalCompositeOperation = 'lighter';
+  if (TH.chalk) { chalkStroke(path, c, lw, a); return; }
+  ctx.globalCompositeOperation = ADD();
   ctx.strokeStyle = rgba(c, .14 * a); ctx.lineWidth = lw * halo; ctx.stroke(path);
   ctx.strokeStyle = rgba(c, .3 * a); ctx.lineWidth = lw * (1 + halo * .28); ctx.stroke(path);
   ctx.globalCompositeOperation = 'source-over';
@@ -1834,7 +2148,12 @@ function numFont(v, base) {
 function drawNumber(v, x, y, size, c, a) {
   ctx.font = numFont(v, size);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.globalCompositeOperation = 'lighter';
+  if (TH.chalk) {
+    ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = chalkPattern(c);
+    ctx.font = numFont(v, size * 1.12); ctx.fillText(v, x, y + size * .06); ctx.restore();
+    return;
+  }
+  ctx.globalCompositeOperation = ADD();
   ctx.fillStyle = rgba(c, .45 * a); ctx.fillText(v, x, y + size * .04 + 1);
   ctx.globalCompositeOperation = 'source-over';
   ctx.fillStyle = rgba(COL.ice, a); ctx.fillText(v, x, y + size * .04);
@@ -1846,11 +2165,12 @@ function itemScale(it) {
 function drawTrail(it) {
   const t = it.trail; if (t.length < 4) return;
   const c = it.kind === 'brick' ? COL.orange : COL.cyan;
-  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalCompositeOperation = ADD();
   ctx.lineCap = 'round';
+  const k = TH.chalk ? .3 : 1;   // à la craie : une simple trace de doigt
   for (let i = 2; i < t.length; i += 2) {
     const a = i / t.length;
-    ctx.strokeStyle = rgba(c, .22 * a);
+    ctx.strokeStyle = rgba(c, .22 * a * k);
     ctx.lineWidth = it.r * .55 * a;
     ctx.beginPath(); ctx.moveTo(t[i - 2], t[i - 1]); ctx.lineTo(t[i], t[i + 1]); ctx.stroke();
   }
@@ -1862,12 +2182,15 @@ function drawBall(it) {
   const doomed = it.state === 'doomed';
   const c = doomed ? COL.red : COL.cyan;
   const flick = doomed ? (Math.sin(G.now * 50) > 0 ? 1 : .45) : 1;
-  ctx.fillStyle = 'rgba(2,12,22,0.92)';
-  ctx.beginPath(); ctx.arc(it.x, it.y, r, 0, TAU); ctx.fill();
-  const p = new Path2D(); p.arc(it.x, it.y, r, 0, TAU);
+  let p;
+  if (TH.chalk) p = wobbleCircle(it.x, it.y, r, it.id);
+  else { p = new Path2D(); p.arc(it.x, it.y, r, 0, TAU); }
+  ctx.fillStyle = TH.ballFill; ctx.fill(p);
   glowStroke(p, c, 2.4, flick);
-  ctx.strokeStyle = rgba(c, .3 * flick); ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.arc(it.x, it.y, r * .78, 0, TAU); ctx.stroke();
+  if (!TH.chalk) {
+    ctx.strokeStyle = rgba(c, .3 * flick); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(it.x, it.y, r * .78, 0, TAU); ctx.stroke();
+  }
   drawNumber(it.value, it.x, it.y, r * 1.02, c, flick);
   drawPushed(it, r + 5);
 }
@@ -1876,7 +2199,7 @@ function drawPushed(it, rr) {
   if (!G.easy || !G.running || !isPushed(it) || it.state !== 'free') return;
   const left = clamp((it.pushedUntil - G.now) / PUSH_TIME, 0, 1);
   ctx.save();
-  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalCompositeOperation = ADD();
   ctx.setLineDash([4, 5]); ctx.lineDashOffset = -G.now * 30;
   ctx.strokeStyle = rgba(COL.gold, .35 + .5 * left); ctx.lineWidth = 2;
   ctx.beginPath(); ctx.arc(it.x, it.y, rr, -PI / 2, -PI / 2 + TAU * left); ctx.stroke();
@@ -1896,8 +2219,8 @@ function drawBrick(it) {
   const doomed = it.state === 'doomed';
   const c = doomed ? COL.red : COL.orange;
   const flick = doomed ? (Math.sin(G.now * 50) > 0 ? 1 : .45) : 1;
-  const p = roundRect(it.x - h, it.y - h, h * 2, h * 2, h * .28);
-  ctx.fillStyle = 'rgba(24,10,2,0.92)'; ctx.fill(p);
+  const p = TH.chalk ? wobbleRect(it.x - h, it.y - h, h * 2, h * 2, it.id) : roundRect(it.x - h, it.y - h, h * 2, h * 2, h * .28);
+  ctx.fillStyle = TH.brickFill; ctx.fill(p);
   glowStroke(p, c, 2.6, flick);
   const goal = !doomed && it.value === G.goal && G.won;
   if (goal) glowStroke(roundRect(it.x - h - 5, it.y - h - 5, h * 2 + 10, h * 2 + 10, h * .35), COL.gold, 1.5, .5 + .5 * Math.sin(G.now * 8));
@@ -1930,7 +2253,7 @@ function drawOperator() {
   drawDivider(G.opPrev, 1 - e, ox, oy);
   drawDivider(G.op, e, ox, oy);
   // liens vers les éléments accrochés
-  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalCompositeOperation = ADD();
   for (const it of G.items) {
     if (it.state !== 'attached') continue;
     const a = Math.atan2(it.y - oy, it.x - ox);
@@ -1943,14 +2266,18 @@ function drawOperator() {
   // disque
   const busy = !!G.fuse;
   const g = ctx.createRadialGradient(ox, oy, 0, ox, oy, OPR);
-  g.addColorStop(0, busy ? 'rgba(255,157,46,0.35)' : 'rgba(62,240,255,0.14)');
-  g.addColorStop(1, 'rgba(2,10,20,0.95)');
-  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(ox, oy, OPR, 0, TAU); ctx.fill();
-  const ring = new Path2D(); ring.arc(ox, oy, OPR, 0, TAU);
+  g.addColorStop(0, busy ? TH.diskBusy : TH.diskIn);
+  g.addColorStop(1, TH.diskOut);
+  let ring;
+  if (TH.chalk) ring = wobbleCircle(ox, oy, OPR, 99);
+  else { ring = new Path2D(); ring.arc(ox, oy, OPR, 0, TAU); }
+  ctx.fillStyle = g; ctx.fill(ring);
   glowStroke(ring, busy ? COL.orange : COL.ice, 2.5, 1);
+  if (TH.chalk) glowStroke(wobbleCircle(ox, oy, OPR * 1.08, 42), COL.ice, 1.2, .45);
   // roue crantée qui tourne au changement d'opération
   ctx.save(); ctx.translate(ox, oy); ctx.rotate(G.ringRot);
-  ctx.strokeStyle = rgba(COL.cyan, .75); ctx.lineWidth = 2; ctx.lineCap = 'round';
+  ctx.strokeStyle = TH.chalk ? chalkPattern(COL.cyan) : rgba(COL.cyan, .75); ctx.lineWidth = 2; ctx.lineCap = 'round';
+  if (TH.chalk) ctx.globalAlpha = .55;
   ctx.beginPath();
   for (let i = 0; i < 16; i++) {
     const a = (i / 16) * TAU, r1 = OPR * (i % 4 === 0 ? .76 : .84), r2 = OPR * .92;
@@ -1973,7 +2300,7 @@ function drawOperator() {
   drawSym(G.op, -(1 - e) * PI / 2 + sw, e, .7 + e * .3);
   if (busy) {
     const p = clamp(G.fuse.t / .55, 0, 1);
-    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalCompositeOperation = ADD();
     ctx.strokeStyle = rgba(COL.orange, .6 * (1 - p)); ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(ox, oy, OPR * (1 + p * 1.5), 0, TAU); ctx.stroke();
     ctx.globalCompositeOperation = 'source-over';
@@ -1988,9 +2315,10 @@ function drawMerges() {
     const r = m.r * s * wob;
     if (r <= .5) continue;
     const c = m.sum >= 10 ? COL.gold : COL.cyan;
-    ctx.fillStyle = 'rgba(2,12,22,0.92)';
-    ctx.beginPath(); ctx.arc(m.x, m.y, r, 0, TAU); ctx.fill();
-    const p = new Path2D(); p.arc(m.x, m.y, r, 0, TAU);
+    let p;
+    if (TH.chalk) p = wobbleCircle(m.x, m.y, r, 5);
+    else { p = new Path2D(); p.arc(m.x, m.y, r, 0, TAU); }
+    ctx.fillStyle = TH.ballFill; ctx.fill(p);
     glowStroke(p, c, 3, 1);
     const label = t < .22 ? m.balls.map((e) => e.v).join('+') : '=' + m.sum;
     let size = r * .78;
@@ -2002,7 +2330,7 @@ function drawMerges() {
   }
 }
 function drawRockets() {
-  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalCompositeOperation = ADD();
   ctx.lineCap = 'round';
   for (const r of G.rockets) {
     const t = r.trail;
@@ -2010,12 +2338,28 @@ function drawRockets() {
       const f = 1 - (G.now - t[i].t) / .8;
       if (f <= 0) continue;
       const w = t[i].w * f;
+      if (TH.chalk) {
+        // trait de craie : une légère trace de poussière et un trait granuleux de la couleur de la craie
+        ctx.strokeStyle = rgba(t[i].c, .1 * f); ctx.lineWidth = w * 1.5;
+        ctx.beginPath(); ctx.moveTo(t[i - 1].x, t[i - 1].y); ctx.lineTo(t[i].x, t[i].y); ctx.stroke();
+        ctx.save(); ctx.globalAlpha = f; ctx.strokeStyle = chalkPattern(t[i].c); ctx.lineWidth = Math.max(1.5, w * .7);
+        ctx.beginPath(); ctx.moveTo(t[i - 1].x, t[i - 1].y); ctx.lineTo(t[i].x, t[i].y); ctx.stroke(); ctx.restore();
+        continue;
+      }
       ctx.strokeStyle = rgba(t[i].c, .3 * f); ctx.lineWidth = w * 2.4;
       ctx.beginPath(); ctx.moveTo(t[i - 1].x, t[i - 1].y); ctx.lineTo(t[i].x, t[i].y); ctx.stroke();
       ctx.strokeStyle = rgba(COL.ice, .8 * f); ctx.lineWidth = Math.max(1, w * .45);
       ctx.beginPath(); ctx.moveTo(t[i - 1].x, t[i - 1].y); ctx.lineTo(t[i].x, t[i].y); ctx.stroke();
     }
-    if (!r.done) {
+    if (!r.done && TH.chalk) {
+      // un morceau de craie lancé
+      const p = r.age / r.life;
+      ctx.save(); ctx.translate(r.x, r.y); ctx.rotate(r.h);
+      ctx.fillStyle = chalkPattern(COL.ice); ctx.fillRect(-10, -3.5, 20, 7);
+      ctx.restore();
+      ctx.save(); ctx.setLineDash([3, 6]); ctx.strokeStyle = rgba(COL.ice, .3 * (1 - p)); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(r.x, r.y, r.rad || 0, 0, TAU); ctx.stroke(); ctx.restore();
+    } else if (!r.done) {
       const p = r.age / r.life;
       const c = FW_COLS[Math.floor(r.hue)];
       ctx.fillStyle = rgba(c, .35);
@@ -2032,7 +2376,7 @@ function drawRockets() {
   ctx.globalCompositeOperation = 'source-over';
 }
 function drawWaves() {
-  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalCompositeOperation = ADD();
   for (const w of G.waves) {
     const p = w.t / w.life, r = w.r * easeOut(p), a = 1 - p;
     ctx.strokeStyle = rgba(w.c, .7 * a); ctx.lineWidth = (w.thick ? 8 : 3) * a + 1;
@@ -2043,7 +2387,7 @@ function drawWaves() {
   ctx.globalCompositeOperation = 'source-over';
 }
 function drawParts() {
-  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalCompositeOperation = ADD();
   for (const p of G.parts) {
     const a = 1 - p.t / p.life;
     ctx.fillStyle = rgba(p.c, a);
@@ -2065,7 +2409,13 @@ function drawTexts() {
     const y = t.y - t.rise * p;
     let jx = 0;
     if (t.glitch && !reduceMotion && Math.random() < .25) jx = rand(-6, 6);
-    ctx.globalCompositeOperation = 'lighter';
+    if (TH.chalk) {
+      // écrit à la craie, sans halo
+      ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = chalkPattern(t.glitch ? COL.red : t.c);
+      ctx.fillText(t.text, t.x + jx, y); ctx.restore();
+      continue;
+    }
+    ctx.globalCompositeOperation = ADD();
     if (t.glitch) {
       ctx.fillStyle = rgba(COL.cyan, .5 * a); ctx.fillText(t.text, t.x + jx - 3, y);
       ctx.fillStyle = rgba(COL.red, .6 * a); ctx.fillText(t.text, t.x + jx + 3, y);
@@ -2165,7 +2515,7 @@ function drawFlings() {
     if (it.dead || it.state !== 'attached') continue;
     const dx = st.x - st.x0, dy = st.y - st.y0, len = Math.hypot(dx, dy);
     ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalCompositeOperation = ADD();
     ctx.strokeStyle = rgba(COL.gold, .9); ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.arc(it.x, it.y, it.r + 6, 0, TAU); ctx.stroke();
     if (len >= 14) {
@@ -2319,6 +2669,12 @@ document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('contextmenu', (e) => { if (e.target === cvs) e.preventDefault(); });
 
 /* ================= Démarrage ================= */
+applyTheme(store.get('da', 'neon'));
+document.querySelectorAll('.da-switch button').forEach((b) => b.addEventListener('click', () => {
+  Sfx.init(); applyTheme(b.dataset.da); store.set('da', b.dataset.da); Sfx.tick();
+}));
+// le fond (date écrite à la craie) est redessiné une fois les polices chargées
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => buildGrid());
 new ResizeObserver(resize).observe(field);
 resize();
 selectTime(G.timeLimit === 60 || G.timeLimit === 300 || G.timeLimit === 600 || G.timeLimit === 0 ? G.timeLimit : 60);
