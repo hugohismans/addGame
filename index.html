@@ -277,6 +277,35 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   border: 1px solid var(--line); border-radius: 8px; background: var(--panel);
   padding: 16px 18px; font-size: 14px; line-height: 1.5; color: #cfe7ef;
 }
+.tabs { display: flex; gap: 18px; margin-bottom: 10px; }
+.tabs button {
+  background: none; border: 0; padding: 0 0 4px; border-bottom: 2px solid transparent;
+  font-family: var(--f-display); font-size: 14px; letter-spacing: .18em; font-weight: 700; color: var(--muted);
+}
+.tabs button[aria-selected="true"] { color: var(--cyan); border-bottom-color: var(--cyan); }
+.hs { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.hs th { text-align: left; font-family: var(--f-display); font-size: 10px; letter-spacing: .14em; color: var(--muted); font-weight: 600; padding: 0 6px 6px; }
+.hs td { padding: 5px 6px; border-top: 1px solid rgba(62, 240, 255, .12); }
+.hs td.r { font-family: var(--f-display); color: var(--muted); width: 2em; }
+.hs tr:first-child td.r { color: var(--gold); }
+.hs td.g { font-family: var(--f-display); font-weight: 700; color: var(--orange); }
+.hs td.o { font-family: var(--f-display); font-weight: 700; color: var(--ice); }
+.hs td.n { max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hs .tag { font-size: 10px; letter-spacing: .1em; color: var(--gold); border: 1px solid rgba(255, 224, 102, .4); border-radius: 3px; padding: 0 4px; margin-left: 4px; }
+.hs tr.me td { background: rgba(255, 224, 102, .08); }
+.hs-empty { color: var(--muted); font-size: 14px; }
+.hs-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+#clearScores { background: none; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); font-size: 12px; padding: 4px 8px; }
+#clearScores.armed { color: var(--danger); border-color: var(--danger); }
+.playrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+#nameInput {
+  height: 54px; width: 150px; padding: 0 12px; border-radius: 8px;
+  border: 1px solid var(--line); background: rgba(0, 0, 0, .35); color: var(--ice);
+  font-family: var(--f-display); font-size: 15px; letter-spacing: .06em;
+  -webkit-user-select: text; user-select: text;
+}
+#nameInput:focus { outline: 2px solid var(--gold); outline-offset: 2px; }
+#nameInput::placeholder { color: var(--muted); }
 .rules h2 { margin: 0 0 10px; font-family: var(--f-display); font-size: 14px; letter-spacing: .18em; color: var(--cyan); font-weight: 700; }
 .rules ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
 .rules li::marker { color: var(--cyan); font-family: var(--f-display); }
@@ -317,6 +346,7 @@ kbd {
   .optop, .switch { height: 36px; }
   .label { margin-bottom: 6px; }
   .big-btn { height: 46px; }
+  #nameInput { height: 46px; }
   .rules { padding: 12px 14px; font-size: 12.5px; line-height: 1.4; }
   .rules ol { gap: 3px; }
   .rules .modes { margin-top: 8px; }
@@ -391,16 +421,27 @@ kbd {
           <button id="op3" class="optop" data-op="3" aria-pressed="true" aria-label="Division">÷</button>
           <button id="easyBtn" class="switch" role="switch" aria-checked="false"><span class="knob"></span>MODE FACILE</button>
         </div>
-        <button id="playBtn" class="big-btn">JOUER</button>
+        <div class="playrow">
+          <input id="nameInput" type="text" maxlength="12" placeholder="Ton pseudo" aria-label="Pseudo pour les high scores" autocomplete="nickname" spellcheck="false">
+          <button id="playBtn" class="big-btn">JOUER</button>
+        </div>
         <div id="installBox" hidden></div>
       </div>
       <div class="rules">
-        <h2>COMMENT JOUER</h2>
+        <div class="tabs" role="tablist">
+          <button id="tabRulesBtn" role="tab" aria-selected="true" aria-controls="tabRules">COMMENT JOUER</button>
+          <button id="tabScoresBtn" role="tab" aria-selected="false" aria-controls="tabScores">HIGH SCORES</button>
+        </div>
+        <div id="tabScores" role="tabpanel" hidden>
+          <div id="hsBody"></div>
+          <div class="hs-foot"><span>Classement : le moins d'opérations, puis le temps le plus court. Gardé sur cet appareil.</span><button id="clearScores">Effacer</button></div>
+        </div>
+        <div id="tabRules" role="tabpanel">
         <ol>
           <li>Les <span class="b-cyan">bulles</span> valent de 1 à 9 : le 1 est petit et rapide, le 9 gros et lent. Quand deux bulles se touchent, l'une gagne 1 et l'autre perd 1, sans jamais redonner la même paire (7 et 6 deviennent 8 et 5), puis elles rebondissent comme des billes de billard. Une bulle 0 ou 10 explose.</li>
           <li>Une bulle qui touche l'opérateur au centre s'y accroche. Pour <b>−</b> et <b>÷</b>, le côté compte : gauche ou haut d'abord, droite ou bas ensuite. Le bouton <b>⇄</b> fait pivoter l'opérateur d'un demi-tour pour inverser les côtés.</li>
           <li>Change d'opération avec <b>⟳</b>, puis appuie sur <b class="b-orange">=</b> pour obtenir une <span class="b-orange">brique</span>. Pas de résultat négatif ni de division qui tombe pas juste.</li>
-          <li>Gagne en créant une brique égale à l'objectif, en le moins d'opérations possible : chaque = compte.</li>
+          <li>Gagne en créant une brique égale à l'objectif, en le moins d'opérations possible : chaque = compte. Les meilleures parties vont dans les <b>high scores</b>.</li>
         </ol>
         <div class="modes">
           <div><b>BLOW</b>Touche l'écran pour repousser tout ce qui est autour. Sur l'opérateur, ça décroche ce qui y est accroché.</div>
@@ -408,6 +449,7 @@ kbd {
         </div>
         <div class="keys"><b class="b-orange">Mode facile</b> : rien ne s'accroche par hasard. Une bulle ne s'accroche que si tu l'as poussée (anneau doré pendant 2,5 s), ou avec le mode <b>TARGET</b> : touche-la pour l'envoyer sur l'opérateur, retouche-la pour la décrocher.</div>
         <div class="keys">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>S</kbd> inverser · <kbd>H</kbd> indice · <kbd>M</kbd> mode (<kbd>B</kbd> <kbd>F</kbd> <kbd>T</kbd>) · <kbd>R</kbd> rejouer · clic pour agir</div>
+        </div>
       </div>
     </div>
   </section>
@@ -1333,6 +1375,53 @@ function timeUp() {
   G.texts.push({ text: 'TEMPS ÉCOULÉ', x: cx, y: Math.max(H * .2, 40), t: 0, life: 2, c: COL.red, size: Math.min(46, S * .11), rise: 0, glitch: true });
   Sfx.timeUp();
 }
+/* ================= High scores (locaux) ================= */
+const HS_MAX = 10;
+const hsSort = (a, b) => a.ops - b.ops || a.time - b.time || a.hints - b.hints;
+function loadScores() {
+  const l = store.get('scores', []);
+  return Array.isArray(l) ? l.filter((e) => e && typeof e.ops === 'number').sort(hsSort).slice(0, HS_MAX) : [];
+}
+// ajoute la partie gagnée et renvoie sa place (1 à 10), ou 0 si elle n'entre pas dans le classement
+function addScore(entry) {
+  const list = loadScores().concat(entry).sort(hsSort);
+  const rank = list.indexOf(entry) + 1;
+  store.set('scores', list.slice(0, HS_MAX));
+  return rank <= HS_MAX ? rank : 0;
+}
+let lastScoreId = 0;
+function renderScores() {
+  const body = $('#hsBody');
+  const list = loadScores();
+  body.textContent = '';
+  if (!list.length) {
+    const p = document.createElement('p'); p.className = 'hs-empty';
+    p.textContent = 'Pas encore de score. Gagne une partie pour entrer au classement.';
+    body.appendChild(p); return;
+  }
+  const t = document.createElement('table'); t.className = 'hs';
+  t.innerHTML = '<thead><tr><th>#</th><th>PSEUDO</th><th>OBJECTIF</th><th>OPÉ.</th><th>TEMPS</th></tr></thead>';
+  const tb = document.createElement('tbody');
+  list.forEach((e, i) => {
+    const tr = document.createElement('tr');
+    if (e.id === lastScoreId) tr.className = 'me';
+    const cells = [[String(i + 1), 'r'], [e.name || 'Joueur', 'n'], [String(e.goal), 'g'], [String(e.ops), 'o'], [fmtTime(e.time), '']];
+    cells.forEach(([txt, cls]) => { const td = document.createElement('td'); td.textContent = txt; if (cls) td.className = cls; tr.appendChild(td); });
+    const tags = [];
+    if (e.easy) tags.push('FACILE');
+    if (e.hints) tags.push(e.hints + ' IND.');
+    tags.forEach((g) => { const sp = document.createElement('span'); sp.className = 'tag'; sp.textContent = g; tr.children[1].appendChild(sp); });
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb); body.appendChild(t);
+}
+function showTab(scores) {
+  $('#tabScores').hidden = !scores; $('#tabRules').hidden = scores;
+  $('#tabScoresBtn').setAttribute('aria-selected', String(scores));
+  $('#tabRulesBtn').setAttribute('aria-selected', String(!scores));
+  if (scores) renderScores();
+}
+
 function showEnd() {
   const card = $('#endCard');
   if (G.won) {
@@ -1348,7 +1437,12 @@ function showEnd() {
       rec = prev === undefined ? '' : `<br><span class="rec">Nouveau record pour ${G.goal} ! (avant : ${prev})</span>`;
     } else rec = `<br><span class="muted2">Record pour ${G.goal} : ${prev} opération${prev > 1 ? 's' : ''}</span>`;
     const hints = G.hintsUsed ? ` · ${G.hintsUsed} indice${G.hintsUsed > 1 ? 's' : ''}` : '';
-    $('#endText').innerHTML = `Tu as fabriqué la brique <b>${G.goal}</b> en <b class="ops">${ops}</b> et ${fmtTime(G.elapsed)}${hints}.${rec}`;
+    const entry = { id: Date.now(), name: playerName(), goal: G.goal, ops: n, time: Math.ceil(G.elapsed), hints: G.hintsUsed, easy: G.easy, date: new Date().toISOString().slice(0, 10) };
+    lastScoreId = entry.id;
+    const rank = addScore(entry);
+    const hs = rank === 1 ? `<br><span class="rec">Meilleur score ! 1<sup>er</sup> du classement</span>`
+      : rank ? `<br><span class="rec">High score : ${rank}<sup>e</sup> du classement</span>` : '';
+    $('#endText').innerHTML = `Tu as fabriqué la brique <b>${G.goal}</b> en <b class="ops">${ops}</b> et ${fmtTime(G.elapsed)}${hints}.${hs}${rec}`;
   } else {
     card.classList.add('lose');
     $('#endTitle').textContent = 'TEMPS ÉCOULÉ';
@@ -1358,10 +1452,15 @@ function showEnd() {
   $('#end').hidden = false;
   $('#againBtn').focus({ preventScroll: true });
 }
+function playerName() {
+  const v = ($('#nameInput').value || '').trim().slice(0, 12);
+  return v || 'Joueur';
+}
 function goHome() {
   G.running = false; G.over = false; G.won = false; G.fuse = null;
   for (const it of G.items) if (it.state === 'attached' || it.state === 'fusing') { it.state = 'free'; const a = rand(0, TAU); it.vx = Math.cos(a) * BASE; it.vy = Math.sin(a) * BASE; }
   $('#end').hidden = true; $('#home').hidden = false;
+  if (!$('#tabScores').hidden) renderScores();
   $('#playBtn').focus({ preventScroll: true });
 }
 let timerStr = '';
@@ -1750,6 +1849,25 @@ function syncOptions() {
   document.querySelectorAll('.optop').forEach((b) => b.setAttribute('aria-pressed', String(G.ops[+b.dataset.op])));
   $('#easyBtn').setAttribute('aria-checked', String(G.easy));
 }
+$('#tabRulesBtn').addEventListener('click', () => showTab(false));
+$('#tabScoresBtn').addEventListener('click', () => showTab(true));
+$('#nameInput').value = store.get('name', '');
+$('#nameInput').addEventListener('input', () => store.set('name', $('#nameInput').value.trim().slice(0, 12)));
+$('#nameInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('#nameInput').blur(); newGame(); } });
+let clearArmed = 0;
+$('#clearScores').addEventListener('click', (e) => {
+  const b = e.currentTarget;
+  if (!clearArmed) {
+    // confirmation en deux temps, dans la page
+    b.textContent = 'Confirmer ?'; b.classList.add('armed');
+    clearArmed = setTimeout(() => { clearArmed = 0; b.textContent = 'Effacer'; b.classList.remove('armed'); }, 3000);
+    return;
+  }
+  clearTimeout(clearArmed); clearArmed = 0;
+  store.set('scores', []); store.set('best', {});
+  b.textContent = 'Effacer'; b.classList.remove('armed');
+  renderScores();
+});
 document.querySelectorAll('.optop').forEach((b) => b.addEventListener('click', () => {
   Sfx.init();
   const i = +b.dataset.op;
@@ -1765,6 +1883,8 @@ document.querySelectorAll('.times button').forEach((b) => b.addEventListener('cl
 
 window.addEventListener('keydown', (e) => {
   const k = e.key;
+  // on tape son pseudo : pas de raccourcis
+  if (e.target && e.target.tagName === 'INPUT') return;
   const homeOpen = !$('#home').hidden, endOpen = !$('#end').hidden;
   if (homeOpen) {
     const onOtherBtn = document.activeElement && document.activeElement.tagName === 'BUTTON' && document.activeElement.id !== 'playBtn';
