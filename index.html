@@ -86,11 +86,12 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 }
 .mode {
   position: relative; display: grid; grid-template-columns: 1fr 1fr;
-  width: 172px; height: 44px; padding: 3px;
+  width: 172px; --n: 2; height: 44px; padding: 3px;
   border: 1px solid var(--line); border-radius: 22px; background: rgba(0, 0, 0, .35);
 }
 .mode .thumb {
-  position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 3px);
+  position: absolute; top: 3px; bottom: 3px; left: 3px;
+  width: calc((100% - 6px) / var(--n));
   border-radius: 19px; background: rgba(62, 240, 255, .16);
   border: 1px solid var(--cyan); box-shadow: 0 0 12px rgba(62, 240, 255, .55), inset 0 0 10px rgba(62, 240, 255, .25);
   transition: transform .22s cubic-bezier(.3, 1.4, .5, 1), border-color .2s, background .2s, box-shadow .2s;
@@ -107,6 +108,16 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 }
 .mode[data-mode="blow"] .opt[data-m="blow"] { color: var(--cyan); }
 .mode[data-mode="fire"] .opt[data-m="fire"] { color: var(--pink); }
+.mode[data-mode="target"] .opt[data-m="target"] { color: var(--gold); }
+.mode .opt[data-m="target"] { display: none; }
+.mode.easy { grid-template-columns: 1fr 1fr 1fr; width: 246px; --n: 3; }
+.mode.easy .opt[data-m="target"] { display: grid; }
+.mode[data-mode="target"] .thumb {
+  transform: translateX(200%);
+  border-color: var(--gold); background: rgba(255, 224, 102, .14);
+  box-shadow: 0 0 12px rgba(255, 224, 102, .55), inset 0 0 10px rgba(255, 224, 102, .22);
+}
+.mode .opt .s { display: none; }
 
 .goal { display: flex; align-items: center; gap: 10px; }
 .goal .lbl { font-size: 11px; letter-spacing: .22em; color: var(--muted); font-weight: 600; }
@@ -143,7 +154,10 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 @media (max-width: 460px) {
   #bar { gap: 6px; padding-left: 10px; padding-right: 10px; }
   .mode { width: 138px; }
+  .mode.easy { width: 146px; }
   .mode .opt { font-size: 10px; letter-spacing: .06em; }
+  .mode.easy .opt .l { display: none; }
+  .mode.easy .opt .s { display: inline; }
   .goal .lbl { display: none; }
   #eqBtn { width: 54px; }
   .actions { gap: 6px; }
@@ -297,10 +311,11 @@ kbd {
   </div>
 
   <div id="bar">
-    <button id="modeBtn" class="mode" data-mode="blow" aria-label="Changer de mode : Blow ou Firework (touche M)">
+    <button id="modeBtn" class="mode" data-mode="blow" aria-label="Changer de mode : Blow, Firework ou Target (touche M)">
       <span class="thumb"></span>
       <span class="opt" data-m="blow">BLOW</span>
-      <span class="opt" data-m="fire">FIREWORK</span>
+      <span class="opt" data-m="fire"><span class="l">FIREWORK</span><span class="s">FIRE</span></span>
+      <span class="opt" data-m="target">TARGET</span>
     </button>
     <div class="goal">
       <span class="lbl">OBJECTIF</span>
@@ -351,8 +366,8 @@ kbd {
           <div><b>BLOW</b>Touche l'écran pour repousser tout ce qui est autour. Sur l'opérateur, ça décroche ce qui y est accroché.</div>
           <div class="fire"><b>FIREWORK</b>Lance une fusée qui erre 2 à 3 secondes et repousse ce qu'elle frôle, de moins en moins fort.</div>
         </div>
-        <div class="keys"><b class="b-orange">Mode facile</b> : une bulle ne s'accroche à l'opérateur que si tu l'as poussée (elle brille en doré pendant 2,5 s). Sinon elle rebondit dessus.</div>
-        <div class="keys">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>S</kbd> inverser · <kbd>M</kbd> mode · <kbd>R</kbd> rejouer · clic pour agir</div>
+        <div class="keys"><b class="b-orange">Mode facile</b> : ajoute le mode <b>TARGET</b>. Touche une bulle ou une brique pour l'envoyer directement sur l'opérateur, touche-la encore pour la décrocher.</div>
+        <div class="keys">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>S</kbd> inverser · <kbd>M</kbd> mode (<kbd>B</kbd> <kbd>F</kbd> <kbd>T</kbd>) · <kbd>R</kbd> rejouer · clic pour agir</div>
       </div>
     </div>
   </section>
@@ -798,14 +813,14 @@ function explodeItem(it) {
 }
 
 /* ================= Opérateur ================= */
-const PUSH_TIME = 2.5;
-const isPushed = (it) => (it.pushedUntil || 0) > G.now;
 function canAttach(it) {
-  return G.running && !G.over && !G.fuse && G.now >= it.noAttach && (!G.easy || isPushed(it));
+  return G.running && !G.over && !G.fuse && G.now >= it.noAttach;
 }
-function attach(it) {
+const sideOf = (it) => (G.op === 3 ? (it.y < cy ? 'A' : 'B') : (it.x < cx ? 'A' : 'B'));
+function attach(it, bySide) {
   it.state = 'attached'; it.vx = it.vy = 0;
-  if (it.kind === 'brick') it.side = Math.random() < .5 ? 'A' : 'B';
+  if (bySide) it.side = sideOf(it);
+  else if (it.kind === 'brick') it.side = Math.random() < .5 ? 'A' : 'B';
   else if (G.op === 3) it.side = it.y < cy ? 'A' : 'B';
   else it.side = it.x < cx ? 'A' : 'B';
   it.order = ++G.order;
@@ -986,8 +1001,31 @@ function blow(px, py) {
     }
     if (it.state === 'spawn') it.state = 'free';
     it.vx += nx * imp; it.vy += ny * imp;
-    it.pushedUntil = G.now + PUSH_TIME;
   }
+}
+// Mode Target (mode facile) : toucher un élément l'envoie sur l'opérateur, le retoucher le décroche.
+function target(px, py) {
+  let best = null, bd = Infinity;
+  for (const it of G.items) {
+    if (it.dead || !['free', 'spawn', 'attached'].includes(it.state)) continue;
+    const d = Math.hypot(it.x - px, it.y - py);
+    if (d < it.r + 14 && d < bd) { best = it; bd = d; }
+  }
+  burstRing(px, py, COL.gold, 10, R * .8);
+  if (!best) { Sfx.tick(); return; }
+  if (best.state === 'attached') {
+    const ox = best.x - cx, oy = best.y - cy, od = Math.hypot(ox, oy) || 1;
+    detach(best, ox / od, oy / od, BASE * 2.4);
+    Sfx.blow();
+    return;
+  }
+  if (G.fuse) { Sfx.invalid(); return; }
+  // traînée dorée jusqu'à l'opérateur
+  for (let i = 0; i <= 12; i++) {
+    const t = i / 12;
+    G.parts.push({ x: best.x + (cx - best.x) * t, y: best.y + (cy - best.y) * t, vx: rand(-20, 20), vy: rand(-20, 20), t: 0, life: .35 + t * .2, c: COL.gold, s: 2.5, drag: 3 });
+  }
+  attach(best, true);
 }
 function launchRocket(px, py) {
   if (G.rockets.filter((r) => !r.done).length >= 3) return;
@@ -1027,7 +1065,6 @@ function updateRockets(dt) {
         if (it.state === 'spawn') it.state = 'free';
         const q = inertia(it);
         it.vx += nx * F * k * q * dt; it.vy += ny * F * k * q * dt;
-        it.pushedUntil = G.now + PUSH_TIME;
       }
       if (Math.random() < .8) {
         G.parts.push({ x: r.x, y: r.y, vx: rand(-40, 40), vy: rand(-40, 40), t: 0, life: rand(.3, .6), c: Math.random() < .5 ? COL.pink : COL.gold, s: rand(1.5, 3) * (1 - p * .6), drag: 2 });
@@ -1110,6 +1147,7 @@ function newGame() {
   G.goal = randi(1, G.ops[0] || G.ops[2] ? 99 : 20);
   $('#opBtn').disabled = G.ops.filter(Boolean).length < 2;
   $('#easyChip').hidden = !G.easy;
+  setMode(G.mode);
   G.timeLeft = G.timeLimit; G.elapsed = 0; G.lastTick = -1;
   G.running = true; G.over = false; G.won = false; G.endT = -1;
   G.spawnPending = false;
@@ -1246,17 +1284,6 @@ function drawBall(it) {
   ctx.strokeStyle = rgba(c, .3 * flick); ctx.lineWidth = 1;
   ctx.beginPath(); ctx.arc(it.x, it.y, r * .78, 0, TAU); ctx.stroke();
   drawNumber(it.value, it.x, it.y, r * 1.02, c, flick);
-  drawPushed(it, r + 5);
-}
-function drawPushed(it, rr) {
-  if (!G.easy || !G.running || !isPushed(it) || it.state !== 'free') return;
-  const left = clamp((it.pushedUntil - G.now) / PUSH_TIME, 0, 1);
-  ctx.save();
-  ctx.globalCompositeOperation = 'lighter';
-  ctx.setLineDash([4, 5]); ctx.lineDashOffset = -G.now * 30;
-  ctx.strokeStyle = rgba(COL.gold, .35 + .5 * left); ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.arc(it.x, it.y, rr, -PI / 2, -PI / 2 + TAU * left); ctx.stroke();
-  ctx.restore();
 }
 function roundRect(x, y, w, h, rr) {
   const p = new Path2D();
@@ -1278,7 +1305,6 @@ function drawBrick(it) {
   const goal = !doomed && it.value === G.goal && G.won;
   if (goal) glowStroke(roundRect(it.x - h - 5, it.y - h - 5, h * 2 + 10, h * 2 + 10, h * .35), COL.gold, 1.5, .5 + .5 * Math.sin(G.now * 8));
   drawNumber(it.value, it.x, it.y, h * 1.9 * .6, c, flick);
-  drawPushed(it, h * 1.42 + 4);
 }
 function symbolPath(op, L) {
   const p = new Path2D();
@@ -1479,11 +1505,14 @@ function frame(ts) {
 }
 
 /* ================= Entrées ================= */
+const modes = () => (G.easy ? ['blow', 'fire', 'target'] : ['blow', 'fire']);
 function setMode(m) {
+  if (!modes().includes(m)) m = 'blow';
   G.mode = m;
   $('#modeBtn').dataset.mode = m;
+  $('#modeBtn').classList.toggle('easy', G.easy);
 }
-function toggleMode() { setMode(G.mode === 'blow' ? 'fire' : 'blow'); Sfx.tick(); }
+function toggleMode() { const l = modes(); setMode(l[(l.indexOf(G.mode) + 1) % l.length]); Sfx.tick(); }
 
 cvs.addEventListener('pointerdown', (e) => {
   e.preventDefault();
@@ -1491,10 +1520,18 @@ cvs.addEventListener('pointerdown', (e) => {
   if (!G.running || G.over) return;
   const r = cvs.getBoundingClientRect();
   const x = e.clientX - r.left, y = e.clientY - r.top;
-  if (G.mode === 'blow') blow(x, y); else launchRocket(x, y);
+  if (G.mode === 'blow') blow(x, y);
+  else if (G.mode === 'fire') launchRocket(x, y);
+  else target(x, y);
 });
 const onBtn = (id, fn) => $(id).addEventListener('click', (e) => { Sfx.init(); fn(); e.currentTarget.blur(); });
-onBtn('#modeBtn', toggleMode);
+$('#modeBtn').addEventListener('click', (e) => {
+  Sfx.init();
+  // toucher directement une option la choisit, sinon on passe au mode suivant
+  const opt = e.target.closest('.opt');
+  if (opt && opt.dataset.m !== G.mode) { setMode(opt.dataset.m); Sfx.tick(); } else toggleMode();
+  e.currentTarget.blur();
+});
 onBtn('#opBtn', switchOp);
 onBtn('#swapBtn', swapSides);
 onBtn('#eqBtn', pressEqual);
@@ -1553,6 +1590,7 @@ window.addEventListener('keydown', (e) => {
   else if (k === 'm' || k === 'M' || k === 'Shift') { e.preventDefault(); toggleMode(); }
   else if (k === 'b' || k === 'B') setMode('blow');
   else if (k === 'f' || k === 'F') setMode('fire');
+  else if (k === 't' || k === 'T') setMode('target');
   else if (k === 'Escape') goHome();
 });
 document.addEventListener('gesturestart', (e) => e.preventDefault());
