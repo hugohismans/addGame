@@ -369,7 +369,7 @@ kbd {
     <canvas id="cv" aria-label="Terrain de jeu"></canvas>
     <div id="hintBox" role="status" hidden></div>
     <div id="hudTop">
-      <div style="display:flex"><div id="timer" aria-live="off">1:00</div><div id="opsChip" title="Nombre d'opérations faites"><span class="l">OPÉRATIONS</span><span class="s">OPS</span> <b id="opsVal">0</b></div><div id="easyChip" hidden>FACILE</div><div id="assistChip" class="chipx" hidden>AIDE +</div></div>
+      <div style="display:flex"><div id="timer" aria-live="off">1:00</div><div id="opsChip" title="Nombre d'opérations faites"><span class="l">OPÉRATIONS</span><span class="s">OPS</span> <b id="opsVal">0</b></div><div id="easyChip" hidden>EXPERT</div><div id="assistChip" class="chipx" hidden>AIDE +</div></div>
       <div class="hud-right">
         <button id="hintBtn" class="icon-btn" aria-label="Indice, coûte 10 secondes (touche H)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>
@@ -424,7 +424,7 @@ kbd {
           <button id="op1" class="optop" data-op="1" aria-pressed="true" aria-label="Soustraction">−</button>
           <button id="op2" class="optop" data-op="2" aria-pressed="true" aria-label="Multiplication">×</button>
           <button id="op3" class="optop" data-op="3" aria-pressed="true" aria-label="Division">÷</button>
-          <button id="easyBtn" class="switch" role="switch" aria-checked="false"><span class="knob"></span>MODE FACILE</button>
+          <button id="easyBtn" class="switch" role="switch" aria-checked="false" title="Sans Target, et tout s'accroche au contact"><span class="knob"></span>MODE EXPERT</button>
           <button id="assistBtn" class="switch" role="switch" aria-checked="false" title="Les bulles qui apparaissent sont choisies pour aider à trouver la solution"><span class="knob"></span>AIDE +</button>
         </div>
         <div class="playrow">
@@ -454,7 +454,7 @@ kbd {
           <div class="fire"><b>FIREWORK</b>Lance une fusée folle qui fonce 2 à 3 secondes, éjecte tout ce qu'elle frôle, lâche des pétards et finit en bouquet.</div>
         </div>
         <div class="keys"><b class="b-orange">Aide +</b> : les bulles qui apparaissent sont choisies pour rapprocher la solution (objectif 63 avec une brique 21 : il arrive un 3). Les règles ne changent pas.</div>
-        <div class="keys"><b class="b-orange">Mode facile</b> : rien ne s'accroche par hasard. Une bulle ne s'accroche que si tu l'as poussée (anneau doré pendant 2,5 s), ou avec le mode <b>TARGET</b> : touche-la pour l'envoyer sur l'opérateur, retouche-la pour la décrocher, ou fais-la glisser pour la lancer dans la direction de ton doigt.</div>
+        <div class="keys"><b class="b-orange">Par défaut</b>, rien ne s'accroche par hasard : une bulle ne s'accroche que si tu l'as poussée (anneau doré pendant 2,5 s), ou avec le mode <b>TARGET</b> (touche-la pour l'envoyer sur l'opérateur, retouche-la pour la décrocher, ou fais-la glisser pour la lancer). <b class="b-orange">Mode expert</b> : pas de Target, et tout s'accroche au contact.</div>
         <div class="keys">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>S</kbd> inverser · <kbd>H</kbd> indice · <kbd>M</kbd> mode (<kbd>B</kbd> <kbd>F</kbd> <kbd>T</kbd>) · <kbd>R</kbd> rejouer · clic pour agir</div>
         </div>
       </div>
@@ -680,7 +680,7 @@ const G = {
   items: [], merges: [], rockets: [], parts: [], waves: [], texts: [],
   mode: 'blow', op: 0, opPrev: 0, opAnim: 1, swapAnim: 1,
   ops: (() => { const o = store.get('ops', [true, true, true, true]); return Array.isArray(o) && o.length === 4 && o.some(Boolean) ? o.map(Boolean) : [true, true, true, true]; })(),
-  easy: !!store.get('easy', false), assist: !!store.get('assist', false), ringRot: 0, ringTarget: 0, opShake: 0,
+  easy: !store.get('expert', false), assist: !!store.get('assist', false), ringRot: 0, ringTarget: 0, opShake: 0,
   goal: 42, timeLimit: store.get('time', 60), timeLeft: 60, elapsed: 0, lastTick: -1,
   running: false, over: false, won: false, endT: -1, fwT: 0,
   spawnPending: false, spawnT: 0, shake: 0, fuse: null, now: 0, order: 0,
@@ -935,7 +935,7 @@ function explodeItem(it) {
 }
 
 /* ================= Opérateur ================= */
-// Mode facile : rien ne s'accroche par hasard. Il faut l'avoir poussé (Blow, Firework) dans les 2,5 dernières secondes,
+// Règles de base (hors mode expert) : rien ne s'accroche par hasard. Il faut l'avoir poussé (Blow, Firework) dans les 2,5 dernières secondes,
 // ou l'envoyer avec Target.
 const PUSH_TIME = 2.5;
 const isPushed = (it) => (it.pushedUntil || 0) > G.now;
@@ -1140,7 +1140,7 @@ function blow(px, py) {
     it.pushedUntil = G.now + PUSH_TIME;
   }
 }
-// Mode Target (mode facile) : toucher un élément l'envoie sur l'opérateur, le retoucher le décroche.
+// Mode Target (hors mode expert) : toucher un élément l'envoie sur l'opérateur, le retoucher le décroche.
 function target(px, py, pointerId) {
   let best = null, bd = Infinity;
   for (const it of G.items) {
@@ -1399,7 +1399,7 @@ function newGame() {
   // sans + ni ×, les résultats restent petits : objectif entre 1 et 20
   G.goal = randi(1, G.ops[0] || G.ops[2] ? 99 : 20);
   $('#opBtn').disabled = G.ops.filter(Boolean).length < 2;
-  $('#easyChip').hidden = !G.easy;
+  $('#easyChip').hidden = G.easy;
   $('#assistChip').hidden = !G.assist;
   setMode(G.easy ? 'target' : G.mode);
   G.timeLeft = G.timeLimit; G.elapsed = 0; G.lastTick = -1;
@@ -1457,7 +1457,7 @@ function renderScores() {
     const cells = [[String(i + 1), 'r'], [e.name || 'Joueur', 'n'], [String(e.goal), 'g'], [String(e.ops), 'o'], [fmtTime(e.time), '']];
     cells.forEach(([txt, cls]) => { const td = document.createElement('td'); td.textContent = txt; if (cls) td.className = cls; tr.appendChild(td); });
     const tags = [];
-    if (e.easy) tags.push('FACILE');
+    if (e.easy === false) tags.push('EXPERT');
     if (e.assist) tags.push('AIDE+');
     if (e.hints) tags.push(e.hints + ' IND.');
     tags.forEach((g) => { const sp = document.createElement('span'); sp.className = 'tag'; sp.textContent = g; tr.children[1].appendChild(sp); });
@@ -1610,7 +1610,7 @@ function drawBall(it) {
   drawNumber(it.value, it.x, it.y, r * 1.02, c, flick);
   drawPushed(it, r + 5);
 }
-// anneau doré qui se vide : en mode facile, l'élément peut s'accrocher tant qu'il est visible
+// anneau doré qui se vide : hors mode expert, l'élément peut s'accrocher tant qu'il est visible
 function drawPushed(it, rr) {
   if (!G.easy || !G.running || !isPushed(it) || it.state !== 'free') return;
   const left = clamp((it.pushedUntil - G.now) / PUSH_TIME, 0, 1);
@@ -1990,7 +1990,7 @@ function selectTime(t) {
 }
 function syncOptions() {
   document.querySelectorAll('.optop').forEach((b) => b.setAttribute('aria-pressed', String(G.ops[+b.dataset.op])));
-  $('#easyBtn').setAttribute('aria-checked', String(G.easy));
+  $('#easyBtn').setAttribute('aria-checked', String(!G.easy));
   $('#assistBtn').setAttribute('aria-checked', String(G.assist));
 }
 $('#tabRulesBtn').addEventListener('click', () => showTab(false));
@@ -2022,7 +2022,7 @@ document.querySelectorAll('.optop').forEach((b) => b.addEventListener('click', (
   }
   G.ops[i] = !G.ops[i]; store.set('ops', G.ops); syncOptions(); Sfx.tick();
 }));
-$('#easyBtn').addEventListener('click', () => { Sfx.init(); G.easy = !G.easy; store.set('easy', G.easy); syncOptions(); Sfx.tick(); });
+$('#easyBtn').addEventListener('click', () => { Sfx.init(); G.easy = !G.easy; store.set('expert', !G.easy); syncOptions(); Sfx.tick(); });
 $('#assistBtn').addEventListener('click', () => { Sfx.init(); G.assist = !G.assist; store.set('assist', G.assist); syncOptions(); Sfx.tick(); });
 document.querySelectorAll('.times button').forEach((b) => b.addEventListener('click', () => { Sfx.init(); selectTime(+b.dataset.t); Sfx.tick(); }));
 
