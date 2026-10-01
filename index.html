@@ -238,6 +238,12 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 #tutBox .dots i.on { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
 #tutBox .tx { font-size: 15px; line-height: 1.45; color: #dff6fb; }
 #tutBox .tx b.c { color: var(--cyan); } #tutBox .tx b.o { color: var(--orange); } #tutBox .tx b.g { color: var(--gold); }
+#tutBox .tx b.p { color: var(--pink); } #tutBox .tx b.gr { color: var(--green); }
+#tutBox .recap { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; align-items: baseline; margin: 2px 0 8px; font-size: .92em; }
+#tutBox .recap .k { font-family: var(--f-display); font-size: .82em; letter-spacing: .08em; color: var(--gold); }
+#tutBox .recap .k.c { color: var(--cyan); } #tutBox .recap .k.p { color: var(--pink); } #tutBox .recap .k.g { color: var(--gold); } #tutBox .recap .k.gr { color: var(--green); }
+.tut-glow { outline: 2px solid var(--gold); outline-offset: 3px; animation: tutGlow 1s ease-in-out infinite; }
+@keyframes tutGlow { 50% { outline-offset: 7px; outline-color: transparent; } }
 #tutBox .tx ul { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 2px; font-size: 14px; }
 #tutBox .wait { font-size: 12px; color: var(--gold); letter-spacing: .06em; }
 #tutBox .bt { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
@@ -1694,8 +1700,9 @@ function integrate(h) {
     if (it.held) continue;                 // tenue au doigt en mode TARGET
     // la vitesse revient doucement vers la vitesse de croisière
     let sp = Math.hypot(it.vx, it.vy);
-    if (sp < 1e-3) { const a = rand(0, TAU); it.vx = Math.cos(a); it.vy = Math.sin(a); sp = 1; }
-    const target = it.state === 'doomed' ? BASE * .4 : cruise(it);
+    const calm = G.tut && G.tut.calm;   // tutoriel : une bulle poussée glisse puis s'arrête, pour qu'on puisse viser
+    if (sp < 1e-3) { if (calm) continue; const a = rand(0, TAU); it.vx = Math.cos(a); it.vy = Math.sin(a); sp = 1; }
+    const target = it.state === 'doomed' ? BASE * .4 : calm ? 0 : cruise(it);
     // ce que le firework vient de toucher garde son élan plus longtemps
     const wild = (it.wildUntil || 0) > G.now;
     const ns = clamp(sp + (target - sp) * (1 - Math.exp(-h * (wild ? .3 : 1.1))), 0, BASE * (wild ? 10 : 7));
@@ -1920,7 +1927,7 @@ function updateAttached(dt) {
 
 function switchOp() {
   if (!G.running || G.over || G.fuse) return;
-  if (G.tut && !G.tut.free) { G.opShake = .3; Sfx.invalid(); return; }
+  if (!tutAllows('switch')) { G.opShake = .3; Sfx.invalid(); return; }
   let next = G.op;
   do next = (next + 1) % 4; while (!G.ops[next]);
   if (next === G.op) return;
@@ -1928,6 +1935,7 @@ function switchOp() {
   G.ringTarget += PI / 2;
   opIconRot += 180; $('#opBtn svg').style.transform = `rotate(${opIconRot}deg)`;
   Sfx.switchOp();
+  if (G.tut) tutEvent('switch');
 }
 let opIconRot = 0;
 
@@ -1935,7 +1943,7 @@ let opIconRot = 0;
 let swapIconRot = 0;
 function swapSides() {
   if (!G.running || G.over || G.fuse) return;
-  if (G.tut && !G.tut.free) { G.opShake = .3; Sfx.invalid(); return; }
+  if (!tutAllows('swap')) { G.opShake = .3; Sfx.invalid(); return; }
   for (const it of G.items) {
     if (it.state !== 'attached') continue;
     it.side = it.side === 'A' ? 'B' : 'A';
@@ -1945,11 +1953,13 @@ function swapSides() {
   G.swapAnim = 0;
   swapIconRot += 180; $('#swapBtn svg').style.transform = `rotate(${swapIconRot}deg)`;
   Sfx.swap();
+  if (G.tut) tutEvent('swap');
 }
 
 function groupText(vals) { return vals.length > 1 ? '(' + vals.join('+') + ')' : String(vals[0]); }
 function pressEqual() {
   if (!G.running || G.over || G.fuse) return;
+  if (!tutAllows('equal')) { G.opShake = .3; Sfx.invalid(); return; }
   const att = attachedItems();
   const A = att.filter((i) => i.side === 'A').map((i) => i.value);
   const B = att.filter((i) => i.side === 'B').map((i) => i.value);
@@ -2042,6 +2052,7 @@ function updateFuse(dt) {
   }
 }
 function bigError(msg) {
+  if (G.tut) setTimeout(() => tutEvent('error'), 0);
   G.waves.push({ x: cx, y: cy, t: 0, life: .6, r: S * .6, c: COL.red, thick: true });
   burst(cx, cy, COL.red, 80, BASE * 7, 1.1, 4);
   burst(cx, cy, COL.orange, 50, BASE * 5, .9, 3);
@@ -2066,11 +2077,13 @@ function blow(px, py) {
       detach(it, ox / od, oy / od, BASE * 2.6 * inertia(it));
     }
   }
+  let hit = 0;
   for (const it of G.items) {
     if (it.dead || !['free', 'attached', 'doomed', 'spawn'].includes(it.state)) continue;
     const dx = it.x - px, dy = it.y - py, d = Math.hypot(dx, dy);
     if (d > BR + it.r) continue;
     const k = Math.pow(1 - d / (BR + it.r), .6);
+    hit++;
     let nx, ny;
     if (d < 1) { const a = rand(0, TAU); nx = Math.cos(a); ny = Math.sin(a); } else { nx = dx / d; ny = dy / d; }
     const imp = BASE * 6 * k * inertia(it);
@@ -2083,6 +2096,7 @@ function blow(px, py) {
     it.vx += nx * imp; it.vy += ny * imp;
     it.pushedUntil = G.now + PUSH_TIME;
   }
+  if (G.tut) tutEvent('blow', hit);
 }
 // Mode Target (hors mode expert) : toucher un élément l'envoie sur l'opérateur, le retoucher le décroche.
 // Mode TARGET : attraper un élément (même en mouvement), glisser, lâcher → il part dans la direction du geste
@@ -2136,6 +2150,7 @@ function launchRocket(px, py) {
   burstRing(px, py, COL.gold, 20, R * 2.2);
   G.waves.push({ x: px, y: py, t: 0, life: .35, r: R * 3, c: COL.pink });
   Sfx.fireLaunch();
+  if (G.tut) tutEvent('fire');
 }
 function rocketPush(x, y, rad, F, dt, p) {
   for (const it of G.items) {
@@ -2197,6 +2212,7 @@ function updateRockets(dt) {
       }
       if (p >= 1) {
         r.done = true;
+        if (G.tut) setTimeout(() => tutEvent('fireEnd'), 0);
         // bouquet final
         const n = 60;
         for (let k = 0; k < n; k++) {
@@ -2215,55 +2231,185 @@ function updateRockets(dt) {
 
 /* ================= Tutoriel ================= */
 // Une partie guidée sur le vrai terrain : objectif 11, une démonstration de rencontre, puis 7 + 4 à faire soi-même.
+// Tutoriel : une vraie partie guidée, un geste par étape. Chaque étape montre le geste (doigt animé sur le terrain),
+// n'autorise que lui (allow) et passe à la suite quand il est fait.
+//   setup()       prépare le terrain        on(kind, data)  réagit aux gestes : blow, fire, fireEnd, switch, swap, error
+//   check()       après chaque accrochage   onBrick(v)      quand une brique est fabriquée
+//   keepOn()      vérifié 2 fois par seconde (remet en place ce qui doit rester accroché)
+const tutStep = () => (G.tut ? TUT_STEPS[G.tut.step] : null);
+// avance d'une étape après un court délai (une seule fois)
+function tutAdvance(ms = 700) {
+  if (!G.tut || G.tut.advancing) return;
+  G.tut.advancing = true;
+  const s = G.tut.step;
+  setTimeout(() => { if (G.tut && G.tut.step === s) tutGo(s + 1); }, ms);
+}
+const tutAllows = (k) => !G.tut || G.tut.free || (tutStep().allow || []).includes(k);
+// un point du terrain visible (hors de la bulle du tutoriel), en fractions de cette zone, écarté de l'opérateur
+function tutSpot(fx, fy) {
+  const L = G.tut.safeL, T = G.tut.safeT;
+  let x = L + R * 1.6 + fx * (W - L - R * 3.2), y = T + R * 1.6 + fy * (H - T - R * 3.2);
+  const d = Math.hypot(x - cx, y - cy), min = OPR + R * 2.6;
+  if (d < min) { const a = d > 1 ? Math.atan2(y - cy, x - cx) : 0; x = cx + Math.cos(a) * min; y = cy + Math.sin(a) * min; }
+  return [clamp(x, L + R * 1.5, W - R * 1.5), clamp(y, Math.max(T, 0) + R * 1.5, H - R * 1.5)];
+}
+const tutBallAt = (v, f, keep) => { const [x, y] = tutSpot(f[0], f[1]); const b = tutBall(v, x, y); if (keep) b.noMerge = 1e9; return b; };
+const tutVal = (v) => G.items.find((i) => !i.dead && i.kind === 'ball' && i.value === v);
+// gestes montrés par le doigt animé
+const gTap = (fx, fy) => ({ type: 'tap', x: fx, y: fy });
+const gTapItem = (it) => gTap(() => it.x, () => it.y);
+const gTapOp = () => gTap(() => cx, () => cy);
+// les éléments qui doivent rester accrochés (pendant les étapes « opérateur »), avec leur côté
+function tutHold() {
+  for (const [id, side] of Object.entries(G.tut.sides || {})) {
+    const it = G.items.find((i) => i.id === +id);
+    if (!it || it.dead || it.held || it.state === 'fusing' || it.state === 'merging') continue;
+    if (it.state !== 'attached') { attach(it); }
+    it.side = side;
+  }
+}
 const TUT_STEPS = [
-  { title: 'LE BUT', text: () => `Fabrique une <b class="o">brique</b> égale à l'<b class="o">objectif</b>, affiché en bas : ici <b class="o">11</b>.<br>Les <b class="c">bulles</b> valent de 1 à 9 : le 1 est petit et rapide, le 9 gros et lent.`,
-    setup() {
-      tutClear(); G.tut.frozen = true;
-      const bottom = Math.min(H - R * 2, cy + OPR + R * 3);
-      if (G.tut.safeL) { const k = W - cx; tutBall(3, cx + k * .35, cy - R * 2.4); tutBall(8, cx + k * .72, cy + R * 2); tutBall(5, cx, bottom); }
-      else { tutBall(3, cx - W * .3, cy - R * 2); tutBall(8, cx + W * .28, cy + R * 2.2); tutBall(5, cx + W * .1, bottom); }
-    },
+  { title: 'LE BUT', text: () => `Fabrique une <b class="o">brique</b> égale à l'<b class="o">objectif</b> affiché en bas : ici <b class="o">12</b>.<br>Les <b class="c">bulles</b> valent de 1 à 9.`,
+    setup() { tutClear(); G.tut.frozen = true; tutBallAt(3, [.12, .25]); tutBallAt(8, [.88, .3]); tutBallAt(5, [.5, .95]); },
     next: 'Suivant' },
-  { title: 'LES RENCONTRES', text: () => `Quand deux bulles se touchent, l'une <b class="c">gagne 1</b> et l'autre <b class="c">perd 1</b>, sans jamais redonner la même paire : <b>7 et 6 deviennent 8 et 5</b>.<br>Une bulle qui tombe à 0 ou monte à 10 explose.`,
+  { title: 'LES RENCONTRES', text: () => `Deux bulles qui se touchent : l'une <b class="c">gagne 1</b>, l'autre <b class="c">perd 1</b>.<br><b>7 et 6 → 8 et 5</b>. À 0 ou à 10, elle explose.`,
     setup() {
       tutClear(); G.tut.frozen = false;
       const y = Math.min(H - R * 2.2, cy + OPR + R * 3);
-      // la rencontre a lieu dans la partie visible du terrain (à droite du tutoriel quand il est rangé à gauche)
       const L = G.tut.safeL, mx = L ? (L + W) / 2 : cx;
       const gap = Math.min((W - L) * (L ? .3 : .22), OPR * 4.5);
       const a = tutBall(7, mx - gap, y, BASE * 1.6, 0), b = tutBall(6, mx + gap, y, -BASE * 1.6, 0);
       a.wildUntil = b.wildUntil = G.now + 2;   // gardent leur élan pour se rencontrer vite
     },
     replay: true, next: 'Suivant' },
-  { title: 'ACCROCHER', text: () => `En mode <b class="g">AUTO</b>, touche une bulle pour l'envoyer sur l'opérateur, au centre.<br><b>Touche le 7, puis le 4.</b>`,
-    wait: 'Touche les deux bulles entourées',
+  { title: 'BLOW', text: () => `Le sélecteur en bas choisit ce que fait ton doigt.<br><b class="c">BLOW</b> : touche juste derrière une bulle pour la pousser.`,
+    wait: 'Pousse une bulle', glow: '#modeBtn',
     setup() {
-      if (!G.tut.keep) {
-        tutClear(); G.tut.frozen = true;
-        if (G.tut.safeL) {   // tutoriel rangé à gauche : le 7 au-dessus de l'opérateur, le 4 à droite
-          G.tut.a = tutBall(7, cx, cy - OPR - R * 2.2);
-          G.tut.b = tutBall(4, cx + Math.min((W - cx) * .6, OPR * 5), cy);
-        } else {
-          G.tut.a = tutBall(7, cx - Math.min(W * .28, OPR * 5), cy);
-          G.tut.b = tutBall(4, cx + Math.min(W * .28, OPR * 5), cy);
-        }
-      }
-      G.tut.keep = false;
-      setMode('auto');
-      G.hint = { items: [G.tut.a, G.tut.b].filter((i) => i.state !== 'attached'), until: Infinity };
+      tutClear(); G.tut.frozen = false; G.tut.calm = true; setMode('blow');
+      const a = tutBallAt(5, [.15, .3]); tutBallAt(2, [.85, .25]); tutBallAt(8, [.75, .9]);
+      // le doigt touche derrière la bulle, à l'opposé de l'opérateur : elle part vers le centre
+      const behind = (k) => () => { const d = Math.hypot(a.x - cx, a.y - cy) || 1; return k ? a.y + (a.y - cy) / d * R * 1.8 : a.x + (a.x - cx) / d * R * 1.8; };
+      G.tut.gesture = gTap(behind(0), behind(1));
+    },
+    on(kind, n) { if (kind === 'blow' && n > 0) { G.tut.gesture = null; tutAdvance(1200); } } },
+  { title: 'FIREWORK', text: () => `<b class="p">FIREWORK</b> : une fusée part de ton doigt et bouscule tout sur son passage.`,
+    wait: 'Lance une fusée', glow: '#modeBtn',
+    setup() { G.tut.calm = true; setMode('fire'); G.tut.gesture = gTap(() => tutSpot(.3, .7)[0], () => tutSpot(.3, .7)[1]); },
+    on(kind) {
+      if (kind === 'fire') G.tut.gesture = null;
+      if (kind === 'fireEnd') tutAdvance(500);
     } },
-  { title: 'CALCULER', text: () => `Les deux nombres sont accrochés à l'opérateur <b>+</b>.<br><b>Garde le doigt appuyé sur l'opérateur</b>, ou appuie sur <b class="o">=</b>, pour calculer 7 + 4.`,
-    wait: "Appui long sur l'opérateur, ou bouton = en bas",
-    setup() { G.hint = null; $('#eqBtn').classList.add('tut-pulse'); } },
-  { title: 'À TOI DE JOUER', text: () => `<b class="g">Bravo, 7 + 4 = 11 !</b> Pour aller plus loin :<ul>
-      <li>Pour <b>−</b> et <b>÷</b>, le côté compte : la gauche (ou le haut) d'abord.</li>
-      <li>Sur l'opérateur : <b>touche</b> pour changer d'opération, <b>glisse</b> pour échanger les côtés, <b>appui long</b> pour calculer.</li>
-      <li><b class="c">BLOW</b> et <b class="c">FIREWORK</b> poussent les bulles. Rien ne s'accroche par hasard : pousse-les vers l'opérateur.</li>
-      <li><b class="g">TARGET</b> : attrape une bulle, glisse et lâche pour la lancer où tu veux.</li>
-      <li>Score : le <b>moins d'opérations</b> possible. L'ampoule donne un indice contre 10 secondes.</li></ul>`,
-    setup() { $('#eqBtn').classList.remove('tut-pulse'); G.tut.frozen = true; G.tut.free = true; },
+  { title: 'TARGET', text: () => `<b class="g">TARGET</b> : attrape une bulle, glisse vers l'opérateur et lâche-la.`,
+    wait: "Lance le 4 sur l'opérateur", glow: '#modeBtn',
+    setup() {
+      tutClear(); G.tut.frozen = false; G.tut.calm = true; setMode('target');
+      const four = tutBallAt(4, [.12, .85], true); tutBallAt(7, [.88, .15], true);
+      G.tut.gesture = { type: 'drag', it: four };
+      G.hint = { items: [four], until: Infinity };
+    },
+    check() {
+      const att = G.items.filter((i) => !i.dead && i.kind === 'ball' && i.state === 'attached');
+      if (att.length) { G.tut.first = att[0]; G.tut.gesture = null; G.hint = null; tutAdvance(600); }
+    } },
+  { title: 'AUTO', text: () => `<b class="gr">AUTO</b>, le plus simple : touche une bulle, elle file sur l'opérateur.<br><b>Touche le ${G.tut.first && G.tut.first.value === 7 ? 4 : 7}.</b>`,
+    wait: 'Touche la bulle entourée', glow: '#modeBtn',
+    setup() {
+      G.tut.calm = true; setMode('auto');
+      const other = G.items.find((i) => !i.dead && i.kind === 'ball' && i !== G.tut.first);
+      G.tut.second = other;
+      if (other) { G.tut.gesture = gTapItem(other); G.hint = { items: [other], until: Infinity }; }
+    },
+    check() {
+      const { first, second } = G.tut;
+      if (first && second && first.state === 'attached' && second.state === 'attached') { G.tut.gesture = null; G.hint = null; tutAdvance(600); }
+    } },
+  { title: "CHANGER D'OPÉRATION", text: () => `<b>Touche l'opérateur</b> pour changer d'opération :<br>+ → − → × → ÷. Passe en <b>−</b>.`,
+    wait: "Touche l'opérateur", allow: ['switch'],
+    setup() {
+      G.tut.calm = true;
+      // le 4 à gauche et le 7 à droite : 4 − 7 sera impossible, il faudra retourner l'opérateur
+      const four = tutVal(4), seven = tutVal(7);
+      G.tut.four = four; G.tut.seven = seven;
+      G.tut.sides = {}; if (four) G.tut.sides[four.id] = 'A'; if (seven) G.tut.sides[seven.id] = 'B';
+      tutHold();
+      G.tut.label = true; G.tut.gesture = gTapOp();
+    },
+    keepOn: tutHold,
+    on(kind) { if (kind === 'switch' && G.op === 1) { G.tut.gesture = null; tutAdvance(900); } } },
+  { title: 'LE CÔTÉ COMPTE', text: () => `Avec <b>−</b>, c'est la gauche moins la droite : <b>4 − 7</b> serait négatif !<br><b>Glisse ton doigt</b> sur l'opérateur pour le retourner.`,
+    wait: "Glisse sur l'opérateur (ou ⇄)", allow: ['swap'],
+    setup() { G.tut.label = true; G.tut.gesture = { type: 'swipe' }; },
+    keepOn: tutHold,
+    on(kind) {
+      if (kind !== 'swap') return;
+      for (const id of Object.keys(G.tut.sides)) G.tut.sides[id] = G.tut.sides[id] === 'A' ? 'B' : 'A';
+      const four = G.tut.four;
+      if (four && G.tut.sides[four.id] === 'B') { G.tut.gesture = null; tutAdvance(900); }
+    } },
+  { title: 'CALCULER', text: () => `<b>Garde le doigt appuyé</b> sur l'opérateur jusqu'à ce que le cercle soit plein.<br>Le bouton <b class="o">=</b> marche aussi.`,
+    wait: "Appui long sur l'opérateur", allow: ['equal'],
+    setup() { G.tut.label = true; G.tut.gesture = { type: 'hold' }; $('#eqBtn').classList.add('tut-pulse'); },
+    keepOn: tutHold,
+    onBrick(v) {
+      $('#eqBtn').classList.remove('tut-pulse');
+      G.tut.sides = {}; G.tut.gesture = null;
+      if (v === 3) { tutCheer('7 − 4 = 3'); tutAdvance(1300); } else setTimeout(() => { if (G.tut) tutGo(4); }, 1000);
+    } },
+  { title: 'À TOI !', text: () => `Fabrique <b class="o">12</b> avec la brique <b class="o">3</b> et un <b class="c">4</b> :<br>accroche le 4, passe en <b>×</b>, puis calcule.`,
+    wait: 'Objectif : 12', allow: ['switch', 'swap', 'equal'],
+    setup() {
+      G.tut.calm = true; G.tut.label = true; setMode('auto');
+      if (!G.items.some((i) => !i.dead && i.kind === 'brick' && i.value === 3)) {   // on recommence : la brique 3 revient
+        tutClear();
+        const b = makeItem('brick', 3, cx + OPR * 1.6, cy, 0, 0); b.born = G.now; G.items.push(b); attach(b);
+      }
+      G.tut.four = tutBallAt(4, [.85, .85], true);
+    },
+    // le doigt montre la prochaine chose à faire
+    keepOn() {
+      const f = G.tut.four;
+      if (f && !f.dead && f.state !== 'attached') G.tut.gesture = gTapItem(f);
+      else if (G.op !== 2) G.tut.gesture = gTapOp();
+      else G.tut.gesture = { type: 'hold' };
+      G.hint = f && !f.dead && f.state !== 'attached' ? { items: [f], until: Infinity } : null;
+    },
+    onBrick(v) {
+      G.tut.gesture = null; G.hint = null;
+      if (v === 12) {
+        tutCheer('BRAVO !', true);
+        tutAdvance(1800);
+      } else tutRetry(`${v} : presque ! Il faut 3 × 4`);
+    },
+    on(kind) { if (kind === 'error') tutRetry('Raté : il faut 3 × 4'); } },
+  { title: 'RÉCAP', text: () => `<div class="recap">
+      <b class="k">Toucher</b><span>l'opérateur : changer d'opération</span>
+      <b class="k">Glisser</b><span>sur l'opérateur : échanger les côtés</span>
+      <b class="k">Maintenir</b><span>sur l'opérateur : calculer (comme =)</span>
+      <b class="k c">BLOW</b><span>pousse les bulles</span>
+      <b class="k p">FIREWORK</b><span>bouscule tout</span>
+      <b class="k g">TARGET</b><span>attrape et lance</span>
+      <b class="k gr">AUTO</b><span>accroche d'un toucher</span>
+    </div>Rien ne s'accroche par hasard : il faut pousser ou lancer. Score : le <b>moins d'opérations</b>. L'ampoule donne un indice (−10 s).`,
+    setup() { $('#eqBtn').classList.remove('tut-pulse'); G.tut.frozen = true; G.tut.free = true; G.tut.label = false; },
     next: "C'est parti !", last: true },
 ];
+// fête une réussite dans le tutoriel
+function tutCheer(text, big) {
+  G.texts.push({ text, x: cx, y: Math.max(H * .72, cy + OPR + R * 2.5), t: 0, life: 1.8, c: COL.gold, size: Math.min(big ? 46 : 34, S * (big ? .11 : .08)), rise: 0 });
+  if (big) { for (let k = 0; k < 3; k++) setTimeout(fireworkShow, k * 250); Sfx.win(); } else Sfx.result();
+}
+// raté pendant « À TOI » : on explique et on recommence l'étape
+function tutRetry(msg) {
+  if (!G.tut || G.tut.retrying) return;
+  G.tut.retrying = true;
+  addText(msg, cx, Math.max(H * .72, cy + OPR + R * 2.5), COL.red, Math.min(26, S * .06), 1.6, 0);
+  const s = G.tut.step;
+  setTimeout(() => {
+    if (!G.tut || G.tut.step !== s) return;
+    G.items = G.items.filter((i) => !(i.kind === 'brick' && i.value !== 3));
+    tutGo(s);
+  }, 1300);
+}
 function tutClear() { G.items = []; G.merges = []; G.rockets = []; G.fuse = null; G.hint = null; }
 function tutBall(v, x, y, vx = 0, vy = 0) {
   const b = makeItem('ball', v, clamp(x, R * 1.5, W - R * 1.5), clamp(y, R * 1.5, H - R * 1.5), 0, 0);
@@ -2274,10 +2420,11 @@ function tutBall(v, x, y, vx = 0, vy = 0) {
 }
 function startTutorial() {
   newGame();
-  G.tut = { step: 0, frozen: true, free: false, easy: G.easy };
-  G.easy = true;   // le tutoriel montre AUTO, même en mode expert
-  G.goal = 11; G.op = 0; G.opPrev = 0;
-  $('#goalVal').textContent = '11';
+  G.tut = { step: 0, frozen: true, free: false, easy: G.easy, ops: G.ops };
+  G.easy = true;                         // le tutoriel montre toutes les mécaniques, même en mode expert
+  G.ops = [true, true, true, true];      // et toutes les opérations, même désactivées dans les paramètres
+  G.goal = 12; G.op = 0; G.opPrev = 0;
+  $('#goalVal').textContent = '12';
   $('#easyChip').hidden = true; $('#assistChip').hidden = true; $('#opsChip').hidden = true;
   G.texts = [];
   setMode('auto');
@@ -2296,62 +2443,102 @@ function tutDock() {
 }
 function tutGo(i) {
   G.tut.step = i;
+  G.tut.advancing = false; G.tut.retrying = false; G.tut.gesture = null; G.tut.calm = false; G.tut.label = false;
   const st = TUT_STEPS[i];
   tutDock();
-  st.setup();
+  document.querySelectorAll('.tut-glow').forEach((e) => e.classList.remove('tut-glow'));
+  if (st.glow) $(st.glow).classList.add('tut-glow');
   const box = $('#tutBox');
   const dots = TUT_STEPS.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('');
-  box.innerHTML = `<div class="tt"><span>TUTORIEL · ${st.title}</span><span class="dots">${dots}</span></div>
+  box.innerHTML = `<div class="tt"><span>TUTO · ${st.title}</span><span class="dots">${dots}</span></div>
     <div class="tx">${st.text()}</div>
-    <div class="bt"><button class="skip" id="tutSkip">${st.last ? '' : 'Passer le tutoriel'}</button>
+    <div class="bt"><button class="skip" id="tutSkip">${st.last ? '' : 'Passer'}</button>
       <span class="r">${st.replay ? '<button class="sec" id="tutReplay">REVOIR</button>' : ''}
       ${st.next ? `<button class="pri" id="tutNext">${st.next.toUpperCase()}</button>` : `<span class="wait">${st.wait}</span>`}</span></div>`;
   box.hidden = false;
+  // la bulle posée en haut cache le haut du terrain : les étapes placent leurs bulles en dessous
+  const fr = field.getBoundingClientRect(), br = box.getBoundingClientRect();
+  G.tut.safeT = box.classList.contains('docked') ? 0 : Math.max(0, br.bottom - fr.top + 6);
+  st.setup();
   const on = (id, fn) => { const b = document.getElementById(id); if (b) b.addEventListener('click', (e) => { Sfx.init(); Sfx.tick(); e.currentTarget.blur(); fn(); }); };
   on('tutSkip', () => endTutorial());
   on('tutReplay', () => tutGo(i));
   on('tutNext', () => (st.last ? endTutorial() : tutGo(i + 1)));
 }
-// étape « accrocher » : on avance quand les deux bulles sont sur l'opérateur
-function tutCheck() {
-  if (!G.tut) return;
-  const { a, b } = G.tut;
-  const both = a && b && a.state === 'attached' && b.state === 'attached';
-  if (G.tut.step === 2) {
-    G.hint = { items: [a, b].filter((x) => x && x.state !== 'attached'), until: Infinity };
-    if (both) setTimeout(() => { if (G.tut && G.tut.step === 2) tutGo(3); }, 350);
-  }
-}
-function tutOnBrick(v) {
-  if (!G.tut) return;
-  $('#eqBtn').classList.remove('tut-pulse');
-  if (v === 11) {
-    G.texts.push({ text: 'BRAVO !', x: cx, y: Math.max(H * .72, cy + OPR + R * 2.5), t: 0, life: 2, c: COL.gold, size: Math.min(46, S * .11), rise: 0 });
-    for (let k = 0; k < 3; k++) setTimeout(fireworkShow, k * 250);
-    Sfx.win();
-    setTimeout(() => { if (G.tut) tutGo(4); }, 1100);
-  } else {
-    // résultat inattendu : on recommence l'étape d'accrochage
-    setTimeout(() => { if (G.tut) { G.tut.keep = false; tutGo(2); } }, 900);
-  }
-}
+function tutEvent(kind, data) { const st = tutStep(); if (st && st.on) st.on(kind, data); }
+function tutCheck() { const st = tutStep(); if (st && st.check) st.check(); }
+function tutOnBrick(v) { const st = tutStep(); if (st && st.onBrick) st.onBrick(v); }
 function tutCleanup() {
   if (!G.tut) return;
-  G.easy = G.tut.easy;
+  G.easy = G.tut.easy; G.ops = G.tut.ops;
   G.tut = null;
   G.hint = null;
   $('#tutBox').hidden = true; $('#opsChip').hidden = false;
   $('#eqBtn').classList.remove('tut-pulse');
+  document.querySelectorAll('.tut-glow').forEach((e) => e.classList.remove('tut-glow'));
   store.set('tutoDone', true);
 }
 function endTutorial() { tutCleanup(); newGame(); }
-// pendant l'étape « calculer », une bulle décrochée renvoie à l'étape « accrocher »
-setInterval(() => {
-  if (G.tut && G.tut.step === 3 && !G.fuse && G.tut.a && G.tut.b &&
-      (G.tut.a.state === 'free' || G.tut.b.state === 'free')) {
-    $('#eqBtn').classList.remove('tut-pulse'); G.tut.keep = true; tutGo(2);
+setInterval(() => { const st = tutStep(); if (st && st.keepOn && !G.fuse) st.keepOn(); }, 400);
+
+// Ce que montre le tutoriel sur le terrain : le calcul en cours sous l'opérateur, et un doigt qui fait le geste attendu
+function tutExpr() {
+  const att = attachedItems();
+  if (att.length < 2) return null;
+  const A = att.filter((i) => i.side === 'A').map((i) => i.value), B = att.filter((i) => i.side === 'B').map((i) => i.value);
+  const op = OPS[G.op], sum = (v) => v.reduce((s, x) => s + x, 0);
+  if (op === '+') return { text: `${att.map((i) => i.value).join(' + ')} = ${sum(att.map((i) => i.value))}`, ok: true };
+  if (op === '×') return { text: `${att.map((i) => i.value).join(' × ')} = ${att.reduce((s, i) => s * i.value, 1)}`, ok: true };
+  if (!A.length || !B.length) return null;
+  const r = op === '−' ? sum(A) - sum(B) : sum(A) / sum(B);
+  const ok = r >= 0 && Number.isInteger(r);
+  return { text: `${groupText(A)} ${op} ${groupText(B)} = ${ok ? r : op === '−' ? 'négatif !' : 'pas entier !'}`, ok };
+}
+function drawTutOverlay() {
+  if (!G.tut) return;
+  const e = G.tut.label && !G.fuse && tutExpr();
+  if (e) {
+    const t = { text: e.text, c: e.ok ? COL.gold : COL.red, glitch: false }, y = Math.min(H - R, cy + OPR + R * 2.7), size = Math.min(30, S * .07);
+    const sk = SK();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    if (sk && sk.text) sk.text(t, cx, y, 1, size);
+    else { fitTextFont(t.text, size, 700); ctx.fillStyle = rgba(t.c, 1); ctx.fillText(t.text, cx, y); }
   }
-}, 250);
+  const g = G.tut.gesture;
+  if (!g || G.fuse || G.over) return;
+  const T = (G.now % 1.6) / 1.6, c = COL.gold;
+  const finger = (x, y, press, a = 1) => {
+    ctx.globalAlpha = a;
+    ctx.fillStyle = rgba(c, .3); ctx.beginPath(); ctx.arc(x, y, R * (press ? .45 : .55), 0, TAU); ctx.fill();
+    ctx.strokeStyle = rgba(c, .95); ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.globalAlpha = 1;
+  };
+  ctx.save(); ctx.lineCap = 'round';
+  if (g.type === 'tap') {
+    const x = g.x(), y = g.y(), k = clamp(T / .45, 0, 1);
+    ctx.strokeStyle = rgba(c, .8 * (1 - k)); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x, y, R * (.5 + k * 1.1), 0, TAU); ctx.stroke();
+    finger(x, y, T < .2);
+  } else if (g.type === 'hold') {
+    const k = clamp(T / .8, 0, 1);
+    ctx.strokeStyle = rgba(c, .9); ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(cx, cy, OPR + 7, -PI / 2, -PI / 2 + TAU * k); ctx.stroke();
+    finger(cx + OPR * .55, cy + OPR * .55, true, .85);
+  } else if (g.type === 'swipe') {
+    const k = clamp((T - .1) / .55, 0, 1), x0 = cx - OPR * 1.3, x1 = cx + OPR * 1.3, y = cy + OPR * .15;
+    const x = x0 + (x1 - x0) * easeInOut(k);
+    ctx.strokeStyle = rgba(c, .5); ctx.lineWidth = R * .5;
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x, y); ctx.stroke();
+    finger(x, y, true, T < .75 ? 1 : 1 - (T - .75) / .25);
+  } else if (g.type === 'drag' && g.it && !g.it.dead && g.it.state === 'free') {
+    const it = g.it, a = Math.atan2(cy - it.y, cx - it.x), d = Math.hypot(cx - it.x, cy - it.y) - OPR;
+    const ex = it.x + Math.cos(a) * d, ey = it.y + Math.sin(a) * d, k = clamp((T - .15) / .55, 0, 1);
+    ctx.setLineDash([6, 6]); ctx.lineDashOffset = -G.now * 40; ctx.strokeStyle = rgba(c, .6); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(it.x, it.y); ctx.lineTo(ex, ey); ctx.stroke(); ctx.setLineDash([]);
+    finger(it.x + (ex - it.x) * easeInOut(k), it.y + (ey - it.y) * easeInOut(k), T > .1 && T < .75, T < .8 ? 1 : 1 - (T - .8) / .2);
+  }
+  ctx.restore();
+}
 
 /* ================= Secouer pour calculer ================= */
 // Accéléromètre : deux secousses franches en moins d'une demi-seconde lancent le calcul.
@@ -3170,6 +3357,7 @@ function render() {
   drawWaves();
   drawParts();
   drawTexts();
+  drawTutOverlay();
   ctx.restore();
   if (sk && sk.over) sk.over();
 }
