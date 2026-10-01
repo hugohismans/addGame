@@ -394,7 +394,7 @@ kbd {
           <div><b>BLOW</b>Touche l'écran pour repousser tout ce qui est autour. Sur l'opérateur, ça décroche ce qui y est accroché.</div>
           <div class="fire"><b>FIREWORK</b>Lance une fusée folle qui fonce 2 à 3 secondes, éjecte tout ce qu'elle frôle, lâche des pétards et finit en bouquet.</div>
         </div>
-        <div class="keys"><b class="b-orange">Mode facile</b> : ajoute le mode <b>TARGET</b>. Touche une bulle ou une brique pour l'envoyer directement sur l'opérateur, touche-la encore pour la décrocher.</div>
+        <div class="keys"><b class="b-orange">Mode facile</b> : rien ne s'accroche par hasard. Une bulle ne s'accroche que si tu l'as poussée (anneau doré pendant 2,5 s), ou avec le mode <b>TARGET</b> : touche-la pour l'envoyer sur l'opérateur, retouche-la pour la décrocher.</div>
         <div class="keys">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>S</kbd> inverser · <kbd>H</kbd> indice · <kbd>M</kbd> mode (<kbd>B</kbd> <kbd>F</kbd> <kbd>T</kbd>) · <kbd>R</kbd> rejouer · clic pour agir</div>
       </div>
     </div>
@@ -843,8 +843,12 @@ function explodeItem(it) {
 }
 
 /* ================= Opérateur ================= */
+// Mode facile : rien ne s'accroche par hasard. Il faut l'avoir poussé (Blow, Firework) dans les 2,5 dernières secondes,
+// ou l'envoyer avec Target.
+const PUSH_TIME = 2.5;
+const isPushed = (it) => (it.pushedUntil || 0) > G.now;
 function canAttach(it) {
-  return G.running && !G.over && !G.fuse && G.now >= it.noAttach;
+  return G.running && !G.over && !G.fuse && G.now >= it.noAttach && (!G.easy || isPushed(it));
 }
 const sideOf = (it) => (G.op === 3 ? (it.y < cy ? 'A' : 'B') : (it.x < cx ? 'A' : 'B'));
 function attach(it, bySide) {
@@ -1029,6 +1033,7 @@ function blow(px, py) {
     }
     if (it.state === 'spawn') it.state = 'free';
     it.vx += nx * imp; it.vy += ny * imp;
+    it.pushedUntil = G.now + PUSH_TIME;
   }
 }
 // Mode Target (mode facile) : toucher un élément l'envoie sur l'opérateur, le retoucher le décroche.
@@ -1085,6 +1090,7 @@ function rocketPush(x, y, rad, F, dt, p) {
     const q = inertia(it);
     it.vx += nx * F * k * q * dt; it.vy += ny * F * k * q * dt;
     it.wildUntil = G.now + 1.6;
+    it.pushedUntil = G.now + PUSH_TIME;
   }
 }
 function rocketBlast(x, y, rad, imp, c) {
@@ -1425,6 +1431,18 @@ function drawBall(it) {
   ctx.strokeStyle = rgba(c, .3 * flick); ctx.lineWidth = 1;
   ctx.beginPath(); ctx.arc(it.x, it.y, r * .78, 0, TAU); ctx.stroke();
   drawNumber(it.value, it.x, it.y, r * 1.02, c, flick);
+  drawPushed(it, r + 5);
+}
+// anneau doré qui se vide : en mode facile, l'élément peut s'accrocher tant qu'il est visible
+function drawPushed(it, rr) {
+  if (!G.easy || !G.running || !isPushed(it) || it.state !== 'free') return;
+  const left = clamp((it.pushedUntil - G.now) / PUSH_TIME, 0, 1);
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.setLineDash([4, 5]); ctx.lineDashOffset = -G.now * 30;
+  ctx.strokeStyle = rgba(COL.gold, .35 + .5 * left); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(it.x, it.y, rr, -PI / 2, -PI / 2 + TAU * left); ctx.stroke();
+  ctx.restore();
 }
 function roundRect(x, y, w, h, rr) {
   const p = new Path2D();
@@ -1446,6 +1464,7 @@ function drawBrick(it) {
   const goal = !doomed && it.value === G.goal && G.won;
   if (goal) glowStroke(roundRect(it.x - h - 5, it.y - h - 5, h * 2 + 10, h * 2 + 10, h * .35), COL.gold, 1.5, .5 + .5 * Math.sin(G.now * 8));
   drawNumber(it.value, it.x, it.y, h * 1.9 * .6, c, flick);
+  drawPushed(it, h * 1.42 + 4);
 }
 function symbolPath(op, L) {
   const p = new Path2D();
