@@ -454,7 +454,7 @@ kbd {
           <div class="fire"><b>FIREWORK</b>Lance une fusée folle qui fonce 2 à 3 secondes, éjecte tout ce qu'elle frôle, lâche des pétards et finit en bouquet.</div>
         </div>
         <div class="keys"><b class="b-orange">Aide +</b> : les bulles qui apparaissent sont choisies pour rapprocher la solution (objectif 63 avec une brique 21 : il arrive un 3). Les règles ne changent pas.</div>
-        <div class="keys"><b class="b-orange">Mode facile</b> : rien ne s'accroche par hasard. Une bulle ne s'accroche que si tu l'as poussée (anneau doré pendant 2,5 s), ou avec le mode <b>TARGET</b> : touche-la pour l'envoyer sur l'opérateur, retouche-la pour la décrocher.</div>
+        <div class="keys"><b class="b-orange">Mode facile</b> : rien ne s'accroche par hasard. Une bulle ne s'accroche que si tu l'as poussée (anneau doré pendant 2,5 s), ou avec le mode <b>TARGET</b> : touche-la pour l'envoyer sur l'opérateur, retouche-la pour la décrocher, ou fais-la glisser pour la lancer dans la direction de ton doigt.</div>
         <div class="keys">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>S</kbd> inverser · <kbd>H</kbd> indice · <kbd>M</kbd> mode (<kbd>B</kbd> <kbd>F</kbd> <kbd>T</kbd>) · <kbd>R</kbd> rejouer · clic pour agir</div>
         </div>
       </div>
@@ -1141,7 +1141,7 @@ function blow(px, py) {
   }
 }
 // Mode Target (mode facile) : toucher un élément l'envoie sur l'opérateur, le retoucher le décroche.
-function target(px, py) {
+function target(px, py, pointerId) {
   let best = null, bd = Infinity;
   for (const it of G.items) {
     if (it.dead || !['free', 'spawn', 'attached'].includes(it.state)) continue;
@@ -1151,9 +1151,9 @@ function target(px, py) {
   burstRing(px, py, COL.gold, 10, R * .8);
   if (!best) { Sfx.tick(); return; }
   if (best.state === 'attached') {
-    const ox = best.x - cx, oy = best.y - cy, od = Math.hypot(ox, oy) || 1;
-    detach(best, ox / od, oy / od, BASE * 2.4);
-    Sfx.blow();
+    // l'élément accroché suit le geste : on le lance au relâchement, dans la direction du glissé
+    flings.set(pointerId, { it: best, x0: px, y0: py, x: px, y: py, pts: [{ x: px, y: py, t: performance.now() }] });
+    try { cvs.setPointerCapture(pointerId); } catch (err) { /* pas grave */ }
     return;
   }
   if (G.fuse) { Sfx.invalid(); return; }
@@ -1828,6 +1828,7 @@ function render() {
     if (it.kind === 'ball') drawBall(it); else drawBrick(it);
   }
   drawHint();
+  drawFlings();
   drawMerges();
   drawRockets();
   drawWaves();
@@ -1869,12 +1870,71 @@ cvs.addEventListener('pointerdown', (e) => {
   }
   if (G.mode === 'blow') blow(x, y);
   else if (G.mode === 'fire') launchRocket(x, y);
-  else target(x, y);
+  else target(x, y, e.pointerId);
 });
+// Target : lancer d'un élément accroché
+const flings = new Map();
+function releaseFling(st) {
+  const it = st.it;
+  if (it.dead || it.state !== 'attached') return;
+  const tx = st.x - st.x0, ty = st.y - st.y0;
+  if (Math.hypot(tx, ty) < 14) {
+    // simple toucher : il part en s'éloignant du centre, comme avant
+    const ox = it.x - cx, oy = it.y - cy, od = Math.hypot(ox, oy) || 1;
+    detach(it, ox / od, oy / od, BASE * 2.4);
+  } else {
+    // direction et force données par la fin du glissé
+    const now = performance.now();
+    const recent = st.pts.filter((q) => now - q.t < 120);
+    const a = recent.length > 1 ? recent[0] : st.pts[0], b = st.pts[st.pts.length - 1];
+    let vx = b.x - a.x, vy = b.y - a.y;
+    const dt = Math.max(16, b.t - a.t) / 1000;
+    if (Math.hypot(vx, vy) < 4) { vx = tx; vy = ty; }
+    const d = Math.hypot(vx, vy) || 1;
+    const speed = clamp((Math.hypot(b.x - a.x, b.y - a.y) / dt) * .9, BASE * 2, BASE * 6);
+    detach(it, vx / d, vy / d, speed);
+    it.wildUntil = G.now + .8;
+  }
+  burstRing(it.x, it.y, COL.gold, 12, it.r * 1.5);
+  Sfx.blow();
+}
+function drawFlings() {
+  for (const st of flings.values()) {
+    const it = st.it;
+    if (it.dead || it.state !== 'attached') continue;
+    const dx = st.x - st.x0, dy = st.y - st.y0, len = Math.hypot(dx, dy);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = rgba(COL.gold, .9); ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(it.x, it.y, it.r + 6, 0, TAU); ctx.stroke();
+    if (len >= 14) {
+      // flèche de visée
+      const L = Math.min(len * 1.6, S * .45), nx = dx / len, ny = dy / len;
+      const ex = it.x + nx * (it.r + 8 + L), ey = it.y + ny * (it.r + 8 + L);
+      ctx.setLineDash([6, 6]); ctx.lineDashOffset = -G.now * 50;
+      ctx.beginPath(); ctx.moveTo(it.x + nx * (it.r + 8), it.y + ny * (it.r + 8)); ctx.lineTo(ex, ey); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(ex, ey);
+      ctx.lineTo(ex - nx * 12 - ny * 7, ey - ny * 12 + nx * 7);
+      ctx.moveTo(ex, ey);
+      ctx.lineTo(ex - nx * 12 + ny * 7, ey - ny * 12 - nx * 7);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
 function onOperator(x, y) { return Math.hypot(x - cx, y - cy) <= OPR * 1.05; }
 const opPress = new Map();
 const canvasXY = (e) => { const r = cvs.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
 cvs.addEventListener('pointermove', (e) => {
+  const fl = flings.get(e.pointerId);
+  if (fl) {
+    const [x, y] = canvasXY(e);
+    fl.x = x; fl.y = y;
+    fl.pts.push({ x, y, t: performance.now() });
+    if (fl.pts.length > 30) fl.pts.shift();
+    return;
+  }
   const st = opPress.get(e.pointerId);
   if (!st) return;
   const [x, y] = canvasXY(e);
@@ -1884,12 +1944,14 @@ cvs.addEventListener('pointermove', (e) => {
   }
 });
 cvs.addEventListener('pointerup', (e) => {
+  const fl = flings.get(e.pointerId);
+  if (fl) { flings.delete(e.pointerId); if (G.running && !G.over) releaseFling(fl); return; }
   if (!opPress.has(e.pointerId)) return;
   opPress.delete(e.pointerId);
   if (!G.running || G.over) return;
   if (G.ops.filter(Boolean).length < 2 || G.fuse) { G.opShake = .3; Sfx.invalid(); } else switchOp();
 });
-cvs.addEventListener('pointercancel', (e) => opPress.delete(e.pointerId));
+cvs.addEventListener('pointercancel', (e) => { opPress.delete(e.pointerId); flings.delete(e.pointerId); });
 // sur ordinateur, la main indique que l'opérateur se clique
 cvs.addEventListener('pointermove', (e) => {
   if (e.pointerType !== 'mouse') return;
