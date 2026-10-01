@@ -26,6 +26,7 @@
   --ice: #e9fdff;
   --danger: #ff3b5c;
   --gold: #ffe066;
+  --green: #78ffaa;
   --muted: #7fa3b3;
   --line: rgba(62, 240, 255, .28);
   --panel: rgba(4, 12, 22, .86);
@@ -257,6 +258,10 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 #opsChip b.pop { animation: goalpop .5s cubic-bezier(.3, 1.6, .5, 1); }
 #opsChip .s { display: none; }
 @media (max-width: 560px) { #opsChip .l { display: none; } #opsChip .s { display: inline; } }
+#assistChip { margin-left: 8px; align-self: center; font-family: var(--f-display); font-weight: 700; font-size: 11px; letter-spacing: .14em; color: var(--green); border: 1px solid rgba(120, 255, 170, .5); border-radius: 4px; padding: 3px 7px; background: rgba(3, 10, 18, .6); }
+#assistBtn[aria-checked="true"] { color: var(--green); border-color: rgba(120, 255, 170, .5); }
+#assistBtn[aria-checked="true"] .knob { border-color: var(--green); background: rgba(120, 255, 170, .12); }
+#assistBtn[aria-checked="true"] .knob::after { background: var(--green); box-shadow: 0 0 10px var(--green); }
 #easyChip {
   margin-left: 8px; align-self: center;
   font-family: var(--f-display); font-weight: 700; font-size: 11px; letter-spacing: .14em;
@@ -364,7 +369,7 @@ kbd {
     <canvas id="cv" aria-label="Terrain de jeu"></canvas>
     <div id="hintBox" role="status" hidden></div>
     <div id="hudTop">
-      <div style="display:flex"><div id="timer" aria-live="off">1:00</div><div id="opsChip" title="Nombre d'opérations faites"><span class="l">OPÉRATIONS</span><span class="s">OPS</span> <b id="opsVal">0</b></div><div id="easyChip" hidden>FACILE</div></div>
+      <div style="display:flex"><div id="timer" aria-live="off">1:00</div><div id="opsChip" title="Nombre d'opérations faites"><span class="l">OPÉRATIONS</span><span class="s">OPS</span> <b id="opsVal">0</b></div><div id="easyChip" hidden>FACILE</div><div id="assistChip" class="chipx" hidden>AIDE +</div></div>
       <div class="hud-right">
         <button id="hintBtn" class="icon-btn" aria-label="Indice, coûte 10 secondes (touche H)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>
@@ -420,6 +425,7 @@ kbd {
           <button id="op2" class="optop" data-op="2" aria-pressed="true" aria-label="Multiplication">×</button>
           <button id="op3" class="optop" data-op="3" aria-pressed="true" aria-label="Division">÷</button>
           <button id="easyBtn" class="switch" role="switch" aria-checked="false"><span class="knob"></span>MODE FACILE</button>
+          <button id="assistBtn" class="switch" role="switch" aria-checked="false" title="Les bulles qui apparaissent sont choisies pour aider à trouver la solution"><span class="knob"></span>AIDE +</button>
         </div>
         <div class="playrow">
           <input id="nameInput" type="text" maxlength="12" placeholder="Ton pseudo" aria-label="Pseudo pour les high scores" autocomplete="nickname" spellcheck="false">
@@ -447,6 +453,7 @@ kbd {
           <div><b>BLOW</b>Touche l'écran pour repousser tout ce qui est autour. Sur l'opérateur, ça décroche ce qui y est accroché.</div>
           <div class="fire"><b>FIREWORK</b>Lance une fusée folle qui fonce 2 à 3 secondes, éjecte tout ce qu'elle frôle, lâche des pétards et finit en bouquet.</div>
         </div>
+        <div class="keys"><b class="b-orange">Aide +</b> : les bulles qui apparaissent sont choisies pour rapprocher la solution (objectif 63 avec une brique 21 : il arrive un 3). Les règles ne changent pas.</div>
         <div class="keys"><b class="b-orange">Mode facile</b> : rien ne s'accroche par hasard. Une bulle ne s'accroche que si tu l'as poussée (anneau doré pendant 2,5 s), ou avec le mode <b>TARGET</b> : touche-la pour l'envoyer sur l'opérateur, retouche-la pour la décrocher.</div>
         <div class="keys">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>S</kbd> inverser · <kbd>H</kbd> indice · <kbd>M</kbd> mode (<kbd>B</kbd> <kbd>F</kbd> <kbd>T</kbd>) · <kbd>R</kbd> rejouer · clic pour agir</div>
         </div>
@@ -673,7 +680,7 @@ const G = {
   items: [], merges: [], rockets: [], parts: [], waves: [], texts: [],
   mode: 'blow', op: 0, opPrev: 0, opAnim: 1, swapAnim: 1,
   ops: (() => { const o = store.get('ops', [true, true, true, true]); return Array.isArray(o) && o.length === 4 && o.some(Boolean) ? o.map(Boolean) : [true, true, true, true]; })(),
-  easy: !!store.get('easy', false), ringRot: 0, ringTarget: 0, opShake: 0,
+  easy: !!store.get('easy', false), assist: !!store.get('assist', false), ringRot: 0, ringTarget: 0, opShake: 0,
   goal: 42, timeLimit: store.get('time', 60), timeLeft: 60, elapsed: 0, lastTick: -1,
   running: false, over: false, won: false, endT: -1, fwT: 0,
   spawnPending: false, spawnT: 0, shake: 0, fuse: null, now: 0, order: 0,
@@ -702,7 +709,7 @@ function spawnBall() {
     ok = Math.hypot(x - cx, y - cy) > OPR + R * 4.5 &&
       G.items.every((o) => o.dead || Math.hypot(o.x - x, o.y - y) > R * 3.2);
   }
-  const b = makeItem('ball', randi(1, 9), x, y, 0, 0);
+  const b = makeItem('ball', G.assist && G.running ? assistValue() : randi(1, 9), x, y, 0, 0);
   const a = rand(0, TAU), sp = cruise(b);
   b.vx = Math.cos(a) * sp; b.vy = Math.sin(a) * sp;
   b.state = 'spawn';
@@ -712,6 +719,26 @@ function spawnBall() {
 }
 // Au maximum 4 bulles en tout, y compris celles accrochées à l'opérateur (les briques ne comptent pas)
 const COUNTED = ['free', 'spawn', 'merging', 'attached', 'fusing'];
+// Mode Aide + : la nouvelle bulle prend la valeur (1 à 9) qui rapproche le plus de l'objectif,
+// c'est-à-dire celle qui donne la solution la plus courte avec les nombres déjà en jeu.
+// Exemple : objectif 63 avec une brique 21 → la bulle sera un 3 (21 × 3 = 63).
+function assistValue() {
+  let best = [], bestScore = Infinity;
+  for (let v = 1; v <= 9; v++) {
+    const probe = { v };
+    const sol = findHint(probe);
+    // une solution qui utilise la nouvelle bulle vaut un peu mieux qu'une solution qui l'ignore
+    const score = sol ? sol.steps.length + (sol.src.includes(probe) ? 0 : .5) : 10;
+    if (score < bestScore - 1e-9) { bestScore = score; best = [v]; }
+    else if (Math.abs(score - bestScore) < 1e-9) best.push(v);
+  }
+  if (bestScore >= 10) {
+    // rien en 3 étapes : on prend un diviseur de l'objectif, sinon au hasard
+    const divs = [2, 3, 4, 5, 6, 7, 8, 9].filter((d) => G.goal % d === 0);
+    return divs.length ? divs[randi(0, divs.length - 1)] : randi(1, 9);
+  }
+  return best[randi(0, best.length - 1)];
+}
 function roamingBalls() {
   return G.items.filter((i) => i.kind === 'ball' && !i.dead && COUNTED.includes(i.state)).length;
 }
@@ -1209,12 +1236,14 @@ function updateRockets(dt) {
 /* ================= Indice ================= */
 // Cherche la suite d'opérations la plus courte (3 au plus) qui fabrique l'objectif avec les nombres présents.
 // Chaque étape prend deux nombres, comme on le ferait en accrochant deux éléments puis en appuyant sur =.
-function findHint() {
+// extra : un nombre supplémentaire à essayer (utilisé par le mode Aide + pour choisir les nouvelles bulles)
+function findHint(extra) {
   const rank = (i) => (i.state === 'attached' ? 0 : i.kind === 'brick' ? 1 : 2);
   const pool = G.items
     .filter((i) => !i.dead && ['free', 'spawn', 'attached'].includes(i.state) && i.value > 0)
-    .sort((a, b) => rank(a) - rank(b)).slice(0, 7);
+    .sort((a, b) => rank(a) - rank(b)).slice(0, extra ? 6 : 7);
   const start = pool.map((it) => ({ v: it.value, src: [it], steps: [] }));
+  if (extra) start.push({ v: extra.v, src: [extra], steps: [] });
   const goal = G.goal;
   const combos = (a, b) => {
     const out = [];
@@ -1352,6 +1381,7 @@ function newGame() {
   G.goal = randi(1, G.ops[0] || G.ops[2] ? 99 : 20);
   $('#opBtn').disabled = G.ops.filter(Boolean).length < 2;
   $('#easyChip').hidden = !G.easy;
+  $('#assistChip').hidden = !G.assist;
   setMode(G.easy ? 'target' : G.mode);
   G.timeLeft = G.timeLimit; G.elapsed = 0; G.lastTick = -1;
   G.running = true; G.over = false; G.won = false; G.endT = -1; G.hint = null;
@@ -1409,6 +1439,7 @@ function renderScores() {
     cells.forEach(([txt, cls]) => { const td = document.createElement('td'); td.textContent = txt; if (cls) td.className = cls; tr.appendChild(td); });
     const tags = [];
     if (e.easy) tags.push('FACILE');
+    if (e.assist) tags.push('AIDE+');
     if (e.hints) tags.push(e.hints + ' IND.');
     tags.forEach((g) => { const sp = document.createElement('span'); sp.className = 'tag'; sp.textContent = g; tr.children[1].appendChild(sp); });
     tb.appendChild(tr);
@@ -1437,7 +1468,7 @@ function showEnd() {
       rec = prev === undefined ? '' : `<br><span class="rec">Nouveau record pour ${G.goal} ! (avant : ${prev})</span>`;
     } else rec = `<br><span class="muted2">Record pour ${G.goal} : ${prev} opération${prev > 1 ? 's' : ''}</span>`;
     const hints = G.hintsUsed ? ` · ${G.hintsUsed} indice${G.hintsUsed > 1 ? 's' : ''}` : '';
-    const entry = { id: Date.now(), name: playerName(), goal: G.goal, ops: n, time: Math.ceil(G.elapsed), hints: G.hintsUsed, easy: G.easy, date: new Date().toISOString().slice(0, 10) };
+    const entry = { id: Date.now(), name: playerName(), goal: G.goal, ops: n, time: Math.ceil(G.elapsed), hints: G.hintsUsed, easy: G.easy, assist: G.assist, date: new Date().toISOString().slice(0, 10) };
     lastScoreId = entry.id;
     const rank = addScore(entry);
     const hs = rank === 1 ? `<br><span class="rec">Meilleur score ! 1<sup>er</sup> du classement</span>`
@@ -1848,6 +1879,7 @@ function selectTime(t) {
 function syncOptions() {
   document.querySelectorAll('.optop').forEach((b) => b.setAttribute('aria-pressed', String(G.ops[+b.dataset.op])));
   $('#easyBtn').setAttribute('aria-checked', String(G.easy));
+  $('#assistBtn').setAttribute('aria-checked', String(G.assist));
 }
 $('#tabRulesBtn').addEventListener('click', () => showTab(false));
 $('#tabScoresBtn').addEventListener('click', () => showTab(true));
@@ -1879,6 +1911,7 @@ document.querySelectorAll('.optop').forEach((b) => b.addEventListener('click', (
   G.ops[i] = !G.ops[i]; store.set('ops', G.ops); syncOptions(); Sfx.tick();
 }));
 $('#easyBtn').addEventListener('click', () => { Sfx.init(); G.easy = !G.easy; store.set('easy', G.easy); syncOptions(); Sfx.tick(); });
+$('#assistBtn').addEventListener('click', () => { Sfx.init(); G.assist = !G.assist; store.set('assist', G.assist); syncOptions(); Sfx.tick(); });
 document.querySelectorAll('.times button').forEach((b) => b.addEventListener('click', () => { Sfx.init(); selectTime(+b.dataset.t); Sfx.tick(); }));
 
 window.addEventListener('keydown', (e) => {
