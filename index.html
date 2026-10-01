@@ -1741,7 +1741,7 @@ function bounceStatic(it, sx, sy, sr) {
   if (vn < 0) { it.vx -= 2 * vn * nx; it.vy -= 2 * vn * ny; }
 }
 
-const mergeable = (i) => i.kind === 'ball' && i.state === 'free' && !i.dead && G.now >= i.noMerge;
+const mergeable = (i) => i.kind === 'ball' && i.state === 'free' && !i.dead && !i.held && G.now >= i.noMerge;
 function collide() {
   const free = G.items.filter((i) => i.state === 'free' && !i.dead);
   // ce qui touche un échange en cours rebondit dessus
@@ -1758,6 +1758,7 @@ function collide() {
       const ov = a.r + b.r - Math.hypot(b.x - a.x, b.y - a.y);
       if (ov <= 0) continue;
       if (mergeable(a) && mergeable(b)) pairs.push([a, b, ov]);
+      else if (a.held || b.held) { const [h, o] = a.held ? [a, b] : [b, a]; if (!o.held) bounceStatic(o, h.x, h.y, h.r); }   // tenue au doigt : un obstacle fixe
       else bounce(a, b);
     }
   }
@@ -1767,7 +1768,7 @@ function collide() {
   }
   const att = attachedItems();
   for (const it of G.items) {
-    if (it.dead || (it.state !== 'free' && it.state !== 'doomed')) continue;
+    if (it.dead || it.held || (it.state !== 'free' && it.state !== 'doomed')) continue;
     let hit = null;
     if (Math.hypot(it.x - cx, it.y - cy) < OPR + it.r) hit = [cx, cy, OPR];
     else for (const a of att) if (Math.hypot(it.x - a.x, it.y - a.y) < it.r + a.r) { hit = [a.x, a.y, a.r]; break; }
@@ -2104,8 +2105,8 @@ function target(px, py, pointerId) {
   let best = null, bd = Infinity;
   for (const it of G.items) {
     if (it.dead || !['free', 'spawn', 'attached'].includes(it.state)) continue;
-    const d = Math.hypot(it.x - px, it.y - py);
-    if (d < it.r + 22 && d < bd) { best = it; bd = d; }   // tolérance large : la bulle bouge
+    const d = Math.hypot(it.x - px, it.y - py) - it.r;
+    if (d < Math.max(30, R * .9) && d < bd) { best = it; bd = d; }   // tolérance large : la bulle bouge
   }
   burstRing(px, py, COL.gold, 10, R * .8);
   if (!best) { Sfx.tick(); return; }
@@ -4127,16 +4128,18 @@ cvs.addEventListener('pointerdown', (e) => {
 // Target : lancer d'un élément accroché
 const flings = new Map();
 // direction et vitesse données par la fin du glissé
+// Direction : celle de la flèche de visée, du point de prise au point de lâcher. (Avant, seuls les derniers
+// instants du geste comptaient : un doigt qui ralentit ou glisse en se levant envoyait la bulle de travers.)
+// Vitesse : la plus forte entre l'élan de la fin du geste et la longueur de la visée.
 function flingVector(st) {
-  const tx = st.x - st.x0, ty = st.y - st.y0;
+  const tx = st.x - st.x0, ty = st.y - st.y0, len = Math.hypot(tx, ty) || 1;
   const now = performance.now();
   const recent = st.pts.filter((q) => now - q.t < 120);
   const a = recent.length > 1 ? recent[0] : st.pts[0], b = st.pts[st.pts.length - 1];
-  let vx = b.x - a.x, vy = b.y - a.y;
   const dt = Math.max(16, b.t - a.t) / 1000;
-  if (Math.hypot(vx, vy) < 4) { vx = tx; vy = ty; }
-  const d = Math.hypot(vx, vy) || 1;
-  return [vx / d, vy / d, clamp((Math.hypot(b.x - a.x, b.y - a.y) / dt) * .9, BASE * 2, BASE * 6)];
+  const flick = (Math.hypot(b.x - a.x, b.y - a.y) / dt) * .9;
+  const aim = BASE * 2 + Math.min(1, len / (S * .45)) * BASE * 4;
+  return [tx / len, ty / len, clamp(Math.max(flick, aim), BASE * 2, BASE * 6)];
 }
 function releaseFling(st) {
   const it = st.it;
