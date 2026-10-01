@@ -733,9 +733,20 @@ function assistValue() {
     else if (Math.abs(score - bestScore) < 1e-9) best.push(v);
   }
   if (bestScore >= 10) {
-    // rien en 3 étapes : on prend un diviseur de l'objectif, sinon au hasard
-    const divs = [2, 3, 4, 5, 6, 7, 8, 9].filter((d) => G.goal % d === 0);
-    return divs.length ? divs[randi(0, divs.length - 1)] : randi(1, 9);
+    // rien en 3 étapes : on s'appuie sur les opérations activées
+    const cands = [];
+    if (G.ops[2] || G.ops[3]) cands.push(...[2, 3, 4, 5, 6, 7, 8, 9].filter((d) => G.goal % d === 0));
+    if (G.ops[0] || G.ops[1]) {
+      // un nombre qui, ajouté ou retiré à un nombre déjà présent, approche l'objectif
+      for (const it of G.items) {
+        if (it.dead || it.value <= 0) continue;
+        const d = Math.abs(G.goal - it.value);
+        if (d >= 1 && d <= 9 && (G.goal > it.value ? G.ops[0] : G.ops[1])) cands.push(d);
+      }
+    }
+    // objectif encore loin avec + : de grosses bulles pour monter plus vite
+    if (!cands.length && G.ops[0]) cands.push(7, 8, 9);
+    return cands.length ? cands[randi(0, cands.length - 1)] : randi(1, 9);
   }
   return best[randi(0, best.length - 1)];
 }
@@ -1954,7 +1965,7 @@ $('#goalVal').textContent = G.goal;
 // bulles de démonstration derrière l'écran d'accueil
 for (let i = 0; i < 4; i++) spawnBall();
 requestAnimationFrame((ts) => { last = ts; frame(ts); });
-window.AddGame = { state: G, findHint };
+window.AddGame = { state: G, findHint, assist: assistValue };
 
 /* ================= Application installable ================= */
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
