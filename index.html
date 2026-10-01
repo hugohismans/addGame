@@ -298,6 +298,8 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .hs td.n { max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hs .tag { font-size: 10px; letter-spacing: .1em; color: var(--gold); border: 1px solid rgba(255, 224, 102, .4); border-radius: 3px; padding: 0 4px; margin-left: 4px; }
 .hs tr.me td { background: rgba(255, 224, 102, .08); }
+.hs td.n::after { content: " ▸"; color: var(--muted); font-size: 11px; }
+.hs tr.row[aria-expanded="true"] td.n::after { content: " ▾"; }
 .hs-empty { color: var(--muted); font-size: 14px; }
 .hs-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; font-size: 12px; color: var(--muted); }
 #clearScores { background: none; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); font-size: 12px; padding: 4px 8px; }
@@ -348,8 +350,21 @@ kbd {
 .calc .main b { color: var(--orange); text-shadow: 0 0 8px rgba(255, 157, 46, .7); }
 .calc ol { margin: 0; padding-left: 22px; display: grid; gap: 2px; font-family: var(--f-display); font-size: 15px; color: #cfe7ef; font-variant-numeric: tabular-nums; }
 .calc ol li::marker { color: var(--orange); }
-.calc .other { font-size: 13px; color: var(--muted); }
-.calc .other .err { color: var(--danger); }
+.calc ul { margin: 0; padding-left: 20px; display: grid; gap: 2px; font-family: var(--f-display); font-size: 14px; color: #cfe7ef; }
+.calc .k.ok { color: var(--green); }
+.calc .k.bad { color: var(--danger); }
+.calc ol.ok li { color: var(--green); }
+.calc ol.ok li::marker { color: var(--green); }
+.calc ul.bad li { color: var(--danger); }
+.calc.mini { max-width: none; margin: 2px 0 8px; padding: 10px 12px; background: rgba(0, 0, 0, .35); }
+.calc.mini .main { font-size: 16px; }
+.calc.mini ol, .calc.mini ul { font-size: 13px; }
+.calc.none { color: var(--muted); font-size: 13px; }
+.hs tr.row { cursor: pointer; }
+.hs tr.row:hover td, .hs tr.row:focus-visible td { background: rgba(62, 240, 255, .07); }
+.hs tr.row:focus-visible { outline: 1px solid var(--gold); }
+.hs tr.row[aria-expanded="true"] td { background: rgba(255, 157, 46, .08); }
+.hs tr.detail td { border-top: 0; padding-top: 0; }
 @media (max-height: 520px) {
   #end.win { background: radial-gradient(ellipse at 50% 40%, rgba(3, 10, 20, .75), rgba(3, 6, 13, .88) 80%); }
   .end-card { gap: 10px; }
@@ -458,7 +473,7 @@ kbd {
         </div>
         <div id="tabScores" role="tabpanel" hidden>
           <div id="hsBody"></div>
-          <div class="hs-foot"><span>Classement : le moins d'opérations, puis le temps le plus court. Gardé sur cet appareil.</span><button id="clearScores">Effacer</button></div>
+          <div class="hs-foot"><span>Touche une partie pour voir comment elle a été gagnée. Classement : le moins d'opérations, puis le temps le plus court. Gardé sur cet appareil.</span><button id="clearScores">Effacer</button></div>
         </div>
         <div id="tabRules" role="tabpanel">
         <ol>
@@ -1500,7 +1515,19 @@ function renderScores() {
     if (e.assist) tags.push('AIDE+');
     if (e.hints) tags.push(e.hints + ' IND.');
     tags.forEach((g) => { const sp = document.createElement('span'); sp.className = 'tag'; sp.textContent = g; tr.children[1].appendChild(sp); });
-    tb.appendChild(tr);
+    // toucher une ligne montre comment la partie a été gagnée
+    tr.classList.add('row'); tr.tabIndex = 0; tr.setAttribute('aria-expanded', 'false');
+    const det = document.createElement('tr'); det.className = 'detail'; det.hidden = true;
+    const td = document.createElement('td'); td.colSpan = 5;
+    const box = document.createElement('div'); box.className = 'calc mini';
+    if (e.calc) renderCalcInto(box, e.calc);
+    else { box.textContent = 'Pas de détail pour cette partie : elle a été jouée avant l\'arrivée du résumé.'; box.classList.add('none'); }
+    box.hidden = false;
+    td.appendChild(box); det.appendChild(td);
+    const toggle = () => { det.hidden = !det.hidden; tr.setAttribute('aria-expanded', String(!det.hidden)); Sfx.tick(); };
+    tr.addEventListener('click', toggle);
+    tr.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); ev.stopPropagation(); toggle(); } });
+    tb.appendChild(tr); tb.appendChild(det);
   });
   t.appendChild(tb); body.appendChild(t);
 }
@@ -1513,36 +1540,41 @@ function showTab(scores) {
 
 // Résumé des calculs : la formule complète du nombre final, ses étapes, et les autres essais
 const stepText = (st) => `${st.expr} = ${fmtNum(st.result)}`;
-function renderCalc() {
-  const box = $('#endCalc');
-  box.textContent = '';
-  const add = (tag, cls, text) => { const el = document.createElement(tag); if (cls) el.className = cls; if (text !== undefined) el.textContent = text; box.appendChild(el); return el; };
+// Données du résumé : formule finale, opérations utiles (qui ont servi au nombre final) et inutiles
+function calcData() {
   const hist = G.history || [];
   const b = G.won ? G.winBrick : null;
-  if (b && b.steps) {
-    add('div', 'k', 'TON CALCUL');
-    const main = add('div', 'main');
-    main.append(b.formula + ' = ');
-    const strong = document.createElement('b'); strong.textContent = String(b.value); main.appendChild(strong);
-    if (b.steps.length > 1) {
-      add('div', 'k', 'ÉTAPE PAR ÉTAPE');
-      const ol = add('ol');
-      for (const st of b.steps) { const li = document.createElement('li'); li.textContent = stepText(st); ol.appendChild(li); }
-    }
+  const useful = b && b.steps ? b.steps : [];
+  return {
+    won: !!b,
+    formula: b ? b.formula : '', value: b ? b.value : 0,
+    useful: useful.map(stepText),
+    useless: hist.filter((st) => !useful.includes(st)).map((st) => (st.err ? { t: st.expr, err: st.err } : { t: stepText(st) })),
+  };
+}
+// Affiche un résumé (fin de partie ou détail d'un high score) dans l'élément donné
+function renderCalcInto(box, d) {
+  box.textContent = '';
+  const add = (parent, tag, cls, text) => { const el = document.createElement(tag); if (cls) el.className = cls; if (text !== undefined) el.textContent = text; parent.appendChild(el); return el; };
+  if (d.won) {
+    add(box, 'div', 'k', 'LE CALCUL');
+    const main = add(box, 'div', 'main');
+    main.append(d.formula + ' = ');
+    add(main, 'b', '', String(d.value));
   }
-  const others = hist.filter((st) => !(b && b.steps && b.steps.includes(st)));
-  if (others.length) {
-    const div = add('div', 'other');
-    div.append(b ? 'Autres essais : ' : 'Tes opérations : ');
-    others.forEach((st, i) => {
-      if (i) div.append(' · ');
-      const sp = document.createElement('span');
-      if (st.err) { sp.className = 'err'; sp.textContent = `${st.expr} (${st.err})`; } else sp.textContent = stepText(st);
-      div.appendChild(sp);
-    });
+  if (d.won && d.useful.length) {
+    add(box, 'div', 'k ok', `OPÉRATIONS UTILES (${d.useful.length})`);
+    const ol = add(box, 'ol', 'ok');
+    d.useful.forEach((t) => add(ol, 'li', '', t));
+  }
+  if (d.useless.length) {
+    add(box, 'div', d.won ? 'k bad' : 'k', d.won ? `OPÉRATIONS INUTILES (${d.useless.length})` : 'TES OPÉRATIONS');
+    const ul = add(box, 'ul', d.won ? 'bad' : '');
+    d.useless.forEach((u) => add(ul, 'li', '', u.err ? `${u.t} (${u.err})` : u.t));
   }
   box.hidden = !box.childNodes.length;
 }
+function renderCalc() { renderCalcInto($('#endCalc'), calcData()); }
 
 function showEnd() {
   const card = $('#endCard');
@@ -1559,7 +1591,7 @@ function showEnd() {
       rec = prev === undefined ? '' : `<br><span class="rec">Nouveau record pour ${G.goal} ! (avant : ${prev})</span>`;
     } else rec = `<br><span class="muted2">Record pour ${G.goal} : ${prev} opération${prev > 1 ? 's' : ''}</span>`;
     const hints = G.hintsUsed ? ` · ${G.hintsUsed} indice${G.hintsUsed > 1 ? 's' : ''}` : '';
-    const entry = { id: Date.now(), name: playerName(), goal: G.goal, ops: n, time: Math.ceil(G.elapsed), hints: G.hintsUsed, easy: G.easy, assist: G.assist, date: new Date().toISOString().slice(0, 10) };
+    const entry = { id: Date.now(), name: playerName(), goal: G.goal, ops: n, time: Math.ceil(G.elapsed), hints: G.hintsUsed, easy: G.easy, assist: G.assist, date: new Date().toISOString().slice(0, 10), calc: calcData() };
     lastScoreId = entry.id;
     const rank = addScore(entry);
     const hs = rank === 1 ? `<br><span class="rec">Meilleur score ! 1<sup>er</sup> du classement</span>`
