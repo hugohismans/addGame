@@ -175,9 +175,9 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   position: absolute; inset: 0; z-index: 10;
   overflow-y: auto; touch-action: pan-y;
   padding: calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
-  background: radial-gradient(ellipse at 50% 40%, rgba(3, 10, 20, .55), rgba(3, 6, 13, .92) 75%);
+  /* pas de flou d'arrière-plan : re-flouter tout l'écran à chaque image (le terrain bouge derrière) fait ramer les grands écrans */
+  background: radial-gradient(ellipse at 50% 40%, rgba(3, 10, 20, .72), rgba(3, 6, 13, .94) 75%);
   display: flex; flex-direction: column;
-  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
 }
 .overlay > * { margin: auto; }
 .home-grid {
@@ -230,6 +230,33 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .switch[aria-checked="true"] { color: var(--gold); border-color: rgba(255, 224, 102, .5); }
 .switch[aria-checked="true"] .knob { border-color: var(--gold); background: rgba(255, 224, 102, .12); }
 .switch[aria-checked="true"] .knob::after { transform: translateX(14px); background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+#tutBox {
+  position: absolute; left: 50%; top: 10px; transform: translateX(-50%); z-index: 6;
+  width: min(600px, calc(100% - 24px));
+  padding: 12px 16px; border-radius: 10px;
+  border: 1px solid rgba(62, 240, 255, .6); background: rgba(3, 12, 22, .94);
+  box-shadow: 0 0 22px rgba(62, 240, 255, .3);
+  display: grid; gap: 8px;
+  animation: hintIn .3s cubic-bezier(.3, 1.4, .5, 1);
+}
+#tutBox .tt { display: flex; justify-content: space-between; align-items: center; font-family: var(--f-display); font-size: 11px; letter-spacing: .18em; color: var(--cyan); }
+#tutBox .dots { display: flex; gap: 5px; }
+#tutBox .dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(62, 240, 255, .25); }
+#tutBox .dots i.on { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+#tutBox .tx { font-size: 15px; line-height: 1.45; color: #dff6fb; }
+#tutBox .tx b.c { color: var(--cyan); } #tutBox .tx b.o { color: var(--orange); } #tutBox .tx b.g { color: var(--gold); }
+#tutBox .tx ul { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 2px; font-size: 14px; }
+#tutBox .wait { font-size: 12px; color: var(--gold); letter-spacing: .06em; }
+#tutBox .bt { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+#tutBox .bt .r { display: flex; gap: 8px; align-items: center; }
+#tutBox button { height: 36px; padding: 0 14px; border-radius: 6px; font-family: var(--f-display); font-weight: 700; font-size: 13px; letter-spacing: .1em; }
+#tutBox .skip { background: none; border: 0; color: var(--muted); padding: 0 4px; }
+#tutBox .sec { background: transparent; border: 1px solid var(--cyan); color: var(--cyan); }
+#tutBox .pri { background: var(--cyan); border: 0; color: var(--void); box-shadow: 0 0 12px rgba(62, 240, 255, .6); }
+@media (max-height: 520px) { #tutBox { padding: 8px 12px; gap: 6px; } #tutBox .tx { font-size: 13.5px; } #tutBox .tx ul { font-size: 12.5px; } }
+.tut-pulse { animation: tutPulse .9s ease-in-out infinite; }
+@keyframes tutPulse { 50% { transform: scale(1.12); box-shadow: 0 0 26px rgba(255, 157, 46, .95), inset 0 0 12px rgba(255, 157, 46, .3); } }
+.big-btn.small { height: 54px; padding: 0 16px; font-size: 14px; }
 #hintBox {
   position: absolute; left: 50%; top: 10px; transform: translateX(-50%); z-index: 5;
   width: min(560px, calc(100% - 200px)); min-width: 220px;
@@ -328,7 +355,7 @@ kbd {
 }
 .b-cyan { color: var(--cyan); } .b-orange { color: var(--orange); }
 
-#end.win { background: radial-gradient(ellipse at 50% 50%, rgba(3, 10, 20, .7), rgba(3, 6, 13, .25) 70%); -webkit-backdrop-filter: none; backdrop-filter: none; }
+#end.win { background: radial-gradient(ellipse at 50% 50%, rgba(3, 10, 20, .7), rgba(3, 6, 13, .25) 70%); }
 .end-card { text-align: center; display: grid; gap: 14px; justify-items: center; max-width: 560px; }
 .end-card h2 {
   margin: 0; font-family: var(--f-display); font-weight: 900; font-size: clamp(34px, 8vw, 64px); line-height: 1;
@@ -385,6 +412,7 @@ kbd {
   .label { margin-bottom: 6px; }
   .big-btn { height: 46px; }
   #nameInput { height: 46px; }
+  .big-btn.small { height: 46px; }
   .rules { padding: 12px 14px; font-size: 12.5px; line-height: 1.4; }
   .rules ol { gap: 3px; }
   .rules .modes { margin-top: 8px; }
@@ -401,6 +429,7 @@ kbd {
   <div id="field">
     <canvas id="cv" aria-label="Terrain de jeu"></canvas>
     <div id="hintBox" role="status" hidden></div>
+    <div id="tutBox" role="dialog" aria-label="Tutoriel" hidden></div>
     <div id="hudTop">
       <div style="display:flex"><div id="timer" aria-live="off">1:00</div><div id="opsChip" title="Nombre d'opérations faites"><span class="l">OPÉRATIONS</span><span class="s">OPS</span> <b id="opsVal">0</b></div><div id="easyChip" hidden>EXPERT</div><div id="assistChip" class="chipx" hidden>AIDE +</div></div>
       <div class="hud-right">
@@ -463,6 +492,7 @@ kbd {
         <div class="playrow">
           <input id="nameInput" type="text" maxlength="12" placeholder="Ton pseudo" aria-label="Pseudo pour les high scores" autocomplete="nickname" spellcheck="false">
           <button id="playBtn" class="big-btn">JOUER</button>
+          <button id="tutoBtn" class="big-btn alt small">TUTORIEL</button>
         </div>
         <div id="installBox" hidden></div>
       </div>
@@ -788,7 +818,7 @@ function roamingBalls() {
   return G.items.filter((i) => i.kind === 'ball' && !i.dead && COUNTED.includes(i.state)).length;
 }
 function spawnLogic(dt) {
-  if (G.over) return;
+  if (G.over || G.tut) return;
   if (!G.spawnPending && roamingBalls() < 4) { G.spawnPending = true; G.spawnT = rand(1, 2); }
   if (G.spawnPending) {
     G.spawnT -= dt;
@@ -805,6 +835,7 @@ function integrate(h) {
       continue;
     }
     if (it.state !== 'free' && it.state !== 'doomed') continue;
+    if (G.tut && G.tut.frozen) continue;   // tutoriel : les bulles restent en place
     // la vitesse revient doucement vers la vitesse de croisière
     let sp = Math.hypot(it.vx, it.vy);
     if (sp < 1e-3) { const a = rand(0, TAU); it.vx = Math.cos(a); it.vy = Math.sin(a); sp = 1; }
@@ -988,6 +1019,7 @@ function attach(it, bySide) {
   it.rad = Math.hypot(it.x - cx, it.y - cy);
   burstRing(it.x, it.y, it.kind === 'brick' ? COL.orange : COL.cyan, 10, R);
   Sfx.attach();
+  if (G.tut) setTimeout(tutCheck, 0);
 }
 function detach(it, nx, ny, imp) {
   it.state = 'free';
@@ -1032,6 +1064,7 @@ function updateAttached(dt) {
 
 function switchOp() {
   if (!G.running || G.over || G.fuse) return;
+  if (G.tut && !G.tut.free) { G.opShake = .3; Sfx.invalid(); return; }
   let next = G.op;
   do next = (next + 1) % 4; while (!G.ops[next]);
   if (next === G.op) return;
@@ -1046,6 +1079,7 @@ let opIconRot = 0;
 let swapIconRot = 0;
 function swapSides() {
   if (!G.running || G.over || G.fuse) return;
+  if (G.tut && !G.tut.free) { G.opShake = .3; Sfx.invalid(); return; }
   for (const it of G.items) {
     if (it.state !== 'attached') continue;
     it.side = it.side === 'A' ? 'B' : 'A';
@@ -1147,7 +1181,8 @@ function updateFuse(dt) {
     }
     G.items.push(b);
     Sfx.result();
-    if (v === G.goal) { G.winBrick = b; win(); }
+    if (G.tut) tutOnBrick(v);
+    else if (v === G.goal) { G.winBrick = b; win(); }
   }
 }
 function bigError(msg) {
@@ -1305,6 +1340,122 @@ function updateRockets(dt) {
   G.rockets = G.rockets.filter((r) => !r.done || r.trail.length);
 }
 
+/* ================= Tutoriel ================= */
+// Une partie guidée sur le vrai terrain : objectif 11, une démonstration de rencontre, puis 7 + 4 à faire soi-même.
+const TUT_STEPS = [
+  { title: 'LE BUT', text: () => `Fabrique une <b class="o">brique</b> égale à l'<b class="o">objectif</b>, affiché en bas : ici <b class="o">11</b>.<br>Les <b class="c">bulles</b> valent de 1 à 9 : le 1 est petit et rapide, le 9 gros et lent.`,
+    setup() { tutClear(); G.tut.frozen = true; tutBall(3, cx - W * .3, cy - R * 2); tutBall(8, cx + W * .28, cy + R * 2.2); tutBall(5, cx + W * .1, Math.min(H - R * 2, cy + OPR + R * 3)); },
+    next: 'Suivant' },
+  { title: 'LES RENCONTRES', text: () => `Quand deux bulles se touchent, l'une <b class="c">gagne 1</b> et l'autre <b class="c">perd 1</b>, sans jamais redonner la même paire : <b>7 et 6 deviennent 8 et 5</b>.<br>Une bulle qui tombe à 0 ou monte à 10 explose.`,
+    setup() {
+      tutClear(); G.tut.frozen = false;
+      const y = Math.min(H - R * 2.2, cy + OPR + R * 3);
+      const gap = Math.min(W * .22, OPR * 4.5);
+      const a = tutBall(7, cx - gap, y, BASE * 1.6, 0), b = tutBall(6, cx + gap, y, -BASE * 1.6, 0);
+      a.wildUntil = b.wildUntil = G.now + 2;   // gardent leur élan pour se rencontrer vite
+    },
+    replay: true, next: 'Suivant' },
+  { title: 'ACCROCHER', text: () => `En mode <b class="g">TARGET</b>, touche une bulle pour l'envoyer sur l'opérateur, au centre.<br><b>Touche le 7, puis le 4.</b>`,
+    wait: 'Touche les deux bulles entourées',
+    setup() {
+      if (!G.tut.keep) {
+        tutClear(); G.tut.frozen = true;
+        G.tut.a = tutBall(7, cx - Math.min(W * .28, OPR * 5), cy);
+        G.tut.b = tutBall(4, cx + Math.min(W * .28, OPR * 5), cy);
+      }
+      G.tut.keep = false;
+      setMode('target');
+      G.hint = { items: [G.tut.a, G.tut.b].filter((i) => i.state !== 'attached'), until: Infinity };
+    } },
+  { title: 'CALCULER', text: () => `Les deux nombres sont accrochés à l'opérateur <b>+</b>.<br><b>Appuie sur <b class="o">=</b></b> pour calculer 7 + 4.`,
+    wait: 'Appuie sur le bouton = en bas à droite',
+    setup() { G.hint = null; $('#eqBtn').classList.add('tut-pulse'); } },
+  { title: 'À TOI DE JOUER', text: () => `<b class="g">Bravo, 7 + 4 = 11 !</b> Pour aller plus loin :<ul>
+      <li>Pour <b>−</b> et <b>÷</b>, le côté compte : la gauche (ou le haut) d'abord.</li>
+      <li><b>Touche l'opérateur</b> pour changer d'opération, <b>glisse dessus</b> pour échanger les côtés.</li>
+      <li><b class="c">BLOW</b> et <b class="c">FIREWORK</b> poussent les bulles. Rien ne s'accroche par hasard : pousse-les, ou utilise TARGET.</li>
+      <li>Score : le <b>moins d'opérations</b> possible. L'ampoule donne un indice contre 10 secondes.</li></ul>`,
+    setup() { $('#eqBtn').classList.remove('tut-pulse'); G.tut.frozen = true; G.tut.free = true; },
+    next: "C'est parti !", last: true },
+];
+function tutClear() { G.items = []; G.merges = []; G.rockets = []; G.fuse = null; G.hint = null; }
+function tutBall(v, x, y, vx = 0, vy = 0) {
+  const b = makeItem('ball', v, clamp(x, R * 1.5, W - R * 1.5), clamp(y, R * 1.5, H - R * 1.5), 0, 0);
+  b.vx = vx; b.vy = vy; b.born = G.now;
+  G.items.push(b);
+  burstRing(b.x, b.y, COL.cyan, 12, R * 1.8, true);
+  return b;
+}
+function startTutorial() {
+  newGame();
+  G.tut = { step: 0, frozen: true, free: false, easy: G.easy };
+  G.easy = true;   // le tutoriel montre TARGET, même en mode expert
+  G.goal = 11; G.op = 0; G.opPrev = 0;
+  $('#goalVal').textContent = '11';
+  $('#easyChip').hidden = true; $('#assistChip').hidden = true; $('#opsChip').hidden = true;
+  G.texts = [];
+  setMode('target');
+  updateTimer(true);
+  tutGo(0);
+}
+function tutGo(i) {
+  G.tut.step = i;
+  const st = TUT_STEPS[i];
+  st.setup();
+  const box = $('#tutBox');
+  const dots = TUT_STEPS.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('');
+  box.innerHTML = `<div class="tt"><span>TUTORIEL · ${st.title}</span><span class="dots">${dots}</span></div>
+    <div class="tx">${st.text()}</div>
+    <div class="bt"><button class="skip" id="tutSkip">${st.last ? '' : 'Passer le tutoriel'}</button>
+      <span class="r">${st.replay ? '<button class="sec" id="tutReplay">REVOIR</button>' : ''}
+      ${st.next ? `<button class="pri" id="tutNext">${st.next.toUpperCase()}</button>` : `<span class="wait">${st.wait}</span>`}</span></div>`;
+  box.hidden = false;
+  const on = (id, fn) => { const b = document.getElementById(id); if (b) b.addEventListener('click', (e) => { Sfx.init(); Sfx.tick(); e.currentTarget.blur(); fn(); }); };
+  on('tutSkip', () => endTutorial());
+  on('tutReplay', () => tutGo(i));
+  on('tutNext', () => (st.last ? endTutorial() : tutGo(i + 1)));
+}
+// étape « accrocher » : on avance quand les deux bulles sont sur l'opérateur
+function tutCheck() {
+  if (!G.tut) return;
+  const { a, b } = G.tut;
+  const both = a && b && a.state === 'attached' && b.state === 'attached';
+  if (G.tut.step === 2) {
+    G.hint = { items: [a, b].filter((x) => x && x.state !== 'attached'), until: Infinity };
+    if (both) setTimeout(() => { if (G.tut && G.tut.step === 2) tutGo(3); }, 350);
+  }
+}
+function tutOnBrick(v) {
+  if (!G.tut) return;
+  $('#eqBtn').classList.remove('tut-pulse');
+  if (v === 11) {
+    G.texts.push({ text: 'BRAVO !', x: cx, y: Math.max(H * .72, cy + OPR + R * 2.5), t: 0, life: 2, c: COL.gold, size: Math.min(46, S * .11), rise: 0 });
+    for (let k = 0; k < 3; k++) setTimeout(fireworkShow, k * 250);
+    Sfx.win();
+    setTimeout(() => { if (G.tut) tutGo(4); }, 1100);
+  } else {
+    // résultat inattendu : on recommence l'étape d'accrochage
+    setTimeout(() => { if (G.tut) { G.tut.keep = false; tutGo(2); } }, 900);
+  }
+}
+function tutCleanup() {
+  if (!G.tut) return;
+  G.easy = G.tut.easy;
+  G.tut = null;
+  G.hint = null;
+  $('#tutBox').hidden = true; $('#opsChip').hidden = false;
+  $('#eqBtn').classList.remove('tut-pulse');
+  store.set('tutoDone', true);
+}
+function endTutorial() { tutCleanup(); newGame(); }
+// pendant l'étape « calculer », une bulle décrochée renvoie à l'étape « accrocher »
+setInterval(() => {
+  if (G.tut && G.tut.step === 3 && !G.fuse && G.tut.a && G.tut.b &&
+      (G.tut.a.state === 'free' || G.tut.b.state === 'free')) {
+    $('#eqBtn').classList.remove('tut-pulse'); G.tut.keep = true; tutGo(2);
+  }
+}, 250);
+
 /* ================= Indice ================= */
 // Cherche la suite d'opérations la plus courte (3 au plus) qui fabrique l'objectif avec les nombres présents.
 // Chaque étape prend deux nombres, comme on le ferait en accrochant deux éléments puis en appuyant sur =.
@@ -1445,7 +1596,10 @@ function updateFx(dt) {
 }
 
 /* ================= Partie ================= */
+// Bouton JOUER : la toute première fois, on passe d'abord par le tutoriel
+function playFromMenu() { if (!store.get('tutoDone', false)) startTutorial(); else newGame(); }
 function newGame() {
+  if (G.tut) tutCleanup();
   Sfx.init();
   G.items = []; G.merges = []; G.rockets = []; G.parts = []; G.waves = []; G.texts = [];
   G.op = G.ops.indexOf(true); G.opPrev = G.op; G.opAnim = 1; G.swapAnim = 1; G.fuse = null; G.order = 0;
@@ -1612,6 +1766,7 @@ function playerName() {
   return v || 'Joueur';
 }
 function goHome() {
+  if (G.tut) tutCleanup();
   G.running = false; G.over = false; G.won = false; G.fuse = null;
   for (const it of G.items) if (it.state === 'attached' || it.state === 'fusing') { it.state = 'free'; const a = rand(0, TAU); it.vx = Math.cos(a) * BASE; it.vy = Math.sin(a) * BASE; }
   $('#end').hidden = true; $('#home').hidden = false;
@@ -1621,11 +1776,12 @@ function goHome() {
 let timerStr = '';
 function updateTimer(force) {
   const el = $('#timer');
-  const s = G.timeLimit > 0 ? fmtTime(G.timeLeft) : '∞ ' + fmtTime(G.elapsed);
+  const s = G.tut ? 'TUTO' : G.timeLimit > 0 ? fmtTime(G.timeLeft) : '∞ ' + fmtTime(G.elapsed);
   if (s !== timerStr || force) { timerStr = s; el.textContent = s; }
   el.classList.toggle('hot', G.running && G.timeLimit > 0 && G.timeLeft <= 10 && !G.over);
 }
 function endLogic(dt) {
+  if (G.tut) return;
   if (G.running && !G.over) {
     G.elapsed += dt;
     if (G.timeLimit > 0) {
@@ -2076,7 +2232,8 @@ onBtn('#swapBtn', swapSides);
 onBtn('#hintBtn', showHint);
 $('#hintBox').addEventListener('click', () => { $('#hintBox').hidden = true; });
 onBtn('#eqBtn', pressEqual);
-onBtn('#playBtn', newGame);
+onBtn('#playBtn', playFromMenu);
+onBtn('#tutoBtn', startTutorial);
 onBtn('#againBtn', newGame);
 onBtn('#homeBtn', goHome);
 onBtn('#menuBtn', goHome);
@@ -2102,7 +2259,7 @@ $('#tabRulesBtn').addEventListener('click', () => showTab(false));
 $('#tabScoresBtn').addEventListener('click', () => showTab(true));
 $('#nameInput').value = store.get('name', '');
 $('#nameInput').addEventListener('input', () => store.set('name', $('#nameInput').value.trim().slice(0, 12)));
-$('#nameInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('#nameInput').blur(); newGame(); } });
+$('#nameInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('#nameInput').blur(); playFromMenu(); } });
 let clearArmed = 0;
 $('#clearScores').addEventListener('click', (e) => {
   const b = e.currentTarget;
@@ -2138,7 +2295,7 @@ window.addEventListener('keydown', (e) => {
   const homeOpen = !$('#home').hidden, endOpen = !$('#end').hidden;
   if (homeOpen) {
     const onOtherBtn = document.activeElement && document.activeElement.tagName === 'BUTTON' && document.activeElement.id !== 'playBtn';
-    if ((k === 'Enter' || k === ' ') && !onOtherBtn) { e.preventDefault(); newGame(); }
+    if ((k === 'Enter' || k === ' ') && !onOtherBtn) { e.preventDefault(); playFromMenu(); }
     else if (['1', '2', '3', '4'].includes(k)) selectTime([60, 300, 600, 0][+k - 1]);
     return;
   }
