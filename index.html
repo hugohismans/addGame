@@ -615,6 +615,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
           <button id="op3" class="optop" data-op="3" aria-pressed="true" aria-label="Division">÷</button>
           <button id="easyBtn" class="switch" role="switch" aria-checked="false" title="Sans Target, et tout s'accroche au contact"><span class="knob"></span>MODE EXPERT</button>
           <button id="assistBtn" class="switch" role="switch" aria-checked="false" title="Les bulles qui apparaissent sont choisies pour aider à trouver la solution"><span class="knob"></span>AIDE +</button>
+          <button id="shakeBtn" class="switch" role="switch" aria-checked="false" title="Secoue le téléphone pour calculer (=)"><span class="knob"></span>SECOUER = CALCUL</button>
         </div>
         <div class="label" id="mechLbl">MÉCANIQUES</div>
         <div class="opts" role="group" aria-labelledby="mechLbl">
@@ -643,7 +644,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
         <ol>
           <li>Les <span class="b-cyan">bulles</span> valent de 1 à 9 : le 1 est petit et rapide, le 9 gros et lent. Quand deux bulles se touchent, l'une gagne 1 et l'autre perd 1, sans jamais redonner la même paire (7 et 6 deviennent 8 et 5), puis elles rebondissent comme des billes de billard. Une bulle 0 ou 10 explose.</li>
           <li>Une bulle qui touche l'opérateur au centre s'y accroche. Pour <b>−</b> et <b>÷</b>, le côté compte : gauche ou haut d'abord, droite ou bas ensuite. Le bouton <b>⇄</b>, ou un glissé du doigt sur l'opérateur, le fait pivoter d'un demi-tour pour inverser les côtés.</li>
-          <li>Change d'opération en touchant l'opérateur ou avec <b>⟳</b>, puis appuie sur <b class="b-orange">=</b> pour obtenir une <span class="b-orange">brique</span>. Pas de résultat négatif ni de division qui tombe pas juste.</li>
+          <li>Change d'opération en touchant l'opérateur ou avec <b>⟳</b>, puis <b>garde le doigt sur l'opérateur</b> (ou appuie sur <b class="b-orange">=</b>) pour obtenir une <span class="b-orange">brique</span>. Option du menu : secouer le téléphone pour calculer. Pas de résultat négatif ni de division qui tombe pas juste.</li>
           <li>Gagne en créant une brique égale à l'objectif, en le moins d'opérations possible : chaque = compte. Les meilleures parties vont dans les <b>high scores</b>.</li>
         </ol>
         <div class="modes">
@@ -1678,12 +1679,12 @@ const TUT_STEPS = [
       setMode('auto');
       G.hint = { items: [G.tut.a, G.tut.b].filter((i) => i.state !== 'attached'), until: Infinity };
     } },
-  { title: 'CALCULER', text: () => `Les deux nombres sont accrochés à l'opérateur <b>+</b>.<br><b>Appuie sur <b class="o">=</b></b> pour calculer 7 + 4.`,
-    wait: 'Appuie sur le bouton = en bas à droite',
+  { title: 'CALCULER', text: () => `Les deux nombres sont accrochés à l'opérateur <b>+</b>.<br><b>Garde le doigt appuyé sur l'opérateur</b>, ou appuie sur <b class="o">=</b>, pour calculer 7 + 4.`,
+    wait: "Appui long sur l'opérateur, ou bouton = en bas",
     setup() { G.hint = null; $('#eqBtn').classList.add('tut-pulse'); } },
   { title: 'À TOI DE JOUER', text: () => `<b class="g">Bravo, 7 + 4 = 11 !</b> Pour aller plus loin :<ul>
       <li>Pour <b>−</b> et <b>÷</b>, le côté compte : la gauche (ou le haut) d'abord.</li>
-      <li><b>Touche l'opérateur</b> pour changer d'opération, <b>glisse dessus</b> pour échanger les côtés.</li>
+      <li>Sur l'opérateur : <b>touche</b> pour changer d'opération, <b>glisse</b> pour échanger les côtés, <b>appui long</b> pour calculer.</li>
       <li><b class="c">BLOW</b> et <b class="c">FIREWORK</b> poussent les bulles. Rien ne s'accroche par hasard : pousse-les vers l'opérateur.</li>
       <li><b class="g">TARGET</b> : attrape une bulle, glisse et lâche pour la lancer où tu veux.</li>
       <li>Score : le <b>moins d'opérations</b> possible. L'ampoule donne un indice contre 10 secondes.</li></ul>`,
@@ -1767,6 +1768,51 @@ setInterval(() => {
     $('#eqBtn').classList.remove('tut-pulse'); G.tut.keep = true; tutGo(2);
   }
 }, 250);
+
+/* ================= Secouer pour calculer ================= */
+// Accéléromètre : deux secousses franches en moins d'une demi-seconde lancent le calcul.
+// Sur iPhone, Safari demande l'autorisation la première fois (elle doit partir d'un toucher, d'où le bouton du menu).
+const Shake = (() => {
+  let on = false, listening = false, peaks = [], cool = 0;
+  function onMotion(e) {
+    if (!on || !G.running || G.over || G.fuse) return;
+    const a = e.acceleration, g = e.accelerationIncludingGravity;
+    let m;
+    if (a && a.x !== null) m = Math.hypot(a.x || 0, a.y || 0, a.z || 0);
+    else if (g && g.x !== null) m = Math.abs(Math.hypot(g.x || 0, g.y || 0, g.z || 0) - 9.81);
+    else return;
+    const t = performance.now();
+    if (m > 13 && t - (peaks[peaks.length - 1] || 0) > 90) peaks.push(t);
+    peaks = peaks.filter((p) => t - p < 500);
+    if (peaks.length >= 2 && t > cool) {
+      peaks = []; cool = t + 1200;
+      G.shake = Math.max(G.shake, .35);
+      pressEqual();
+    }
+  }
+  function listen() { if (!listening) { window.addEventListener('devicemotion', onMotion); listening = true; } }
+  async function toggle() {
+    if (on) { on = false; store.set('shake', false); return; }
+    if (typeof DeviceMotionEvent === 'undefined') { note("Cet appareil n'a pas de capteur de mouvement."); return; }
+    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+      try {
+        const r = await DeviceMotionEvent.requestPermission();
+        if (r !== 'granted') { note('Autorisation refusée : active les capteurs de mouvement pour ce site.'); return; }
+      } catch (err) { note("Impossible d'accéder aux capteurs de mouvement ici."); return; }
+    }
+    on = true; store.set('shake', true); listen();
+    note('Secoue le téléphone pendant la partie pour calculer.');
+  }
+  function note(msg) {
+    const b = $('#installBox');
+    if (!b) return;
+    b.textContent = msg; b.hidden = false;
+    clearTimeout(note.t); note.t = setTimeout(() => { if (b.textContent === msg) b.hidden = true; }, 4000);
+  }
+  // déjà activé lors d'une visite précédente : Android écoute tout de suite ; l'iPhone redemandera via le bouton
+  if (store.get('shake', false) && !(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function')) { on = true; listen(); }
+  return { get on() { return on; }, toggle };
+})();
 
 /* ================= Indice ================= */
 // Cherche la suite d'opérations la plus courte (3 au plus) qui fabrique l'objectif avec les nombres présents.
@@ -2355,6 +2401,15 @@ function drawOperator() {
   const sw = (1 - easeInOut(G.swapAnim)) * -PI;
   drawSym(G.opPrev, e * PI / 2 + sw, 1 - e, 1 - e * .3);
   drawSym(G.op, -(1 - e) * PI / 2 + sw, e, .7 + e * .3);
+  if (G.opHold && !busy) {
+    const p = clamp((G.now - G.opHold.t0) / (HOLD_MS / 1000), 0, 1);
+    if (p > .12) {   // un toucher bref ne montre rien
+      ctx.save(); ctx.lineCap = 'round';
+      const arc = new Path2D(); arc.arc(ox, oy, OPR + 7, -PI / 2, -PI / 2 + TAU * p);
+      glowStroke(arc, COL.orange, 4, .95);
+      ctx.restore();
+    }
+  }
   if (busy) {
     const p = clamp(G.fuse.t / .55, 0, 1);
     ctx.globalCompositeOperation = ADD();
@@ -2544,9 +2599,16 @@ cvs.addEventListener('pointerdown', (e) => {
   if (!G.running || G.over) return;
   const r = cvs.getBoundingClientRect();
   const x = e.clientX - r.left, y = e.clientY - r.top;
-  // sur le disque central : un toucher change d'opération, un glissé fait le demi-tour (décidé au relâchement ou au glissé)
+  // sur le disque central : toucher = opération suivante, glisser = demi-tour, appui long = calculer
   if (onOperator(x, y)) {
-    opPress.set(e.pointerId, { x, y });
+    const st = { x, y, fired: false };
+    st.timer = setTimeout(() => {
+      if (opPress.get(e.pointerId) !== st || !G.running || G.over) return;
+      st.fired = true; G.opHold = null;
+      pressEqual();
+    }, HOLD_MS);
+    opPress.set(e.pointerId, st);
+    G.opHold = { t0: G.now };
     try { cvs.setPointerCapture(e.pointerId); } catch (err) { /* pas grave */ }
     return;
   }
@@ -2628,6 +2690,14 @@ function drawFlings() {
   }
 }
 function onOperator(x, y) { return Math.hypot(x - cx, y - cy) <= OPR * 1.05; }
+const HOLD_MS = 450;   // durée de l'appui long sur l'opérateur pour calculer
+function endOpPress(id) {
+  const st = opPress.get(id);
+  if (st) clearTimeout(st.timer);
+  opPress.delete(id);
+  if (!opPress.size) G.opHold = null;
+  return st;
+}
 const opPress = new Map();
 const canvasXY = (e) => { const r = cvs.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
 cvs.addEventListener('pointermove', (e) => {
@@ -2640,10 +2710,10 @@ cvs.addEventListener('pointermove', (e) => {
     return;
   }
   const st = opPress.get(e.pointerId);
-  if (!st) return;
+  if (!st || st.fired) return;
   const [x, y] = canvasXY(e);
   if (Math.hypot(x - st.x, y - st.y) > Math.max(22, OPR * .6)) {
-    opPress.delete(e.pointerId);
+    endOpPress(e.pointerId);
     if (G.running && !G.over && !G.fuse) swapSides(); else Sfx.invalid();
   }
 });
@@ -2651,12 +2721,12 @@ cvs.addEventListener('pointerup', (e) => {
   const fl = flings.get(e.pointerId);
   if (fl) { flings.delete(e.pointerId); if (G.running && !G.over) releaseFling(fl); return; }
   if (!opPress.has(e.pointerId)) return;
-  opPress.delete(e.pointerId);
-  if (!G.running || G.over) return;
+  const st = endOpPress(e.pointerId);
+  if (st.fired || !G.running || G.over) return;   // l'appui long a déjà lancé le calcul
   if (G.ops.filter(Boolean).length < 2 || G.fuse) { G.opShake = .3; Sfx.invalid(); } else switchOp();
 });
 cvs.addEventListener('pointercancel', (e) => {
-  opPress.delete(e.pointerId);
+  endOpPress(e.pointerId);
   const fl = flings.get(e.pointerId);
   if (fl && fl.it.held) { fl.it.held = false; [fl.it.vx, fl.it.vy] = fl.it.heldV || [0, 0]; }
   flings.delete(e.pointerId);
@@ -2703,6 +2773,7 @@ function syncOptions() {
   document.querySelectorAll('.optop:not(.mech)').forEach((b) => b.setAttribute('aria-pressed', String(G.ops[+b.dataset.op])));
   $('#easyBtn').setAttribute('aria-checked', String(!G.easy));
   $('#assistBtn').setAttribute('aria-checked', String(G.assist));
+  $('#shakeBtn').setAttribute('aria-checked', String(Shake.on));
   document.querySelectorAll('.optop.mech').forEach((b) => {
     const i = +b.dataset.mech;
     b.setAttribute('aria-pressed', String(G.easy ? G.mechs[i] : i < 2));
@@ -2751,6 +2822,7 @@ document.querySelectorAll('.optop:not(.mech)').forEach((b) => b.addEventListener
 }));
 $('#easyBtn').addEventListener('click', () => { Sfx.init(); G.easy = !G.easy; store.set('expert', !G.easy); syncOptions(); Sfx.tick(); });
 $('#assistBtn').addEventListener('click', () => { Sfx.init(); G.assist = !G.assist; store.set('assist', G.assist); syncOptions(); Sfx.tick(); });
+$('#shakeBtn').addEventListener('click', async () => { Sfx.init(); await Shake.toggle(); syncOptions(); Sfx.tick(); });
 document.querySelectorAll('.times button').forEach((b) => b.addEventListener('click', () => { Sfx.init(); selectTime(+b.dataset.t); Sfx.tick(); }));
 
 window.addEventListener('keydown', (e) => {
