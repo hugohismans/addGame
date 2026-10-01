@@ -91,8 +91,8 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   touch-action: none;
 }
 .mode {
-  position: relative; display: grid; grid-template-columns: 1fr 1fr;
-  width: 172px; --n: 2; height: 44px; padding: 3px;
+  position: relative; display: grid; grid-template-columns: repeat(var(--n), 1fr);
+  --n: 2; width: calc(var(--n) * 82px + 8px); height: 44px; padding: 3px;
   border: 1px solid var(--line); border-radius: 22px; background: rgba(0, 0, 0, .35);
 }
 .mode .thumb {
@@ -115,13 +115,16 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .mode[data-mode="blow"] .opt[data-m="blow"] { color: var(--cyan); }
 .mode[data-mode="fire"] .opt[data-m="fire"] { color: var(--pink); }
 .mode[data-mode="target"] .opt[data-m="target"] { color: var(--gold); }
-.mode .opt[data-m="target"] { display: none; }
-.mode.easy { grid-template-columns: 1fr 1fr 1fr; width: 246px; --n: 3; }
-.mode.easy .opt[data-m="target"] { display: grid; }
+.mode[data-mode="auto"] .opt[data-m="auto"] { color: var(--green); }
 .mode[data-mode="target"] .thumb {
   transform: translateX(200%);
   border-color: var(--gold); background: rgba(255, 224, 102, .14);
   box-shadow: 0 0 12px rgba(255, 224, 102, .55), inset 0 0 10px rgba(255, 224, 102, .22);
+}
+.mode[data-mode="auto"] .thumb {
+  transform: translateX(300%);
+  border-color: var(--green); background: rgba(120, 255, 170, .12);
+  box-shadow: 0 0 12px rgba(120, 255, 170, .5), inset 0 0 10px rgba(120, 255, 170, .2);
 }
 .mode .opt .s { display: none; }
 
@@ -159,11 +162,12 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 }
 @media (max-width: 460px) {
   #bar { gap: 6px; padding-left: 10px; padding-right: 10px; }
-  .mode { width: 138px; }
-  .mode.easy { width: 146px; }
+  .mode { width: calc(var(--n) * 49px + 4px); }
+  /* sur petit écran, on change d'opération en touchant l'opérateur : le bouton ⟳ laisse sa place au sélecteur */
+  #opBtn { display: none; }
   .mode .opt { font-size: 10px; letter-spacing: .06em; }
-  .mode.easy .opt .l { display: none; }
-  .mode.easy .opt .s { display: inline; }
+  .mode .opt .l { display: none; }
+  .mode .opt .s { display: inline; }
   .goal .lbl { display: none; }
   #eqBtn { width: 54px; }
   .actions { gap: 6px; }
@@ -214,6 +218,8 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   box-shadow: 0 0 10px rgba(233, 253, 255, .35); text-shadow: 0 0 8px rgba(62, 240, 255, .9);
 }
 .optop.shake { animation: shake .3s; }
+.optop.mech { width: auto; padding: 0 12px; font-size: 13px; letter-spacing: .1em; }
+.optop.mech:disabled { opacity: .35; cursor: not-allowed; }
 @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 .switch {
   display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px 0 6px; margin-left: 6px;
@@ -402,6 +408,12 @@ kbd {
 
 @media (max-height: 520px) and (min-width: 720px) {
   .home-grid { align-items: start; grid-template-columns: 1.2fr 1fr; gap: 24px; }
+  /* JOUER reste toujours visible : la ligne colle au bas de l'écran si le menu dépasse */
+  .playrow { position: sticky; bottom: calc(-16px - env(safe-area-inset-bottom, 0px)); z-index: 2; padding: 8px 0 12px;
+             background: linear-gradient(180deg, transparent, var(--void) 35%); }
+  .opts { gap: 6px; margin-bottom: 8px; }
+  .optop, .switch, .times button { height: 32px; }
+  .label { margin-bottom: 4px; }
   .brand h1 { font-size: 40px; margin-bottom: 10px; }
   .titlerow { flex-wrap: nowrap; gap: 14px; margin-bottom: 4px; }
   .da-wrap .label, .da-switch .dn { display: none; }
@@ -464,6 +476,7 @@ html[data-da="craie"] .mode { background: rgba(0, 0, 0, .18); border: 1.5px soli
 html[data-da="craie"] .mode .thumb { background: rgba(255, 255, 255, .08); border: 2px solid var(--ice); }
 html[data-da="craie"] .mode[data-mode="fire"] .thumb { border-color: var(--pink); background: rgba(255, 158, 196, .1); }
 html[data-da="craie"] .mode[data-mode="target"] .thumb { border-color: var(--gold); background: rgba(255, 226, 122, .1); }
+html[data-da="craie"] .mode[data-mode="auto"] .thumb { border-color: var(--green); background: rgba(168, 226, 160, .1); }
 html[data-da="craie"] .mode .opt { font-family: var(--f-ui); font-size: 14px; letter-spacing: 0; }
 @media (max-width: 460px) { html[data-da="craie"] .mode .opt { font-size: 12px; } }
 html[data-da="craie"] :is(#timer, #opsChip, #easyChip, #assistChip, .icon-btn) { background: rgba(0, 0, 0, .18); }
@@ -551,11 +564,12 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
   </div>
 
   <div id="bar">
-    <button id="modeBtn" class="mode" data-mode="blow" aria-label="Changer de mode : Blow, Firework ou Target (touche M)">
+    <button id="modeBtn" class="mode" data-mode="blow" aria-label="Changer de mode : Blow, Firework, Target ou Auto (touche M)">
       <span class="thumb"></span>
       <span class="opt" data-m="blow">BLOW</span>
       <span class="opt" data-m="fire"><span class="l">FIREWORK</span><span class="s">FIRE</span></span>
       <span class="opt" data-m="target">TARGET</span>
+      <span class="opt" data-m="auto">AUTO</span>
     </button>
     <div class="goal">
       <span class="lbl">OBJECTIF</span>
@@ -602,6 +616,13 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
           <button id="easyBtn" class="switch" role="switch" aria-checked="false" title="Sans Target, et tout s'accroche au contact"><span class="knob"></span>MODE EXPERT</button>
           <button id="assistBtn" class="switch" role="switch" aria-checked="false" title="Les bulles qui apparaissent sont choisies pour aider à trouver la solution"><span class="knob"></span>AIDE +</button>
         </div>
+        <div class="label" id="mechLbl">MÉCANIQUES</div>
+        <div class="opts" role="group" aria-labelledby="mechLbl">
+          <button class="optop mech" data-mech="0" aria-pressed="true">BLOW</button>
+          <button class="optop mech" data-mech="1" aria-pressed="true">FIREWORK</button>
+          <button class="optop mech" data-mech="2" aria-pressed="true">TARGET</button>
+          <button class="optop mech" data-mech="3" aria-pressed="true">AUTO</button>
+        </div>
         <div class="playrow">
           <input id="nameInput" type="text" maxlength="12" placeholder="Ton pseudo" aria-label="Pseudo pour les high scores" autocomplete="nickname" spellcheck="false">
           <button id="playBtn" class="big-btn">JOUER</button>
@@ -630,8 +651,8 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
           <div class="fire"><b>FIREWORK</b>Lance une fusée folle qui fonce 2 à 3 secondes, éjecte tout ce qu'elle frôle, lâche des pétards et finit en bouquet.</div>
         </div>
         <div class="keys"><b class="b-orange">Aide +</b> : les bulles qui apparaissent sont choisies pour rapprocher la solution (objectif 63 avec une brique 21 : il arrive un 3). Les règles ne changent pas.</div>
-        <div class="keys"><b class="b-orange">Par défaut</b>, rien ne s'accroche par hasard : une bulle ne s'accroche que si tu l'as poussée (anneau doré pendant 2,5 s), ou avec le mode <b>TARGET</b> (touche-la pour l'envoyer sur l'opérateur, retouche-la pour la décrocher, ou fais-la glisser pour la lancer). <b class="b-orange">Mode expert</b> : pas de Target, et tout s'accroche au contact.</div>
-        <div class="keys">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>S</kbd> inverser · <kbd>H</kbd> indice · <kbd>M</kbd> mode (<kbd>B</kbd> <kbd>F</kbd> <kbd>T</kbd>) · <kbd>R</kbd> rejouer · clic pour agir</div>
+        <div class="keys"><b class="b-orange">Par défaut</b>, rien ne s'accroche par hasard : une bulle ne s'accroche que si tu l'as poussée (anneau doré pendant 2,5 s). Dans le menu, choisis les <b>mécaniques</b> que tu veux. Deux en plus de Blow et Firework : <b>TARGET</b>, attrape une bulle (même en mouvement), glisse et lâche pour la lancer dans cette direction ; <b>AUTO</b>, touche une bulle pour l'envoyer sur l'opérateur, retouche-la pour la décrocher. <b class="b-orange">Mode expert</b> : Blow et Firework uniquement, et tout s'accroche au contact.</div>
+        <div class="keys">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>S</kbd> inverser · <kbd>H</kbd> indice · <kbd>M</kbd> mode (<kbd>B</kbd> <kbd>F</kbd> <kbd>T</kbd> <kbd>A</kbd>) · <kbd>R</kbd> rejouer · clic pour agir</div>
         </div>
       </div>
     </div>
@@ -1014,6 +1035,7 @@ function buildBoard(g) {
 const G = {
   items: [], merges: [], rockets: [], parts: [], waves: [], texts: [],
   mode: 'blow', op: 0, opPrev: 0, opAnim: 1, swapAnim: 1,
+  mechs: (() => { const o = store.get('mechs', [true, true, true, true]); return Array.isArray(o) && o.length === 4 && o.some(Boolean) ? o.map(Boolean) : [true, true, true, true]; })(),
   ops: (() => { const o = store.get('ops', [true, true, true, true]); return Array.isArray(o) && o.length === 4 && o.some(Boolean) ? o.map(Boolean) : [true, true, true, true]; })(),
   easy: !store.get('expert', false), assist: !!store.get('assist', false), ringRot: 0, ringTarget: 0, opShake: 0,
   goal: 42, timeLimit: store.get('time', 60), timeLeft: 60, elapsed: 0, lastTick: -1,
@@ -1107,6 +1129,7 @@ function integrate(h) {
     }
     if (it.state !== 'free' && it.state !== 'doomed') continue;
     if (G.tut && G.tut.frozen) continue;   // tutoriel : les bulles restent en place
+    if (it.held) continue;                 // tenue au doigt en mode TARGET
     // la vitesse revient doucement vers la vitesse de croisière
     let sp = Math.hypot(it.vx, it.vy);
     if (sp < 1e-3) { const a = rand(0, TAU); it.vx = Math.cos(a); it.vy = Math.sin(a); sp = 1; }
@@ -1500,7 +1523,24 @@ function blow(px, py) {
   }
 }
 // Mode Target (hors mode expert) : toucher un élément l'envoie sur l'opérateur, le retoucher le décroche.
+// Mode TARGET : attraper un élément (même en mouvement), glisser, lâcher → il part dans la direction du geste
 function target(px, py, pointerId) {
+  let best = null, bd = Infinity;
+  for (const it of G.items) {
+    if (it.dead || !['free', 'spawn', 'attached'].includes(it.state)) continue;
+    const d = Math.hypot(it.x - px, it.y - py);
+    if (d < it.r + 22 && d < bd) { best = it; bd = d; }   // tolérance large : la bulle bouge
+  }
+  burstRing(px, py, COL.gold, 10, R * .8);
+  if (!best) { Sfx.tick(); return; }
+  if (best.state === 'spawn') best.state = 'free';
+  if (best.state === 'free') { best.held = true; best.heldV = [best.vx, best.vy]; best.vx = best.vy = 0; best.trail.length = 0; }
+  flings.set(pointerId, { it: best, x0: px, y0: py, x: px, y: py, pts: [{ x: px, y: py, t: performance.now() }] });
+  try { cvs.setPointerCapture(pointerId); } catch (err) { /* pas grave */ }
+  Sfx.attach();
+}
+// Mode AUTO : toucher un élément l'envoie sur l'opérateur, le retoucher le décroche (lancer au doigt possible)
+function autoCatch(px, py, pointerId) {
   let best = null, bd = Infinity;
   for (const it of G.items) {
     if (it.dead || !['free', 'spawn', 'attached'].includes(it.state)) continue;
@@ -1626,7 +1666,7 @@ const TUT_STEPS = [
       a.wildUntil = b.wildUntil = G.now + 2;   // gardent leur élan pour se rencontrer vite
     },
     replay: true, next: 'Suivant' },
-  { title: 'ACCROCHER', text: () => `En mode <b class="g">TARGET</b>, touche une bulle pour l'envoyer sur l'opérateur, au centre.<br><b>Touche le 7, puis le 4.</b>`,
+  { title: 'ACCROCHER', text: () => `En mode <b class="g">AUTO</b>, touche une bulle pour l'envoyer sur l'opérateur, au centre.<br><b>Touche le 7, puis le 4.</b>`,
     wait: 'Touche les deux bulles entourées',
     setup() {
       if (!G.tut.keep) {
@@ -1635,7 +1675,7 @@ const TUT_STEPS = [
         G.tut.b = tutBall(4, cx + Math.min(W * .28, OPR * 5), cy);
       }
       G.tut.keep = false;
-      setMode('target');
+      setMode('auto');
       G.hint = { items: [G.tut.a, G.tut.b].filter((i) => i.state !== 'attached'), until: Infinity };
     } },
   { title: 'CALCULER', text: () => `Les deux nombres sont accrochés à l'opérateur <b>+</b>.<br><b>Appuie sur <b class="o">=</b></b> pour calculer 7 + 4.`,
@@ -1644,7 +1684,8 @@ const TUT_STEPS = [
   { title: 'À TOI DE JOUER', text: () => `<b class="g">Bravo, 7 + 4 = 11 !</b> Pour aller plus loin :<ul>
       <li>Pour <b>−</b> et <b>÷</b>, le côté compte : la gauche (ou le haut) d'abord.</li>
       <li><b>Touche l'opérateur</b> pour changer d'opération, <b>glisse dessus</b> pour échanger les côtés.</li>
-      <li><b class="c">BLOW</b> et <b class="c">FIREWORK</b> poussent les bulles. Rien ne s'accroche par hasard : pousse-les, ou utilise TARGET.</li>
+      <li><b class="c">BLOW</b> et <b class="c">FIREWORK</b> poussent les bulles. Rien ne s'accroche par hasard : pousse-les vers l'opérateur.</li>
+      <li><b class="g">TARGET</b> : attrape une bulle, glisse et lâche pour la lancer où tu veux.</li>
       <li>Score : le <b>moins d'opérations</b> possible. L'ampoule donne un indice contre 10 secondes.</li></ul>`,
     setup() { $('#eqBtn').classList.remove('tut-pulse'); G.tut.frozen = true; G.tut.free = true; },
     next: "C'est parti !", last: true },
@@ -1660,12 +1701,12 @@ function tutBall(v, x, y, vx = 0, vy = 0) {
 function startTutorial() {
   newGame();
   G.tut = { step: 0, frozen: true, free: false, easy: G.easy };
-  G.easy = true;   // le tutoriel montre TARGET, même en mode expert
+  G.easy = true;   // le tutoriel montre AUTO, même en mode expert
   G.goal = 11; G.op = 0; G.opPrev = 0;
   $('#goalVal').textContent = '11';
   $('#easyChip').hidden = true; $('#assistChip').hidden = true; $('#opsChip').hidden = true;
   G.texts = [];
-  setMode('target');
+  setMode('auto');
   updateTimer(true);
   tutGo(0);
 }
@@ -1879,7 +1920,8 @@ function newGame() {
   $('#opBtn').disabled = G.ops.filter(Boolean).length < 2;
   $('#easyChip').hidden = G.easy;
   $('#assistChip').hidden = !G.assist;
-  setMode(G.easy ? 'target' : G.mode);
+  // hors mode expert, on démarre en AUTO, sauf si le joueur a déjà choisi un autre mode
+  setMode(G.easy && !G.modePicked && modes().includes('auto') ? 'auto' : G.mode);
   G.timeLeft = G.timeLimit; G.elapsed = 0; G.lastTick = -1;
   G.running = true; G.over = false; G.won = false; G.endT = -1; G.hint = null;
   G.opsCount = 0; G.hintsUsed = 0; $('#opsVal').textContent = '0';
@@ -2476,12 +2518,23 @@ function frame(ts) {
 }
 
 /* ================= Entrées ================= */
-const modes = () => (G.easy ? ['blow', 'fire', 'target'] : ['blow', 'fire']);
+// Mécaniques disponibles : celles choisies dans le menu ; en mode expert, Blow et Firework uniquement
+const ALL_MODES = ['blow', 'fire', 'target', 'auto'];
+const modes = () => {
+  if (G.tut) return ALL_MODES;
+  if (!G.easy) return ['blow', 'fire'];
+  const l = ALL_MODES.filter((m, i) => G.mechs[i]);
+  return l.length ? l : ['blow'];
+};
 function setMode(m) {
-  if (!modes().includes(m)) m = 'blow';
+  const l = modes();
+  if (!l.includes(m)) m = l[0];
   G.mode = m;
-  $('#modeBtn').dataset.mode = m;
-  $('#modeBtn').classList.toggle('easy', G.easy);
+  const btn = $('#modeBtn');
+  btn.dataset.mode = m;
+  btn.querySelectorAll('.opt').forEach((o) => { o.hidden = !l.includes(o.dataset.m); });
+  btn.style.setProperty('--n', l.length);
+  btn.querySelector('.thumb').style.transform = `translateX(${l.indexOf(m) * 100}%)`;
 }
 function toggleMode() { const l = modes(); setMode(l[(l.indexOf(G.mode) + 1) % l.length]); Sfx.tick(); }
 
@@ -2499,12 +2552,42 @@ cvs.addEventListener('pointerdown', (e) => {
   }
   if (G.mode === 'blow') blow(x, y);
   else if (G.mode === 'fire') launchRocket(x, y);
-  else target(x, y, e.pointerId);
+  else if (G.mode === 'target') target(x, y, e.pointerId);
+  else autoCatch(x, y, e.pointerId);
 });
 // Target : lancer d'un élément accroché
 const flings = new Map();
+// direction et vitesse données par la fin du glissé
+function flingVector(st) {
+  const tx = st.x - st.x0, ty = st.y - st.y0;
+  const now = performance.now();
+  const recent = st.pts.filter((q) => now - q.t < 120);
+  const a = recent.length > 1 ? recent[0] : st.pts[0], b = st.pts[st.pts.length - 1];
+  let vx = b.x - a.x, vy = b.y - a.y;
+  const dt = Math.max(16, b.t - a.t) / 1000;
+  if (Math.hypot(vx, vy) < 4) { vx = tx; vy = ty; }
+  const d = Math.hypot(vx, vy) || 1;
+  return [vx / d, vy / d, clamp((Math.hypot(b.x - a.x, b.y - a.y) / dt) * .9, BASE * 2, BASE * 6)];
+}
 function releaseFling(st) {
   const it = st.it;
+  if (it.held) {
+    // élément libre attrapé en mode TARGET
+    it.held = false;
+    if (it.dead || it.state !== 'free') return;
+    if (Math.hypot(st.x - st.x0, st.y - st.y0) < 14) {
+      [it.vx, it.vy] = it.heldV || [0, 0];   // simple toucher : il repart comme avant
+      return;
+    }
+    const [nx, ny, speed] = flingVector(st);
+    it.vx = nx * speed * inertia(it) ** .3; it.vy = ny * speed * inertia(it) ** .3;
+    it.wildUntil = G.now + 1;
+    it.pushedUntil = G.now + PUSH_TIME;   // lancé par le joueur : il peut s'accrocher à l'opérateur
+    it.noMerge = G.now + .15;
+    burstRing(it.x, it.y, COL.gold, 12, it.r * 1.5);
+    Sfx.blow();
+    return;
+  }
   if (it.dead || it.state !== 'attached') return;
   const tx = st.x - st.x0, ty = st.y - st.y0;
   if (Math.hypot(tx, ty) < 14) {
@@ -2512,16 +2595,8 @@ function releaseFling(st) {
     const ox = it.x - cx, oy = it.y - cy, od = Math.hypot(ox, oy) || 1;
     detach(it, ox / od, oy / od, BASE * 2.4);
   } else {
-    // direction et force données par la fin du glissé
-    const now = performance.now();
-    const recent = st.pts.filter((q) => now - q.t < 120);
-    const a = recent.length > 1 ? recent[0] : st.pts[0], b = st.pts[st.pts.length - 1];
-    let vx = b.x - a.x, vy = b.y - a.y;
-    const dt = Math.max(16, b.t - a.t) / 1000;
-    if (Math.hypot(vx, vy) < 4) { vx = tx; vy = ty; }
-    const d = Math.hypot(vx, vy) || 1;
-    const speed = clamp((Math.hypot(b.x - a.x, b.y - a.y) / dt) * .9, BASE * 2, BASE * 6);
-    detach(it, vx / d, vy / d, speed);
+    const [nx, ny, speed] = flingVector(st);
+    detach(it, nx, ny, speed);
     it.wildUntil = G.now + .8;
   }
   burstRing(it.x, it.y, COL.gold, 12, it.r * 1.5);
@@ -2530,7 +2605,7 @@ function releaseFling(st) {
 function drawFlings() {
   for (const st of flings.values()) {
     const it = st.it;
-    if (it.dead || it.state !== 'attached') continue;
+    if (it.dead || !(it.state === 'attached' || (it.held && it.state === 'free'))) continue;
     const dx = st.x - st.x0, dy = st.y - st.y0, len = Math.hypot(dx, dy);
     ctx.save();
     ctx.globalCompositeOperation = ADD();
@@ -2580,7 +2655,12 @@ cvs.addEventListener('pointerup', (e) => {
   if (!G.running || G.over) return;
   if (G.ops.filter(Boolean).length < 2 || G.fuse) { G.opShake = .3; Sfx.invalid(); } else switchOp();
 });
-cvs.addEventListener('pointercancel', (e) => { opPress.delete(e.pointerId); flings.delete(e.pointerId); });
+cvs.addEventListener('pointercancel', (e) => {
+  opPress.delete(e.pointerId);
+  const fl = flings.get(e.pointerId);
+  if (fl && fl.it.held) { fl.it.held = false; [fl.it.vx, fl.it.vy] = fl.it.heldV || [0, 0]; }
+  flings.delete(e.pointerId);
+});
 // sur ordinateur, la main indique que l'opérateur se clique
 cvs.addEventListener('pointermove', (e) => {
   if (e.pointerType !== 'mouse') return;
@@ -2593,6 +2673,7 @@ $('#modeBtn').addEventListener('click', (e) => {
   // toucher une option la choisit (sans effet si elle l'est déjà) ; ailleurs, on passe au mode suivant
   const opt = e.target.closest('.opt');
   if (opt) { if (opt.dataset.m !== G.mode) { setMode(opt.dataset.m); Sfx.tick(); } } else toggleMode();
+  G.modePicked = true;
   e.currentTarget.blur();
 });
 onBtn('#opBtn', switchOp);
@@ -2619,10 +2700,26 @@ function selectTime(t) {
   G.timeLeft = t; updateTimer(true);
 }
 function syncOptions() {
-  document.querySelectorAll('.optop').forEach((b) => b.setAttribute('aria-pressed', String(G.ops[+b.dataset.op])));
+  document.querySelectorAll('.optop:not(.mech)').forEach((b) => b.setAttribute('aria-pressed', String(G.ops[+b.dataset.op])));
   $('#easyBtn').setAttribute('aria-checked', String(!G.easy));
   $('#assistBtn').setAttribute('aria-checked', String(G.assist));
+  document.querySelectorAll('.optop.mech').forEach((b) => {
+    const i = +b.dataset.mech;
+    b.setAttribute('aria-pressed', String(G.easy ? G.mechs[i] : i < 2));
+    b.disabled = !G.easy;
+    b.title = G.easy ? '' : 'En mode expert : Blow et Firework uniquement';
+  });
 }
+document.querySelectorAll('.optop.mech').forEach((b) => b.addEventListener('click', () => {
+  Sfx.init();
+  const i = +b.dataset.mech;
+  if (G.mechs[i] && G.mechs.filter(Boolean).length === 1) {
+    // il faut garder au moins une mécanique
+    b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+    Sfx.invalid(); return;
+  }
+  G.mechs[i] = !G.mechs[i]; store.set('mechs', G.mechs); syncOptions(); Sfx.tick();
+}));
 $('#tabRulesBtn').addEventListener('click', () => showTab(false));
 $('#tabScoresBtn').addEventListener('click', () => showTab(true));
 $('#nameInput').value = store.get('name', '');
@@ -2642,7 +2739,7 @@ $('#clearScores').addEventListener('click', (e) => {
   b.textContent = 'Effacer'; b.classList.remove('armed');
   renderScores();
 });
-document.querySelectorAll('.optop').forEach((b) => b.addEventListener('click', () => {
+document.querySelectorAll('.optop:not(.mech)').forEach((b) => b.addEventListener('click', () => {
   Sfx.init();
   const i = +b.dataset.op;
   if (G.ops[i] && G.ops.filter(Boolean).length === 1) {
@@ -2680,7 +2777,8 @@ window.addEventListener('keydown', (e) => {
   else if (k === 'm' || k === 'M' || k === 'Shift') { e.preventDefault(); toggleMode(); }
   else if (k === 'b' || k === 'B') setMode('blow');
   else if (k === 'f' || k === 'F') setMode('fire');
-  else if (k === 't' || k === 'T') setMode('target');
+  else if (k === 't' || k === 'T') { setMode('target'); G.modePicked = true; }
+  else if (k === 'a' || k === 'A') { setMode('auto'); G.modePicked = true; }
   else if (k === 'Escape') goHome();
 });
 document.addEventListener('gesturestart', (e) => e.preventDefault());
