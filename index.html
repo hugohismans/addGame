@@ -247,6 +247,16 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 #hintBtn { color: var(--gold); border-color: rgba(255, 224, 102, .4); }
 #installBox { margin-top: 14px; font-size: 13px; color: var(--muted); max-width: 40ch; }
 #installBtn { height: 40px; padding: 0 16px; font-size: 14px; margin-right: 10px; }
+#opsChip {
+  margin-left: 8px; align-self: center; display: flex; align-items: center; gap: 6px;
+  font-family: var(--f-display); font-weight: 700; font-size: 11px; letter-spacing: .14em;
+  color: var(--muted); border: 1px solid rgba(255, 157, 46, .45); border-radius: 4px; padding: 3px 8px;
+  background: rgba(3, 10, 18, .6);
+}
+#opsChip b { font-size: 16px; letter-spacing: 0; color: var(--orange); text-shadow: 0 0 8px rgba(255, 157, 46, .8); font-variant-numeric: tabular-nums; }
+#opsChip b.pop { animation: goalpop .5s cubic-bezier(.3, 1.6, .5, 1); }
+#opsChip .s { display: none; }
+@media (max-width: 560px) { #opsChip .l { display: none; } #opsChip .s { display: inline; } }
 #easyChip {
   margin-left: 8px; align-self: center;
   font-family: var(--f-display); font-weight: 700; font-size: 11px; letter-spacing: .14em;
@@ -292,6 +302,8 @@ kbd {
 .end-card.lose h2 { color: var(--danger); text-shadow: 0 0 8px var(--danger), 0 0 30px rgba(255, 59, 92, .7); }
 .end-card p { margin: 0; font-size: 17px; color: #cfe7ef; }
 .end-card p b { font-family: var(--f-display); color: var(--orange); }
+.end-card p .rec { color: var(--gold); font-weight: 700; }
+.end-card p .muted2 { color: var(--muted); font-size: 15px; }
 .end-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 6px; }
 
 @media (max-height: 520px) and (min-width: 720px) {
@@ -322,7 +334,7 @@ kbd {
     <canvas id="cv" aria-label="Terrain de jeu"></canvas>
     <div id="hintBox" role="status" hidden></div>
     <div id="hudTop">
-      <div style="display:flex"><div id="timer" aria-live="off">1:00</div><div id="easyChip" hidden>FACILE</div></div>
+      <div style="display:flex"><div id="timer" aria-live="off">1:00</div><div id="opsChip" title="Nombre d'opérations faites"><span class="l">OPÉRATIONS</span><span class="s">OPS</span> <b id="opsVal">0</b></div><div id="easyChip" hidden>FACILE</div></div>
       <div class="hud-right">
         <button id="hintBtn" class="icon-btn" aria-label="Indice, coûte 10 secondes (touche H)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>
@@ -388,7 +400,7 @@ kbd {
           <li>Les <span class="b-cyan">bulles</span> valent de 1 à 9 : le 1 est petit et rapide, le 9 gros et lent. Quand deux bulles se touchent, l'une gagne 1 et l'autre perd 1, sans jamais redonner la même paire (7 et 6 deviennent 8 et 5), puis elles rebondissent comme des billes de billard. Une bulle 0 ou 10 explose.</li>
           <li>Une bulle qui touche l'opérateur au centre s'y accroche. Pour <b>−</b> et <b>÷</b>, le côté compte : gauche ou haut d'abord, droite ou bas ensuite. Le bouton <b>⇄</b> fait pivoter l'opérateur d'un demi-tour pour inverser les côtés.</li>
           <li>Change d'opération avec <b>⟳</b>, puis appuie sur <b class="b-orange">=</b> pour obtenir une <span class="b-orange">brique</span>. Pas de résultat négatif ni de division qui tombe pas juste.</li>
-          <li>Gagne en créant une brique égale à l'objectif.</li>
+          <li>Gagne en créant une brique égale à l'objectif, en le moins d'opérations possible : chaque = compte.</li>
         </ol>
         <div class="modes">
           <div><b>BLOW</b>Touche l'écran pour repousser tout ce qui est autour. Sur l'opérateur, ça décroche ce qui y est accroché.</div>
@@ -955,6 +967,10 @@ function pressEqual() {
   else { result = sum(A) / sum(B); expr = groupText(A) + ' ÷ ' + groupText(B); }
   for (const it of att) { it.state = 'fusing'; it.r0 = it.rad; }
   G.fuse = { t: 0, items: att, result, expr };
+  // score : chaque calcul lancé compte comme une opération, réussi ou non
+  G.opsCount++;
+  const ov = $('#opsVal');
+  ov.textContent = G.opsCount; ov.classList.remove('pop'); void ov.offsetWidth; ov.classList.add('pop');
   Sfx.fuse();
 }
 function updateFuse(dt) {
@@ -1208,6 +1224,7 @@ function showHint() {
       ? '<div class="sub">Pour − et ÷, le premier nombre va à gauche (en haut pour ÷).</div>' : '';
     box.innerHTML = `<div class="t">INDICE<span>−10 s</span></div><div class="steps">${steps}</div>${order}`;
     G.hint = { items: sol.src, until: G.now + 6 };
+    G.hintsUsed++;
     Sfx.result();
   }
   box.hidden = false;
@@ -1296,6 +1313,7 @@ function newGame() {
   setMode(G.easy ? 'target' : G.mode);
   G.timeLeft = G.timeLimit; G.elapsed = 0; G.lastTick = -1;
   G.running = true; G.over = false; G.won = false; G.endT = -1; G.hint = null;
+  G.opsCount = 0; G.hintsUsed = 0; $('#opsVal').textContent = '0';
   $('#hintBox').hidden = true;
   G.spawnPending = false;
   const gv = $('#goalVal');
@@ -1320,11 +1338,21 @@ function showEnd() {
   if (G.won) {
     card.classList.remove('lose');
     $('#endTitle').textContent = 'FÉLICITATIONS\u00a0!';
-    $('#endText').innerHTML = `Tu as fabriqué la brique <b>${G.goal}</b> en ${fmtTime(G.elapsed)}.`;
+    const n = G.opsCount, ops = `${n} opération${n > 1 ? 's' : ''}`;
+    // record : le moins d'opérations pour cet objectif
+    const best = store.get('best', {});
+    const prev = best[G.goal];
+    let rec = '';
+    if (prev === undefined || n < prev) {
+      best[G.goal] = n; store.set('best', best);
+      rec = prev === undefined ? '' : `<br><span class="rec">Nouveau record pour ${G.goal} ! (avant : ${prev})</span>`;
+    } else rec = `<br><span class="muted2">Record pour ${G.goal} : ${prev} opération${prev > 1 ? 's' : ''}</span>`;
+    const hints = G.hintsUsed ? ` · ${G.hintsUsed} indice${G.hintsUsed > 1 ? 's' : ''}` : '';
+    $('#endText').innerHTML = `Tu as fabriqué la brique <b>${G.goal}</b> en <b class="ops">${ops}</b> et ${fmtTime(G.elapsed)}${hints}.${rec}`;
   } else {
     card.classList.add('lose');
     $('#endTitle').textContent = 'TEMPS ÉCOULÉ';
-    $('#endText').innerHTML = `L'objectif était <b>${G.goal}</b>. Retente ta chance.`;
+    $('#endText').innerHTML = `L'objectif était <b>${G.goal}</b>. Tu as fait ${G.opsCount} opération${G.opsCount > 1 ? 's' : ''}. Retente ta chance.`;
   }
   $('#end').classList.toggle('win', G.won);
   $('#end').hidden = false;
