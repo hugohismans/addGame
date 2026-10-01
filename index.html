@@ -445,7 +445,7 @@ kbd {
         <div id="tabRules" role="tabpanel">
         <ol>
           <li>Les <span class="b-cyan">bulles</span> valent de 1 à 9 : le 1 est petit et rapide, le 9 gros et lent. Quand deux bulles se touchent, l'une gagne 1 et l'autre perd 1, sans jamais redonner la même paire (7 et 6 deviennent 8 et 5), puis elles rebondissent comme des billes de billard. Une bulle 0 ou 10 explose.</li>
-          <li>Une bulle qui touche l'opérateur au centre s'y accroche. Pour <b>−</b> et <b>÷</b>, le côté compte : gauche ou haut d'abord, droite ou bas ensuite. Le bouton <b>⇄</b> fait pivoter l'opérateur d'un demi-tour pour inverser les côtés.</li>
+          <li>Une bulle qui touche l'opérateur au centre s'y accroche. Pour <b>−</b> et <b>÷</b>, le côté compte : gauche ou haut d'abord, droite ou bas ensuite. Le bouton <b>⇄</b>, ou un glissé du doigt sur l'opérateur, le fait pivoter d'un demi-tour pour inverser les côtés.</li>
           <li>Change d'opération en touchant l'opérateur ou avec <b>⟳</b>, puis appuie sur <b class="b-orange">=</b> pour obtenir une <span class="b-orange">brique</span>. Pas de résultat négatif ni de division qui tombe pas juste.</li>
           <li>Gagne en créant une brique égale à l'objectif, en le moins d'opérations possible : chaque = compte. Les meilleures parties vont dans les <b>high scores</b>.</li>
         </ol>
@@ -1861,9 +1861,10 @@ cvs.addEventListener('pointerdown', (e) => {
   if (!G.running || G.over) return;
   const r = cvs.getBoundingClientRect();
   const x = e.clientX - r.left, y = e.clientY - r.top;
-  // toucher le disque central change d'opération, quel que soit le mode
+  // sur le disque central : un toucher change d'opération, un glissé fait le demi-tour (décidé au relâchement ou au glissé)
   if (onOperator(x, y)) {
-    if (G.ops.filter(Boolean).length < 2 || G.fuse) { G.opShake = .3; Sfx.invalid(); } else switchOp();
+    opPress.set(e.pointerId, { x, y });
+    try { cvs.setPointerCapture(e.pointerId); } catch (err) { /* pas grave */ }
     return;
   }
   if (G.mode === 'blow') blow(x, y);
@@ -1871,6 +1872,24 @@ cvs.addEventListener('pointerdown', (e) => {
   else target(x, y);
 });
 function onOperator(x, y) { return Math.hypot(x - cx, y - cy) <= OPR * 1.05; }
+const opPress = new Map();
+const canvasXY = (e) => { const r = cvs.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+cvs.addEventListener('pointermove', (e) => {
+  const st = opPress.get(e.pointerId);
+  if (!st) return;
+  const [x, y] = canvasXY(e);
+  if (Math.hypot(x - st.x, y - st.y) > Math.max(22, OPR * .6)) {
+    opPress.delete(e.pointerId);
+    if (G.running && !G.over && !G.fuse) swapSides(); else Sfx.invalid();
+  }
+});
+cvs.addEventListener('pointerup', (e) => {
+  if (!opPress.has(e.pointerId)) return;
+  opPress.delete(e.pointerId);
+  if (!G.running || G.over) return;
+  if (G.ops.filter(Boolean).length < 2 || G.fuse) { G.opShake = .3; Sfx.invalid(); } else switchOp();
+});
+cvs.addEventListener('pointercancel', (e) => opPress.delete(e.pointerId));
 // sur ordinateur, la main indique que l'opérateur se clique
 cvs.addEventListener('pointermove', (e) => {
   if (e.pointerType !== 'mouse') return;
