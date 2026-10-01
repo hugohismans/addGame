@@ -246,6 +246,19 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 #tutBox .skip { background: none; border: 0; color: var(--muted); padding: 0 4px; }
 #tutBox .sec { background: transparent; border: 1px solid var(--cyan); color: var(--cyan); }
 #tutBox .pri { background: var(--cyan); border: 0; color: var(--void); box-shadow: 0 0 12px rgba(62, 240, 255, .6); }
+#tutBox.docked {
+  left: 10px; top: 10px; max-height: calc(100% - 20px);   /* recouvre le chrono, qui n'affiche que TUTO */
+  transform: none; width: min(340px, 38%);
+  align-content: start; overflow-y: auto; animation: tutDockIn .3s cubic-bezier(.3, 1.4, .5, 1);
+}
+#tutBox.docked .bt { flex-wrap: wrap; }
+#tutBox.docked.wide { width: min(620px, calc(100% - 20px)); }
+#tutBox.docked .tx { font-size: 13px; line-height: 1.35; }
+#tutBox.docked .tx ul { font-size: 12px; gap: 1px; }
+html[data-da="pixel"] #tutBox.docked .tx { font-size: 17px; line-height: 1.15; }
+html[data-da="pixel"] #tutBox.docked .tx ul { font-size: 14px; }
+html[data-da="craie"] #tutBox.docked .tx { font-size: 15px; }
+@keyframes tutDockIn { from { transform: translateX(-14px); opacity: 0; } }
 @media (max-height: 520px) { #tutBox { padding: 8px 12px; gap: 6px; } #tutBox .tx { font-size: 13.5px; } #tutBox .tx ul { font-size: 12.5px; } }
 .tut-pulse { animation: tutPulse .9s ease-in-out infinite; }
 @keyframes tutPulse { 50% { transform: scale(1.12); box-shadow: 0 0 26px rgba(255, 157, 46, .95), inset 0 0 12px rgba(255, 157, 46, .3); } }
@@ -2204,14 +2217,21 @@ function updateRockets(dt) {
 // Une partie guidée sur le vrai terrain : objectif 11, une démonstration de rencontre, puis 7 + 4 à faire soi-même.
 const TUT_STEPS = [
   { title: 'LE BUT', text: () => `Fabrique une <b class="o">brique</b> égale à l'<b class="o">objectif</b>, affiché en bas : ici <b class="o">11</b>.<br>Les <b class="c">bulles</b> valent de 1 à 9 : le 1 est petit et rapide, le 9 gros et lent.`,
-    setup() { tutClear(); G.tut.frozen = true; tutBall(3, cx - W * .3, cy - R * 2); tutBall(8, cx + W * .28, cy + R * 2.2); tutBall(5, cx + W * .1, Math.min(H - R * 2, cy + OPR + R * 3)); },
+    setup() {
+      tutClear(); G.tut.frozen = true;
+      const bottom = Math.min(H - R * 2, cy + OPR + R * 3);
+      if (G.tut.safeL) { const k = W - cx; tutBall(3, cx + k * .35, cy - R * 2.4); tutBall(8, cx + k * .72, cy + R * 2); tutBall(5, cx, bottom); }
+      else { tutBall(3, cx - W * .3, cy - R * 2); tutBall(8, cx + W * .28, cy + R * 2.2); tutBall(5, cx + W * .1, bottom); }
+    },
     next: 'Suivant' },
   { title: 'LES RENCONTRES', text: () => `Quand deux bulles se touchent, l'une <b class="c">gagne 1</b> et l'autre <b class="c">perd 1</b>, sans jamais redonner la même paire : <b>7 et 6 deviennent 8 et 5</b>.<br>Une bulle qui tombe à 0 ou monte à 10 explose.`,
     setup() {
       tutClear(); G.tut.frozen = false;
       const y = Math.min(H - R * 2.2, cy + OPR + R * 3);
-      const gap = Math.min(W * .22, OPR * 4.5);
-      const a = tutBall(7, cx - gap, y, BASE * 1.6, 0), b = tutBall(6, cx + gap, y, -BASE * 1.6, 0);
+      // la rencontre a lieu dans la partie visible du terrain (à droite du tutoriel quand il est rangé à gauche)
+      const L = G.tut.safeL, mx = L ? (L + W) / 2 : cx;
+      const gap = Math.min((W - L) * (L ? .3 : .22), OPR * 4.5);
+      const a = tutBall(7, mx - gap, y, BASE * 1.6, 0), b = tutBall(6, mx + gap, y, -BASE * 1.6, 0);
       a.wildUntil = b.wildUntil = G.now + 2;   // gardent leur élan pour se rencontrer vite
     },
     replay: true, next: 'Suivant' },
@@ -2220,8 +2240,13 @@ const TUT_STEPS = [
     setup() {
       if (!G.tut.keep) {
         tutClear(); G.tut.frozen = true;
-        G.tut.a = tutBall(7, cx - Math.min(W * .28, OPR * 5), cy);
-        G.tut.b = tutBall(4, cx + Math.min(W * .28, OPR * 5), cy);
+        if (G.tut.safeL) {   // tutoriel rangé à gauche : le 7 au-dessus de l'opérateur, le 4 à droite
+          G.tut.a = tutBall(7, cx, cy - OPR - R * 2.2);
+          G.tut.b = tutBall(4, cx + Math.min((W - cx) * .6, OPR * 5), cy);
+        } else {
+          G.tut.a = tutBall(7, cx - Math.min(W * .28, OPR * 5), cy);
+          G.tut.b = tutBall(4, cx + Math.min(W * .28, OPR * 5), cy);
+        }
       }
       G.tut.keep = false;
       setMode('auto');
@@ -2259,9 +2284,20 @@ function startTutorial() {
   updateTimer(true);
   tutGo(0);
 }
+// Sur un écran bas en paysage, la bulle du tutoriel posée en haut cacherait l'opérateur et les bulles à toucher :
+// elle se range alors dans une colonne à gauche, et les étapes placent leurs bulles à droite de cette colonne.
+function tutDock() {
+  const box = $('#tutBox');
+  const dock = H < 520 && W > H * 1.25;
+  box.classList.toggle('docked', dock);
+  // dernière étape : plus rien à toucher sur le terrain, la colonne peut s'élargir pour tout afficher
+  box.classList.toggle('wide', dock && !!TUT_STEPS[G.tut.step].last);
+  G.tut.safeL = dock ? 10 + Math.min(340, W * .38) + 12 : 0;
+}
 function tutGo(i) {
   G.tut.step = i;
   const st = TUT_STEPS[i];
+  tutDock();
   st.setup();
   const box = $('#tutBox');
   const dots = TUT_STEPS.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('');
