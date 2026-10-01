@@ -1,7 +1,7 @@
-// Service worker d'AddGame : permet de jouer hors ligne.
+// Service worker d'Operand : permet de jouer hors ligne.
 // La page est servie réseau d'abord (pour recevoir les mises à jour), le cache sert de secours.
 // Les icônes et les polices sont servies depuis le cache d'abord.
-const CACHE = 'addgame-v1';
+const CACHE = 'operand-v2';   // changer le nom force le téléphone à reprendre le manifeste (nom de l'appli)
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {

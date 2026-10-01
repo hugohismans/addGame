@@ -7,11 +7,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="AddGame">
+<meta name="apple-mobile-web-app-title" content="Operand">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<title>AddGame</title>
+<title>Operand</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tektur:wght@500;700;900&family=Chakra+Petch:wght@500;600;700&family=Cabin+Sketch:wght@400;700&family=Patrick+Hand&family=Fredoka:wght@500;600;700&family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&family=Orbitron:wght@600;800;900&family=Exo+2:wght@500;600;700&family=Chewy&family=Baloo+2:wght@500;700;800&family=Jost:wght@400;500;700;900&family=Alfa+Slab+One&family=Roboto+Slab:wght@400;600;700&family=Shojumaru&family=Shippori+Mincho:wght@500;700;800&family=Creepster&display=swap" rel="stylesheet">
@@ -1027,7 +1027,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
 
   <section id="home" class="overlay" aria-label="Accueil">
     <div class="hero">
-      <h1 class="logo">ADD<span>GAME</span></h1>
+      <h1 class="logo" aria-label="Operand">OPE<span>RAND</span></h1>
       <div class="demo" aria-hidden="true"><i class="bub">7</i><em>+</em><i class="bub">4</i><em>=</em><i class="brk">11</i></div>
       <p class="tag">Fais rebondir les bulles, fabrique l'objectif.</p>
       <div class="playrow">
@@ -5175,7 +5175,7 @@ let installEvt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault(); installEvt = e;
   const box = $('#installBox');
-  box.innerHTML = '<button id="installBtn" class="big-btn alt">INSTALLER</button>Ajoute AddGame à ton écran d\'accueil pour jouer en plein écran, même sans réseau.';
+  box.innerHTML = '<button id="installBtn" class="big-btn alt">INSTALLER</button>Ajoute Operand à ton écran d\'accueil pour jouer en plein écran, même sans réseau.';
   box.hidden = false;
   $('#installBtn').addEventListener('click', async () => {
     installEvt.prompt();

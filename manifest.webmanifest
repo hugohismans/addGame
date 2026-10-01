@@ -1,6 +1,6 @@
 {
-  "name": "AddGame",
-  "short_name": "AddGame",
+  "name": "Operand",
+  "short_name": "Operand",
   "description": "Fais rebondir les bulles jusqu'à l'opérateur et fabrique une brique égale à l'objectif.",
   "lang": "fr",
   "start_url": "./",
