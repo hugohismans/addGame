@@ -2094,9 +2094,19 @@ function update(dt) {
 /* ================= Rendu ================= */
 // Craie : un motif granuleux par couleur, et des contours légèrement tremblés
 let chalkPats = {};
+// Le grain est accroché à l'élément dessiné (chalkAnchor) : sinon il reste fixe à l'écran
+// et les bulles en mouvement semblent scintiller en glissant dessus.
+let chalkAnchor = [0, 0];
+const anchorAt = (x, y) => { chalkAnchor = [x, y]; };
+// à la craie, on dessine sur des pixels entiers : le grain et les chiffres ne sont pas ré-échantillonnés à chaque image
+const snap = (v) => (TH.chalk ? Math.round(v * DPR) / DPR : v);
 function chalkPattern(c) {
   const key = c.join(',');
-  if (chalkPats[key]) return chalkPats[key];
+  const pat = chalkPats[key] || makeChalkPattern(c, key);
+  try { pat.setTransform(new DOMMatrix([1, 0, 0, 1, chalkAnchor[0], chalkAnchor[1]])); } catch (e) { /* navigateur ancien */ }
+  return pat;
+}
+function makeChalkPattern(c, key) {
   const cv2 = document.createElement('canvas'); cv2.width = cv2.height = 64;
   const x = cv2.getContext('2d');
   x.fillStyle = rgba(c, .92); x.fillRect(0, 0, 64, 64);
@@ -2179,19 +2189,21 @@ function drawTrail(it) {
 function drawBall(it) {
   const s = itemScale(it), r = it.r * s;
   if (r <= .5) return;
+  const X = snap(it.x), Y = snap(it.y);
+  anchorAt(X, Y);
   const doomed = it.state === 'doomed';
   const c = doomed ? COL.red : COL.cyan;
   const flick = doomed ? (Math.sin(G.now * 50) > 0 ? 1 : .45) : 1;
   let p;
-  if (TH.chalk) p = wobbleCircle(it.x, it.y, r, it.id);
-  else { p = new Path2D(); p.arc(it.x, it.y, r, 0, TAU); }
+  if (TH.chalk) p = wobbleCircle(X, Y, r, it.id);
+  else { p = new Path2D(); p.arc(X, Y, r, 0, TAU); }
   ctx.fillStyle = TH.ballFill; ctx.fill(p);
   glowStroke(p, c, 2.4, flick);
   if (!TH.chalk) {
     ctx.strokeStyle = rgba(c, .3 * flick); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(it.x, it.y, r * .78, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(X, Y, r * .78, 0, TAU); ctx.stroke();
   }
-  drawNumber(it.value, it.x, it.y, r * 1.02, c, flick);
+  drawNumber(it.value, X, Y, r * 1.02, c, flick);
   drawPushed(it, r + 5);
 }
 // anneau doré qui se vide : hors mode expert, l'élément peut s'accrocher tant qu'il est visible
@@ -2216,15 +2228,17 @@ function roundRect(x, y, w, h, rr) {
 function drawBrick(it) {
   const s = itemScale(it), h = it.r * .95 * s;
   if (h <= .5) return;
+  const X = snap(it.x), Y = snap(it.y);
+  anchorAt(X, Y);
   const doomed = it.state === 'doomed';
   const c = doomed ? COL.red : COL.orange;
   const flick = doomed ? (Math.sin(G.now * 50) > 0 ? 1 : .45) : 1;
-  const p = TH.chalk ? wobbleRect(it.x - h, it.y - h, h * 2, h * 2, it.id) : roundRect(it.x - h, it.y - h, h * 2, h * 2, h * .28);
+  const p = TH.chalk ? wobbleRect(X - h, Y - h, h * 2, h * 2, it.id) : roundRect(X - h, Y - h, h * 2, h * 2, h * .28);
   ctx.fillStyle = TH.brickFill; ctx.fill(p);
   glowStroke(p, c, 2.6, flick);
   const goal = !doomed && it.value === G.goal && G.won;
-  if (goal) glowStroke(roundRect(it.x - h - 5, it.y - h - 5, h * 2 + 10, h * 2 + 10, h * .35), COL.gold, 1.5, .5 + .5 * Math.sin(G.now * 8));
-  drawNumber(it.value, it.x, it.y, h * 1.9 * .6, c, flick);
+  if (goal) glowStroke(roundRect(X - h - 5, Y - h - 5, h * 2 + 10, h * 2 + 10, h * .35), COL.gold, 1.5, .5 + .5 * Math.sin(G.now * 8));
+  drawNumber(it.value, X, Y, h * 1.9 * .6, c, flick);
   drawPushed(it, h * 1.42 + 4);
 }
 function symbolPath(op, L) {
@@ -2250,6 +2264,7 @@ function drawDivider(op, a, ox, oy) {
 function drawOperator() {
   const ox = cx + (G.opShake > 0 && !reduceMotion ? Math.sin(G.now * 70) * G.opShake * R * .5 : 0), oy = cy;
   const e = easeInOut(G.opAnim);
+  anchorAt(ox, oy);
   drawDivider(G.opPrev, 1 - e, ox, oy);
   drawDivider(G.op, e, ox, oy);
   // liens vers les éléments accrochés
@@ -2275,7 +2290,7 @@ function drawOperator() {
   glowStroke(ring, busy ? COL.orange : COL.ice, 2.5, 1);
   if (TH.chalk) glowStroke(wobbleCircle(ox, oy, OPR * 1.08, 42), COL.ice, 1.2, .45);
   // roue crantée qui tourne au changement d'opération
-  ctx.save(); ctx.translate(ox, oy); ctx.rotate(G.ringRot);
+  ctx.save(); ctx.translate(ox, oy); ctx.rotate(G.ringRot); anchorAt(0, 0);
   ctx.strokeStyle = TH.chalk ? chalkPattern(COL.cyan) : rgba(COL.cyan, .75); ctx.lineWidth = 2; ctx.lineCap = 'round';
   if (TH.chalk) ctx.globalAlpha = .55;
   ctx.beginPath();
@@ -2290,7 +2305,7 @@ function drawOperator() {
   const drawSym = (op, rot, a, sc) => {
     if (a <= .01) return;
     ctx.save(); ctx.translate(ox, oy); ctx.rotate(rot); ctx.scale(sc, sc);
-    ctx.lineCap = 'round';
+    ctx.lineCap = 'round'; anchorAt(0, 0);
     const p = symbolPath(op, L);
     glowStroke(p, COL.ice, L * .24, a, 2.2);
     ctx.restore();
@@ -2315,6 +2330,7 @@ function drawMerges() {
     const r = m.r * s * wob;
     if (r <= .5) continue;
     const c = m.sum >= 10 ? COL.gold : COL.cyan;
+    anchorAt(m.x, m.y);
     let p;
     if (TH.chalk) p = wobbleCircle(m.x, m.y, r, 5);
     else { p = new Path2D(); p.arc(m.x, m.y, r, 0, TAU); }
@@ -2330,6 +2346,7 @@ function drawMerges() {
   }
 }
 function drawRockets() {
+  anchorAt(0, 0);
   ctx.globalCompositeOperation = ADD();
   ctx.lineCap = 'round';
   for (const r of G.rockets) {
@@ -2354,7 +2371,7 @@ function drawRockets() {
     if (!r.done && TH.chalk) {
       // un morceau de craie lancé
       const p = r.age / r.life;
-      ctx.save(); ctx.translate(r.x, r.y); ctx.rotate(r.h);
+      ctx.save(); ctx.translate(r.x, r.y); ctx.rotate(r.h); anchorAt(0, 0);
       ctx.fillStyle = chalkPattern(COL.ice); ctx.fillRect(-10, -3.5, 20, 7);
       ctx.restore();
       ctx.save(); ctx.setLineDash([3, 6]); ctx.strokeStyle = rgba(COL.ice, .3 * (1 - p)); ctx.lineWidth = 1.5;
@@ -2411,6 +2428,7 @@ function drawTexts() {
     if (t.glitch && !reduceMotion && Math.random() < .25) jx = rand(-6, 6);
     if (TH.chalk) {
       // écrit à la craie, sans halo
+      anchorAt(t.x, y);
       ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = chalkPattern(t.glitch ? COL.red : t.c);
       ctx.fillText(t.text, t.x + jx, y); ctx.restore();
       continue;
