@@ -490,6 +490,7 @@ kbd {
 .grp { padding: 12px 0 0; }
 .grp .times, .grp .opts { margin-bottom: 0; }
 .grp .times { max-width: none; }
+.grp .times.range { grid-template-columns: repeat(2, 1fr); }
 .opts.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .opts.grid4 .optop { width: auto; }
 .opts.grid4 .optop.mech { padding: 0 4px; font-size: 11.5px; letter-spacing: .06em; }
@@ -574,13 +575,17 @@ html[data-da="craie"] #info .close { color: #2a46b8; background: transparent; bo
 @media (max-height: 520px) and (min-width: 640px) {
   .da-grid { grid-template-columns: repeat(8, 1fr); }
   .grp .da-grid button { height: auto; padding: 4px 2px 3px; gap: 2px; }
-  .grp .da-grid .sw { width: 22px; height: 22px; }
+  .grp .da-grid .sw { width: 20px; height: 20px; }
+  .grp .da-grid button { padding: 3px 1px 2px; line-height: 1.1; }
+  .sheet:not(.rules) .sheet-head .close { width: 32px; height: 32px; }
+  .sheet:not(.rules) .sheet-head h2 { font-size: 15px; }
   .sheet:not(.rules) { padding: 8px 16px 10px; }
   .sheet:not(.rules) .grp { padding-top: 5px; }
   .sheet:not(.rules) .label { margin-bottom: 3px; }
   .sheet:not(.rules) .sheet-head { margin-bottom: 0; }
-  .sheet .grp.sw .switch { height: 32px; }
-  .sheet:not(.rules) .sheet-foot { margin-top: 8px; }
+  .sheet .grp.sw .switch { height: 30px; }
+  .sheet .grp.sw { gap: 4px; }
+  .sheet:not(.rules) .sheet-foot { margin-top: 4px; }
   .sheet-foot .big-btn { height: 38px; }
   .da-grid .sw { width: 26px; height: 26px; }
 }
@@ -1031,6 +1036,13 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
         </div>
       </div>
       <div class="grp">
+        <div class="label" id="rangeLbl">OBJECTIF</div>
+        <div class="times range" role="radiogroup" aria-labelledby="rangeLbl">
+          <button role="radio" data-range="99" aria-checked="true">1 – 99</button>
+          <button role="radio" data-range="999" aria-checked="false">100 – 999</button>
+        </div>
+      </div>
+      <div class="grp">
         <div class="label" id="optLbl">OPÉRATIONS</div>
         <div class="opts grid4" role="group" aria-labelledby="optLbl">
           <button id="op0" class="optop" data-op="0" aria-pressed="true" aria-label="Addition">+</button>
@@ -1077,7 +1089,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
           <li>Les <span class="b-cyan">bulles</span> valent de 1 à 9 : le 1 est petit et rapide, le 9 gros et lent. Quand deux bulles se touchent, l'une gagne 1 et l'autre perd 1, sans jamais redonner la même paire (7 et 6 deviennent 8 et 5), puis elles rebondissent comme des billes de billard. Une bulle 0 ou 10 explose.</li>
           <li>Une bulle qui touche l'opérateur au centre s'y accroche. Pour <b>−</b> et <b>÷</b>, le côté compte : gauche ou haut d'abord, droite ou bas ensuite. Le bouton <b>⇄</b>, ou un glissé du doigt sur l'opérateur, le fait pivoter d'un demi-tour pour inverser les côtés.</li>
           <li>Change d'opération en touchant l'opérateur ou avec <b>⟳</b>, puis <b>garde le doigt sur l'opérateur</b> (ou appuie sur <b class="b-orange">=</b>) pour obtenir une <span class="b-orange">brique</span>. Dans les paramètres : secouer le téléphone pour calculer. Pas de résultat négatif ni de division qui tombe pas juste.</li>
-          <li>Gagne en créant une brique égale à l'objectif, en le moins d'opérations possible : chaque = compte. Les meilleures parties vont dans les <b>high scores</b>.</li>
+          <li>Gagne en créant une brique égale à l'objectif, en le moins d'opérations possible : chaque = compte. Les meilleures parties vont dans les <b>high scores</b>. Pour corser le jeu, choisis dans les paramètres un objectif entre <b>100 et 999</b>.</li>
         </ol>
         <div class="modes">
           <div><b>BLOW</b>Touche l'écran pour repousser tout ce qui est autour. Juste à côté de l'opérateur, ça décroche tout ce qui y est accroché.</div>
@@ -1770,7 +1782,7 @@ const G = {
   mode: 'blow', op: 0, opPrev: 0, opAnim: 1, swapAnim: 1,
   mechs: (() => { const o = store.get('mechs', [true, true, true, true]); return Array.isArray(o) && o.length === 4 && o.some(Boolean) ? o.map(Boolean) : [true, true, true, true]; })(),
   ops: (() => { const o = store.get('ops', [true, true, true, true]); return Array.isArray(o) && o.length === 4 && o.some(Boolean) ? o.map(Boolean) : [true, true, true, true]; })(),
-  easy: !store.get('expert', false), assist: !!store.get('assist', false), ringRot: 0, ringTarget: 0, opShake: 0,
+  easy: !store.get('expert', false), assist: !!store.get('assist', false), range: store.get('range', 99) === 999 ? 999 : 99, ringRot: 0, ringTarget: 0, opShake: 0,
   goal: 42, timeLimit: store.get('time', 60), timeLeft: 60, elapsed: 0, lastTick: -1,
   running: false, over: false, won: false, endT: -1, fwT: 0,
   spawnPending: false, spawnT: 0, shake: 0, fuse: null, now: 0, order: 0,
@@ -2898,8 +2910,9 @@ function newGame() {
   Sfx.init();
   G.items = []; G.merges = []; G.rockets = []; G.parts = []; G.waves = []; G.texts = [];
   G.op = G.ops.indexOf(true); G.opPrev = G.op; G.opAnim = 1; G.swapAnim = 1; G.fuse = null; G.order = 0;
-  // sans + ni ×, les résultats restent petits : objectif entre 1 et 20
-  G.goal = randi(1, G.ops[0] || G.ops[2] ? 99 : 20);
+  // sans + ni ×, les résultats restent petits : objectif entre 1 et 20 (même en mode 100 – 999)
+  const grows = G.ops[0] || G.ops[2];
+  G.goal = !grows ? randi(1, 20) : G.range === 999 ? randi(100, 999) : randi(1, 99);
   $('#opBtn').disabled = G.ops.filter(Boolean).length < 2;
   $('#easyChip').hidden = G.easy;
   $('#assistChip').hidden = !G.assist;
@@ -4793,13 +4806,14 @@ function syncMute() {
 }
 function selectTime(t) {
   G.timeLimit = t; store.set('time', t);
-  document.querySelectorAll('.times button').forEach((b) => b.setAttribute('aria-checked', String(+b.dataset.t === t)));
+  document.querySelectorAll('.times button[data-t]').forEach((b) => b.setAttribute('aria-checked', String(+b.dataset.t === t)));
   G.timeLeft = t; updateTimer(true);
   syncSummary();
 }
 function syncSummary() {
   const t = { 60: '1 min', 300: '5 min', 600: '10 min', 0: '∞' }[G.timeLimit] || '';
   const parts = [t, OPS.filter((o, i) => G.ops[i]).join(' ')];
+  if (G.range === 999) parts.push('100 – 999');
   if (!G.easy) parts.push('Expert');
   if (G.assist) parts.push('Aide +');
   $('#cfgSum').textContent = parts.join(' · ');
@@ -4817,8 +4831,8 @@ function closeSheets() {
   $('#setNote').hidden = true;
 }
 function resetSettings() {
-  G.ops = [true, true, true, true]; G.easy = true; G.assist = false; G.mechs = [true, true, true, true];
-  ['ops', 'expert', 'assist', 'mechs'].forEach((k) => store.del(k));
+  G.ops = [true, true, true, true]; G.easy = true; G.assist = false; G.mechs = [true, true, true, true]; G.range = 99;
+  ['ops', 'expert', 'assist', 'mechs', 'range'].forEach((k) => store.del(k));
   selectTime(60); syncOptions();
 }
 function syncOptions() {
@@ -4827,6 +4841,7 @@ function syncOptions() {
   $('#assistBtn').setAttribute('aria-checked', String(G.assist));
   $('#shakeBtn').setAttribute('aria-checked', String(Shake.on));
   $('#seasonBtn').setAttribute('aria-checked', String(store.get('season', true)));
+  document.querySelectorAll('.times button[data-range]').forEach((b) => b.setAttribute('aria-checked', String(+b.dataset.range === G.range)));
   syncSummary();
   document.querySelectorAll('.optop.mech').forEach((b) => {
     const i = +b.dataset.mech;
@@ -4878,7 +4893,11 @@ $('#easyBtn').addEventListener('click', () => { Sfx.init(); G.easy = !G.easy; st
 $('#assistBtn').addEventListener('click', () => { Sfx.init(); G.assist = !G.assist; store.set('assist', G.assist); syncOptions(); Sfx.tick(); });
 $('#shakeBtn').addEventListener('click', async () => { Sfx.init(); await Shake.toggle(); syncOptions(); Sfx.tick(); });
 $('#seasonBtn').addEventListener('click', () => { Sfx.init(); store.set('season', !store.get('season', true)); applyTheme(effectiveTheme()); syncOptions(); Sfx.tick(); });
-document.querySelectorAll('.times button').forEach((b) => b.addEventListener('click', () => { Sfx.init(); selectTime(+b.dataset.t); Sfx.tick(); }));
+document.querySelectorAll('.times button[data-t]').forEach((b) => b.addEventListener('click', () => { Sfx.init(); selectTime(+b.dataset.t); Sfx.tick(); }));
+// objectif entre 1 et 99, ou entre 100 et 999 pour les bons joueurs
+document.querySelectorAll('.times button[data-range]').forEach((b) => b.addEventListener('click', () => {
+  Sfx.init(); G.range = +b.dataset.range; store.set('range', G.range); syncOptions(); Sfx.tick();
+}));
 
 window.addEventListener('keydown', (e) => {
   const k = e.key;
