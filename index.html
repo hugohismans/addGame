@@ -364,7 +364,7 @@ kbd {
         </ol>
         <div class="modes">
           <div><b>BLOW</b>Touche l'écran pour repousser tout ce qui est autour. Sur l'opérateur, ça décroche ce qui y est accroché.</div>
-          <div class="fire"><b>FIREWORK</b>Lance une fusée qui erre 2 à 3 secondes et repousse ce qu'elle frôle, de moins en moins fort.</div>
+          <div class="fire"><b>FIREWORK</b>Lance une fusée folle qui fonce 2 à 3 secondes, éjecte tout ce qu'elle frôle, lâche des pétards et finit en bouquet.</div>
         </div>
         <div class="keys"><b class="b-orange">Mode facile</b> : ajoute le mode <b>TARGET</b>. Touche une bulle ou une brique pour l'envoyer directement sur l'opérateur, touche-la encore pour la décrocher.</div>
         <div class="keys">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>S</kbd> inverser · <kbd>M</kbd> mode (<kbd>B</kbd> <kbd>F</kbd> <kbd>T</kbd>) · <kbd>R</kbd> rejouer · clic pour agir</div>
@@ -655,7 +655,9 @@ function integrate(h) {
     let sp = Math.hypot(it.vx, it.vy);
     if (sp < 1e-3) { const a = rand(0, TAU); it.vx = Math.cos(a); it.vy = Math.sin(a); sp = 1; }
     const target = it.state === 'doomed' ? BASE * .4 : cruise(it);
-    const ns = clamp(sp + (target - sp) * (1 - Math.exp(-h * 1.1)), 0, BASE * 7);
+    // ce que le firework vient de toucher garde son élan plus longtemps
+    const wild = (it.wildUntil || 0) > G.now;
+    const ns = clamp(sp + (target - sp) * (1 - Math.exp(-h * (wild ? .3 : 1.1))), 0, BASE * (wild ? 10 : 7));
     it.vx *= ns / sp; it.vy *= ns / sp;
     it.x += it.vx * h; it.y += it.vy * h;
     // rebond miroir sur les bords
@@ -1027,56 +1029,89 @@ function target(px, py) {
   }
   attach(best, true);
 }
+// Firework : une fusée rapide et nerveuse qui sème la pagaille. Elle repousse fort ce qu'elle frôle,
+// lâche des pétards en route et finit par une grosse explosion qui souffle tout autour.
+const FW_COLS = [COL.pink, COL.gold, COL.cyan, COL.orange, COL.green, COL.violet];
 function launchRocket(px, py) {
   if (G.rockets.filter((r) => !r.done).length >= 3) return;
-  G.rockets.push({ x: px, y: py, h: rand(0, TAU), turn: 0, sp: S * .8, age: 0, life: rand(2, 3), trail: [], done: false });
-  burstRing(px, py, COL.pink, 16, R * 1.6);
+  const hue = randi(0, FW_COLS.length - 1);
+  G.rockets.push({ x: px, y: py, h: rand(0, TAU), turn: 0, sp: S * 1.35, age: 0, life: rand(2, 3), trail: [], done: false, hue, popT: rand(.15, .3) });
+  burst(px, py, COL.pink, 26, BASE * 4, .5, 3);
+  burstRing(px, py, COL.gold, 20, R * 2.2);
+  G.waves.push({ x: px, y: py, t: 0, life: .35, r: R * 3, c: COL.pink });
   Sfx.fireLaunch();
+}
+function rocketPush(x, y, rad, F, dt, p) {
+  for (const it of G.items) {
+    if (it.dead || !['free', 'attached', 'doomed', 'spawn'].includes(it.state)) continue;
+    const dx = it.x - x, dy = it.y - y, d = Math.hypot(dx, dy);
+    if (d > rad + it.r) continue;
+    const k = 1 - d / (rad + it.r);
+    const nx = d > .5 ? dx / d : 1, ny = d > .5 ? dy / d : 0;
+    if (it.state === 'attached') {
+      if (k > .15 && p < .9) {
+        const ox = it.x - cx, oy = it.y - cy, od = Math.hypot(ox, oy) || 1;
+        detach(it, ox / od, oy / od, BASE * 3);
+      }
+      continue;
+    }
+    if (it.state === 'spawn') it.state = 'free';
+    const q = inertia(it);
+    it.vx += nx * F * k * q * dt; it.vy += ny * F * k * q * dt;
+    it.wildUntil = G.now + 1.6;
+  }
+}
+function rocketBlast(x, y, rad, imp, c) {
+  G.waves.push({ x, y, t: 0, life: .4, r: rad, c, thick: true });
+  burst(x, y, c, 30, BASE * 5, .7, 3);
+  burst(x, y, COL.ice, 10, BASE * 3, .35, 2);
+  rocketPush(x, y, rad, imp, 1, 0);
 }
 function updateRockets(dt) {
   for (const r of G.rockets) {
     if (!r.done) {
       r.age += dt;
       const p = clamp(r.age / r.life, 0, 1);
-      r.turn = clamp(r.turn * .97 + rand(-1, 1) * dt * 70, -6, 6);
+      // trajectoire plus nerveuse, avec de brusques changements de cap
+      r.turn = clamp(r.turn * .95 + rand(-1, 1) * dt * 120, -9, 9);
+      if (Math.random() < dt * 1.5) r.turn += rand(-14, 14);
       r.h += r.turn * dt;
-      const sp = r.sp * (1 - p * .45);
+      const sp = r.sp * (1 - p * .35);
       r.x += Math.cos(r.h) * sp * dt; r.y += Math.sin(r.h) * sp * dt;
-      if (r.x < 0) { r.x = 0; r.h = PI - r.h; } else if (r.x > W) { r.x = W; r.h = PI - r.h; }
-      if (r.y < 0) { r.y = 0; r.h = -r.h; } else if (r.y > H) { r.y = H; r.h = -r.h; }
-      r.trail.push({ x: r.x, y: r.y, w: R * .9 * (1 - p) + 1.5, t: G.now });
+      let wall = false;
+      if (r.x < 0) { r.x = 0; r.h = PI - r.h; wall = true; } else if (r.x > W) { r.x = W; r.h = PI - r.h; wall = true; }
+      if (r.y < 0) { r.y = 0; r.h = -r.h; wall = true; } else if (r.y > H) { r.y = H; r.h = -r.h; wall = true; }
+      if (wall) { burst(r.x, r.y, FW_COLS[Math.floor(r.hue)], 12, BASE * 3, .4, 2.5); Sfx.fwPop(); }
+      r.hue = (r.hue + dt * 3) % FW_COLS.length;
+      r.trail.push({ x: r.x, y: r.y, w: R * 1.3 * (1 - p) + 2, t: G.now, c: FW_COLS[Math.floor(r.hue)] });
       // rayon et puissance diminuent avec la trace
-      const rad = S * .24 * (1 - p) + R * .3;
+      const rad = S * .32 * (1 - p) + R * .4;
       r.rad = rad;
-      const F = BASE * 16 * (1 - p);
-      for (const it of G.items) {
-        if (it.dead || !['free', 'attached', 'doomed', 'spawn'].includes(it.state)) continue;
-        const dx = it.x - r.x, dy = it.y - r.y, d = Math.hypot(dx, dy);
-        if (d > rad + it.r) continue;
-        const k = 1 - d / (rad + it.r);
-        const nx = d > .5 ? dx / d : 1, ny = d > .5 ? dy / d : 0;
-        if (it.state === 'attached') {
-          if (k > .25 && p < .8) {
-            const ox = it.x - cx, oy = it.y - cy, od = Math.hypot(ox, oy) || 1;
-            detach(it, ox / od, oy / od, BASE * 2.2);
-          }
-          continue;
-        }
-        if (it.state === 'spawn') it.state = 'free';
-        const q = inertia(it);
-        it.vx += nx * F * k * q * dt; it.vy += ny * F * k * q * dt;
+      rocketPush(r.x, r.y, rad, BASE * 42 * (1 - p * .8), dt, p);
+      // pétards en route
+      r.popT -= dt;
+      if (r.popT <= 0 && p < .92) {
+        r.popT = rand(.18, .38);
+        rocketBlast(r.x + rand(-R, R), r.y + rand(-R, R), S * .14 * (1 - p * .5) + R, BASE * 3.5 * (1 - p * .6), FW_COLS[randi(0, FW_COLS.length - 1)]);
+        Sfx.fwPop();
       }
-      if (Math.random() < .8) {
-        G.parts.push({ x: r.x, y: r.y, vx: rand(-40, 40), vy: rand(-40, 40), t: 0, life: rand(.3, .6), c: Math.random() < .5 ? COL.pink : COL.gold, s: rand(1.5, 3) * (1 - p * .6), drag: 2 });
+      for (let k = 0; k < 3; k++) {
+        G.parts.push({ x: r.x, y: r.y, vx: rand(-70, 70) - Math.cos(r.h) * 60, vy: rand(-70, 70) - Math.sin(r.h) * 60, t: 0, life: rand(.3, .7), c: FW_COLS[randi(0, FW_COLS.length - 1)], s: rand(1.5, 3.5) * (1 - p * .5), drag: 2 });
       }
       if (p >= 1) {
         r.done = true;
-        burst(r.x, r.y, COL.pink, 24, BASE * 3, .6, 2.5);
-        burst(r.x, r.y, COL.gold, 14, BASE * 2.5, .5, 2);
-        Sfx.fireEnd();
+        // bouquet final
+        const n = 60;
+        for (let k = 0; k < n; k++) {
+          const a = (k / n) * TAU, v = S * rand(.6, 1);
+          G.parts.push({ x: r.x, y: r.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, life: rand(.7, 1.1), c: FW_COLS[k % FW_COLS.length], s: 3, drag: 2.4, grav: S * .25 });
+        }
+        rocketBlast(r.x, r.y, S * .3, BASE * 6, COL.gold);
+        G.shake = Math.max(G.shake, .45);
+        Sfx.fireEnd(); Sfx.fwPop();
       }
     }
-    r.trail = r.trail.filter((pt) => G.now - pt.t < .7);
+    r.trail = r.trail.filter((pt) => G.now - pt.t < .8);
   }
   G.rockets = G.rockets.filter((r) => !r.done || r.trail.length);
 }
@@ -1147,7 +1182,7 @@ function newGame() {
   G.goal = randi(1, G.ops[0] || G.ops[2] ? 99 : 20);
   $('#opBtn').disabled = G.ops.filter(Boolean).length < 2;
   $('#easyChip').hidden = !G.easy;
-  setMode(G.mode);
+  setMode(G.easy ? 'target' : G.mode);
   G.timeLeft = G.timeLimit; G.elapsed = 0; G.lastTick = -1;
   G.running = true; G.over = false; G.won = false; G.endT = -1;
   G.spawnPending = false;
@@ -1409,21 +1444,24 @@ function drawRockets() {
   for (const r of G.rockets) {
     const t = r.trail;
     for (let i = 1; i < t.length; i++) {
-      const f = 1 - (G.now - t[i].t) / .7;
+      const f = 1 - (G.now - t[i].t) / .8;
       if (f <= 0) continue;
       const w = t[i].w * f;
-      ctx.strokeStyle = rgba(COL.pink, .3 * f); ctx.lineWidth = w * 2.2;
+      ctx.strokeStyle = rgba(t[i].c, .3 * f); ctx.lineWidth = w * 2.4;
       ctx.beginPath(); ctx.moveTo(t[i - 1].x, t[i - 1].y); ctx.lineTo(t[i].x, t[i].y); ctx.stroke();
-      ctx.strokeStyle = rgba(COL.gold, .85 * f); ctx.lineWidth = Math.max(1, w * .55);
+      ctx.strokeStyle = rgba(COL.ice, .8 * f); ctx.lineWidth = Math.max(1, w * .45);
       ctx.beginPath(); ctx.moveTo(t[i - 1].x, t[i - 1].y); ctx.lineTo(t[i].x, t[i].y); ctx.stroke();
     }
     if (!r.done) {
       const p = r.age / r.life;
+      const c = FW_COLS[Math.floor(r.hue)];
+      ctx.fillStyle = rgba(c, .35);
+      ctx.beginPath(); ctx.arc(r.x, r.y, 6 + R * .6 * (1 - p), 0, TAU); ctx.fill();
       ctx.fillStyle = rgba(COL.ice, 1);
-      ctx.beginPath(); ctx.arc(r.x, r.y, 3 + R * .25 * (1 - p), 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(r.x, r.y, 3 + R * .3 * (1 - p), 0, TAU); ctx.fill();
       ctx.save();
-      ctx.setLineDash([3, 6]);
-      ctx.strokeStyle = rgba(COL.pink, .35 * (1 - p)); ctx.lineWidth = 1.2;
+      ctx.setLineDash([3, 6]); ctx.lineDashOffset = -G.now * 60;
+      ctx.strokeStyle = rgba(c, .4 * (1 - p)); ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.arc(r.x, r.y, r.rad || 0, 0, TAU); ctx.stroke();
       ctx.restore();
     }
@@ -1527,9 +1565,9 @@ cvs.addEventListener('pointerdown', (e) => {
 const onBtn = (id, fn) => $(id).addEventListener('click', (e) => { Sfx.init(); fn(); e.currentTarget.blur(); });
 $('#modeBtn').addEventListener('click', (e) => {
   Sfx.init();
-  // toucher directement une option la choisit, sinon on passe au mode suivant
+  // toucher une option la choisit (sans effet si elle l'est déjà) ; ailleurs, on passe au mode suivant
   const opt = e.target.closest('.opt');
-  if (opt && opt.dataset.m !== G.mode) { setMode(opt.dataset.m); Sfx.tick(); } else toggleMode();
+  if (opt) { if (opt.dataset.m !== G.mode) { setMode(opt.dataset.m); Sfx.tick(); } } else toggleMode();
   e.currentTarget.blur();
 });
 onBtn('#opBtn', switchOp);
