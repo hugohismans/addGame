@@ -6,6 +6,11 @@
 <meta name="theme-color" content="#03060d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AddGame">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>AddGame</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -224,6 +229,24 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .switch[aria-checked="true"] { color: var(--gold); border-color: rgba(255, 224, 102, .5); }
 .switch[aria-checked="true"] .knob { border-color: var(--gold); background: rgba(255, 224, 102, .12); }
 .switch[aria-checked="true"] .knob::after { transform: translateX(14px); background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+#hintBox {
+  position: absolute; left: 50%; top: 10px; transform: translateX(-50%); z-index: 5;
+  width: min(560px, calc(100% - 200px)); min-width: 220px;
+  padding: 10px 14px; border-radius: 8px; text-align: center; cursor: pointer;
+  border: 1px solid rgba(255, 224, 102, .6); background: rgba(10, 14, 6, .9);
+  box-shadow: 0 0 18px rgba(255, 224, 102, .35);
+  animation: hintIn .3s cubic-bezier(.3, 1.4, .5, 1);
+}
+@keyframes hintIn { from { transform: translate(-50%, -12px); opacity: 0; } }
+#hintBox .t { font-family: var(--f-display); font-weight: 700; font-size: 11px; letter-spacing: .18em; color: var(--gold); }
+#hintBox .t span { color: var(--danger); margin-left: 6px; }
+#hintBox .steps { font-family: var(--f-display); font-weight: 700; font-size: 18px; color: var(--ice); margin-top: 2px; font-variant-numeric: tabular-nums; }
+#hintBox .steps i { font-style: normal; color: var(--muted); margin: 0 6px; }
+#hintBox .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+@media (max-width: 560px) { #hintBox { top: 54px; width: calc(100% - 24px); } }
+#hintBtn { color: var(--gold); border-color: rgba(255, 224, 102, .4); }
+#installBox { margin-top: 14px; font-size: 13px; color: var(--muted); max-width: 40ch; }
+#installBtn { height: 40px; padding: 0 16px; font-size: 14px; margin-right: 10px; }
 #easyChip {
   margin-left: 8px; align-self: center;
   font-family: var(--f-display); font-weight: 700; font-size: 11px; letter-spacing: .14em;
@@ -297,9 +320,13 @@ kbd {
 <div id="app">
   <div id="field">
     <canvas id="cv" aria-label="Terrain de jeu"></canvas>
+    <div id="hintBox" role="status" hidden></div>
     <div id="hudTop">
       <div style="display:flex"><div id="timer" aria-live="off">1:00</div><div id="easyChip" hidden>FACILE</div></div>
       <div class="hud-right">
+        <button id="hintBtn" class="icon-btn" aria-label="Indice, coûte 10 secondes (touche H)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>
+        </button>
         <button id="muteBtn" class="icon-btn" aria-label="Couper le son" aria-pressed="false">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="w1" d="M16.5 8.5a5 5 0 0 1 0 7"/><path class="w2" d="M19 6a8.5 8.5 0 0 1 0 12"/><path class="x" d="M16 9l6 6M22 9l-6 6" style="display:none"/></svg>
         </button>
@@ -353,6 +380,7 @@ kbd {
           <button id="easyBtn" class="switch" role="switch" aria-checked="false"><span class="knob"></span>MODE FACILE</button>
         </div>
         <button id="playBtn" class="big-btn">JOUER</button>
+        <div id="installBox" hidden></div>
       </div>
       <div class="rules">
         <h2>COMMENT JOUER</h2>
@@ -367,7 +395,7 @@ kbd {
           <div class="fire"><b>FIREWORK</b>Lance une fusée folle qui fonce 2 à 3 secondes, éjecte tout ce qu'elle frôle, lâche des pétards et finit en bouquet.</div>
         </div>
         <div class="keys"><b class="b-orange">Mode facile</b> : ajoute le mode <b>TARGET</b>. Touche une bulle ou une brique pour l'envoyer directement sur l'opérateur, touche-la encore pour la décrocher.</div>
-        <div class="keys">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>S</kbd> inverser · <kbd>M</kbd> mode (<kbd>B</kbd> <kbd>F</kbd> <kbd>T</kbd>) · <kbd>R</kbd> rejouer · clic pour agir</div>
+        <div class="keys">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>S</kbd> inverser · <kbd>H</kbd> indice · <kbd>M</kbd> mode (<kbd>B</kbd> <kbd>F</kbd> <kbd>T</kbd>) · <kbd>R</kbd> rejouer · clic pour agir</div>
       </div>
     </div>
   </section>
@@ -1114,6 +1142,85 @@ function updateRockets(dt) {
   G.rockets = G.rockets.filter((r) => !r.done || r.trail.length);
 }
 
+/* ================= Indice ================= */
+// Cherche la suite d'opérations la plus courte (3 au plus) qui fabrique l'objectif avec les nombres présents.
+// Chaque étape prend deux nombres, comme on le ferait en accrochant deux éléments puis en appuyant sur =.
+function findHint() {
+  const rank = (i) => (i.state === 'attached' ? 0 : i.kind === 'brick' ? 1 : 2);
+  const pool = G.items
+    .filter((i) => !i.dead && ['free', 'spawn', 'attached'].includes(i.state) && i.value > 0)
+    .sort((a, b) => rank(a) - rank(b)).slice(0, 7);
+  const start = pool.map((it) => ({ v: it.value, src: [it], steps: [] }));
+  const goal = G.goal;
+  const combos = (a, b) => {
+    const out = [];
+    if (G.ops[0]) out.push([a, 0, b, a.v + b.v]);
+    if (G.ops[2]) out.push([a, 2, b, a.v * b.v]);
+    if (G.ops[1]) { if (a.v > b.v) out.push([a, 1, b, a.v - b.v]); else if (b.v > a.v) out.push([b, 1, a, b.v - a.v]); }
+    if (G.ops[3]) { if (a.v % b.v === 0) out.push([a, 3, b, a.v / b.v]); if (b.v !== a.v && b.v % a.v === 0) out.push([b, 3, a, b.v / a.v]); }
+    return out;
+  };
+  const seen = new Set();
+  function dfs(list, depth) {
+    for (let i = 0; i < list.length; i++) {
+      for (let j = i + 1; j < list.length; j++) {
+        for (const [x, op, y, r] of combos(list[i], list[j])) {
+          if (r <= 0 || r > 9999) continue;
+          const node = { v: r, src: x.src.concat(y.src), steps: [...x.steps, ...y.steps, { a: x.v, op, b: y.v, r }] };
+          if (r === goal) return node;
+          if (depth > 1) {
+            const next = list.filter((_, k) => k !== i && k !== j).concat(node);
+            const key = depth + ':' + next.map((n) => n.v).sort((m, n) => m - n).join(',');
+            if (seen.has(key)) continue;
+            seen.add(key);
+            const found = dfs(next, depth - 1);
+            if (found) return found;
+          }
+        }
+      }
+    }
+    return null;
+  }
+  for (let d = 1; d <= 3; d++) { seen.clear(); const f = dfs(start, d); if (f) return f; }
+  return null;
+}
+let hintTimer = 0;
+function showHint() {
+  if (!G.running || G.over) return;
+  const box = $('#hintBox');
+  const sol = findHint();
+  clearTimeout(hintTimer);
+  if (!sol) {
+    box.innerHTML = '<div class="t">INDICE</div><div class="sub">Pas de solution en 3 étapes avec ces nombres. Fais se rencontrer des bulles pour en changer.</div>';
+    Sfx.invalid();
+  } else {
+    // pénalité : 10 secondes
+    if (G.timeLimit > 0) G.timeLeft = Math.max(0, G.timeLeft - 10); else G.elapsed += 10;
+    addText('−10 s', 60, 56, COL.red, 20, 1.2, 16);
+    const steps = sol.steps.map((st) => `${st.a} ${OPS[st.op]} ${st.b} = ${st.r}`).join('<i>→</i>');
+    const order = sol.steps.some((st) => st.op === 1 || st.op === 3)
+      ? '<div class="sub">Pour − et ÷, le premier nombre va à gauche (en haut pour ÷).</div>' : '';
+    box.innerHTML = `<div class="t">INDICE<span>−10 s</span></div><div class="steps">${steps}</div>${order}`;
+    G.hint = { items: sol.src, until: G.now + 6 };
+    Sfx.result();
+  }
+  box.hidden = false;
+  hintTimer = setTimeout(() => { box.hidden = true; }, 7000);
+}
+function drawHint() {
+  if (!G.hint || G.now > G.hint.until) return;
+  const pulse = .5 + .5 * Math.sin(G.now * 9);
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.setLineDash([6, 5]); ctx.lineDashOffset = -G.now * 40;
+  for (const it of G.hint.items) {
+    if (it.dead || it.state === 'merging' || it.state === 'fusing') continue;
+    ctx.strokeStyle = rgba(COL.gold, .5 + .5 * pulse); ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(it.x, it.y, it.r + 7 + pulse * 3, 0, TAU); ctx.stroke();
+  }
+  ctx.restore();
+}
+
 /* ================= Effets ================= */
 function burst(x, y, c, n, speed, life, size) {
   for (let i = 0; i < n; i++) {
@@ -1182,7 +1289,8 @@ function newGame() {
   $('#easyChip').hidden = !G.easy;
   setMode(G.easy ? 'target' : G.mode);
   G.timeLeft = G.timeLimit; G.elapsed = 0; G.lastTick = -1;
-  G.running = true; G.over = false; G.won = false; G.endT = -1;
+  G.running = true; G.over = false; G.won = false; G.endT = -1; G.hint = null;
+  $('#hintBox').hidden = true;
   G.spawnPending = false;
   const gv = $('#goalVal');
   gv.textContent = G.goal; gv.classList.remove('pop'); void gv.offsetWidth; gv.classList.add('pop');
@@ -1523,6 +1631,7 @@ function render() {
     if (it.hidden) continue;
     if (it.kind === 'ball') drawBall(it); else drawBrick(it);
   }
+  drawHint();
   drawMerges();
   drawRockets();
   drawWaves();
@@ -1570,6 +1679,8 @@ $('#modeBtn').addEventListener('click', (e) => {
 });
 onBtn('#opBtn', switchOp);
 onBtn('#swapBtn', swapSides);
+onBtn('#hintBtn', showHint);
+$('#hintBox').addEventListener('click', () => { $('#hintBox').hidden = true; });
 onBtn('#eqBtn', pressEqual);
 onBtn('#playBtn', newGame);
 onBtn('#againBtn', newGame);
@@ -1623,6 +1734,7 @@ window.addEventListener('keydown', (e) => {
   if (k === 'Enter' || k === ' ' || k === '=') { e.preventDefault(); pressEqual(); }
   else if (k === 'Tab' || k === 'o' || k === 'O') { e.preventDefault(); switchOp(); }
   else if (k === 's' || k === 'S') swapSides();
+  else if (k === 'h' || k === 'H') showHint();
   else if (k === 'm' || k === 'M' || k === 'Shift') { e.preventDefault(); toggleMode(); }
   else if (k === 'b' || k === 'B') setMode('blow');
   else if (k === 'f' || k === 'F') setMode('fire');
@@ -1642,7 +1754,30 @@ $('#goalVal').textContent = G.goal;
 // bulles de démonstration derrière l'écran d'accueil
 for (let i = 0; i < 4; i++) spawnBall();
 requestAnimationFrame((ts) => { last = ts; frame(ts); });
-window.AddGame = { state: G };
+window.AddGame = { state: G, findHint };
+
+/* ================= Application installable ================= */
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('sw.js').catch(() => { /* hors GitHub Pages : pas de mode hors ligne */ });
+}
+const standalone = matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone;
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); installEvt = e;
+  const box = $('#installBox');
+  box.innerHTML = '<button id="installBtn" class="big-btn alt">INSTALLER</button>Ajoute AddGame à ton écran d\'accueil pour jouer en plein écran, même sans réseau.';
+  box.hidden = false;
+  $('#installBtn').addEventListener('click', async () => {
+    installEvt.prompt();
+    await installEvt.userChoice.catch(() => null);
+    installEvt = null; box.hidden = true;
+  });
+});
+if (!standalone && /iphone|ipad|ipod/i.test(navigator.userAgent) && location.protocol === 'https:') {
+  const box = $('#installBox');
+  box.textContent = 'Pour l\'installer sur iPhone : bouton Partager, puis « Sur l\'écran d\'accueil ».';
+  box.hidden = false;
+}
 })();
 </script>
 </body>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="70%">
+      <stop offset="0" stop-color="#0a2233"/>
+      <stop offset="1" stop-color="#03060d"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <g stroke="#3ef0ff" stroke-opacity=".08" stroke-width="2">
+    <path d="M0 128H512M0 256H512M0 384H512M128 0V512M256 0V512M384 0V512"/>
+  </g>
+  <g filter="url(#glow)" fill="none" stroke-linecap="round">
+    <circle cx="256" cy="256" r="104" stroke="#e9fdff" stroke-width="12"/>
+    <g stroke="#3ef0ff" stroke-width="7">
+      <path d="M256 166v18M256 328v18M166 256h18M328 256h18"/>
+    </g>
+    <path d="M206 256h100M256 206v100" stroke="#e9fdff" stroke-width="22"/>
+    <circle cx="146" cy="372" r="38" stroke="#3ef0ff" stroke-width="10"/>
+    <rect x="334" y="104" width="76" height="76" rx="16" stroke="#ff9d2e" stroke-width="10"/>
+  </g>
+  <g font-family="Tektur, 'Chakra Petch', monospace" font-weight="800" text-anchor="middle" fill="#e9fdff">
+    <text x="146" y="388" font-size="44">7</text>
+    <text x="372" y="158" font-size="42">42</text>
+  </g>
+</svg>
