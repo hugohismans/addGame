@@ -851,6 +851,43 @@ html[data-da="halloween"] .demo .bub { background: radial-gradient(circle at 40%
 html[data-da="halloween"] .demo .brk { background: linear-gradient(#9aa0ab, #575b66); color: #23252b; border: 0; border-radius: 50% 50% 4px 4px / 40% 40% 4px 4px; }
 html[data-da="halloween"] .big-btn { background: #ff8c1e; color: #1a0d2e; box-shadow: 0 0 20px rgba(255, 140, 30, .6); }
 
+/* ---------- Succès ---------- */
+.links .cnt { font-size: .85em; opacity: .7; letter-spacing: 0; }
+.ach-sum { display: grid; gap: 6px; margin: 4px 0 2px; font-size: 13px; color: var(--muted); }
+.ach-sum b { color: var(--gold); font-size: 16px; }
+.ach-bar { display: block; height: 5px; border-radius: 3px; background: rgba(127, 127, 127, .25); overflow: hidden; margin-top: 4px; }
+.ach-bar i { display: block; height: 100%; background: var(--gold); border-radius: 3px; }
+.ach-cat { font-family: var(--f-display); font-size: 11px; letter-spacing: .18em; color: var(--muted); margin: 14px 0 6px; }
+.ach-list { display: grid; gap: 6px; }
+@media (min-width: 640px) { .ach-list { grid-template-columns: 1fr 1fr; } }
+.ach { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: rgba(127, 127, 127, .06); }
+.ach .ic { font-size: 22px; text-align: center; filter: grayscale(1); opacity: .45; }
+.ach .t { display: block; font-family: var(--f-display); font-size: 13px; letter-spacing: .05em; color: var(--ice); }
+.ach .d { display: block; font-size: 12.5px; line-height: 1.3; color: var(--muted); }
+.ach .st { font-size: 11px; color: var(--muted); text-align: right; white-space: nowrap; }
+.ach.on { border-color: color-mix(in srgb, var(--gold) 60%, transparent); background: color-mix(in srgb, var(--gold) 8%, transparent); }
+.ach.on .ic { filter: none; opacity: 1; }
+.ach.on .st { color: var(--gold); }
+#achToast {
+  position: fixed; left: 50%; top: calc(12px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 50;
+  display: flex; gap: 12px; align-items: center; max-width: calc(100% - 24px); padding: 10px 18px 10px 12px;
+  border-radius: 14px; border: 2px solid var(--gold); background: var(--panel); color: var(--ice);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .35); animation: achIn .45s cubic-bezier(.3, 1.4, .5, 1); pointer-events: none;
+}
+#achToast.out { transition: opacity .35s, transform .35s; opacity: 0; transform: translate(-50%, -20px); }
+#achToast .ic { font-size: 28px; white-space: nowrap; letter-spacing: -.1em; }
+#achToast .k, #achToast .t { white-space: nowrap; }
+#achToast .k { display: block; font-family: var(--f-display); font-size: 10px; letter-spacing: .16em; color: var(--gold); }
+#achToast .t { display: block; font-family: var(--f-display); font-size: 16px; letter-spacing: .04em; }
+@keyframes achIn { from { transform: translate(-50%, -30px) scale(.9); opacity: 0; } }
+.ach-line { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 10px; }
+.ach-line span { font-size: 13px; padding: 3px 9px; border-radius: 12px; border: 1px solid var(--gold); color: var(--gold); }
+html[data-da="pixel"] .ach .t, html[data-da="pixel"] #achToast .t { font-weight: 700; }
+html[data-da="pixel"] .ach .d { font-size: 17px; line-height: 1.1; }
+html[data-da="craie"] .ach { border: 2px solid rgba(246, 246, 238, .3); background: transparent; }
+html[data-da="craie"] .ach .t { font-family: var(--f-ui); font-size: 17px; }
+html[data-da="craie"] .ach .d { font-family: var(--f-ui); font-size: 15px; }
+
 /* ================= Ambiance « tableau noir » =================
    Ardoise verte, craie, auget en bois ; règles, indice et tutoriel sur papier Seyès (cahier à grands carreaux). */
 html[data-da="craie"] {
@@ -943,6 +980,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
 </style>
 </head>
 <body>
+<div id="achToast" role="status" hidden></div>
 <div id="app">
   <div id="field">
     <canvas id="cv" aria-label="Terrain de jeu"></canvas>
@@ -1000,6 +1038,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
         <button id="tutoBtn">TUTORIEL</button>
         <button id="rulesBtn">RÈGLES</button>
         <button id="scoresBtn">HIGH SCORES</button>
+        <button id="achBtn">SUCCÈS <span id="achCount" class="cnt"></span></button>
       </div>
       <button id="setBtn" class="set-btn" aria-label="Paramètres"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span class="t">PARAMÈTRES</span><span id="cfgSum" class="sum"></span></button>
       <div id="installBox" hidden></div>
@@ -1070,6 +1109,14 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
       </div></div>
       <div id="setNote" hidden></div>
       <div class="sheet-foot"><button id="resetBtn" class="ghost">Réglages par défaut</button><button class="big-btn small" data-close>OK</button></div>
+    </div>
+  </section>
+
+  <section id="achSheet" class="overlay sub" aria-label="Succès" hidden>
+    <div class="sheet wide">
+      <div class="sheet-head"><h2>SUCCÈS</h2><button class="icon-btn close" data-close aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div id="achSum" class="ach-sum"></div>
+      <div id="achBody"></div>
     </div>
   </section>
 
@@ -1420,6 +1467,7 @@ const Sfx = (() => {
       noise({ t: .4, v: .25, f: rand(800, 1600), f2: 150, q: .7 });
     },
     timeUp() { [440, 330, 220].forEach((f, i) => tone({ type: 'square', f, t: .25, v: .08, delay: i * .18 })); },
+    achieve() { [784, 988, 1175, 1568].forEach((f, i) => tone({ type: 'triangle', f, t: .25, v: .11, delay: i * .07 })); tone({ f: 2093, t: .6, v: .05, delay: .3 }); },
   };
 
   // --- briques sonores des autres ambiances ---
@@ -2032,6 +2080,7 @@ function splitMerge(m) {
 
 function explodeItem(it) {
   it.dead = true;
+  if (it.kind === 'ball') Ach.stat('boom');
   const c = it.kind === 'brick' ? COL.orange : COL.red;
   burst(it.x, it.y, c, 34, BASE * 4, .7, 3);
   burst(it.x, it.y, COL.ice, 12, BASE * 3, .4, 2);
@@ -2060,6 +2109,7 @@ function attach(it, bySide) {
   it.rad = Math.hypot(it.x - cx, it.y - cy);
   burstRing(it.x, it.y, it.kind === 'brick' ? COL.orange : COL.cyan, 10, R);
   Sfx.attach();
+  if (!bySide) Ach.blowAttach(it);   // accroché au contact (pas par AUTO)
   if (G.tut) setTimeout(tutCheck, 0);
 }
 function detach(it, nx, ny, imp) {
@@ -2129,6 +2179,7 @@ function swapSides() {
   }
   G.ringTarget += PI;
   G.swapAnim = 0;
+  if (G.run && !G.tut) G.run.swaps++;
   swapIconRot += 180; $('#swapBtn svg').style.transform = `rotate(${swapIconRot}deg)`;
   Sfx.swap();
   if (G.tut) tutEvent('swap');
@@ -2225,12 +2276,14 @@ function updateFuse(dt) {
     }
     G.items.push(b);
     Sfx.result();
+    Ach.brick(v);
     if (G.tut) tutOnBrick(v);
     else if (v === G.goal) { G.winBrick = b; win(); }
   }
 }
 function bigError(msg) {
   if (G.tut) setTimeout(() => tutEvent('error'), 0);
+  else if (G.run && G.running) G.run.errors++;
   G.waves.push({ x: cx, y: cy, t: 0, life: .6, r: S * .6, c: COL.red, thick: true });
   burst(cx, cy, COL.red, 80, BASE * 7, 1.1, 4);
   burst(cx, cy, COL.orange, 50, BASE * 5, .9, 3);
@@ -2244,6 +2297,7 @@ function bigError(msg) {
 /* ================= Actions du joueur ================= */
 function blow(px, py) {
   const BR = S * .42;
+  Ach.use('blow'); G.blowId = (G.blowId || 0) + 1;
   G.waves.push({ x: px, y: py, t: 0, life: .45, r: BR, c: COL.cyan });
   burstRing(px, py, COL.cyan, 16, BR * .5);
   Sfx.blow();
@@ -2272,7 +2326,7 @@ function blow(px, py) {
     }
     if (it.state === 'spawn') it.state = 'free';
     it.vx += nx * imp; it.vy += ny * imp;
-    it.pushedUntil = G.now + PUSH_TIME;
+    it.pushedUntil = G.now + PUSH_TIME; it.blowId = G.blowId;
   }
   if (G.tut) tutEvent('blow', hit);
 }
@@ -2287,6 +2341,7 @@ function target(px, py, pointerId) {
   }
   burstRing(px, py, COL.gold, 10, R * .8);
   if (!best) { Sfx.tick(); return; }
+  Ach.use('target');
   if (best.state === 'spawn') best.state = 'free';
   if (best.state === 'free') { best.held = true; best.heldV = [best.vx, best.vy]; best.vx = best.vy = 0; best.trail.length = 0; }
   flings.set(pointerId, { it: best, x0: px, y0: py, x: px, y: py, pts: [{ x: px, y: py, t: performance.now() }] });
@@ -2303,6 +2358,7 @@ function autoCatch(px, py, pointerId) {
   }
   burstRing(px, py, COL.gold, 10, R * .8);
   if (!best) { Sfx.tick(); return; }
+  Ach.use('auto');
   if (best.state === 'attached') {
     // l'élément accroché suit le geste : on le lance au relâchement, dans la direction du glissé
     flings.set(pointerId, { it: best, x0: px, y0: py, x: px, y: py, pts: [{ x: px, y: py, t: performance.now() }] });
@@ -2328,6 +2384,7 @@ function launchRocket(px, py) {
   burstRing(px, py, COL.gold, 20, R * 2.2);
   G.waves.push({ x: px, y: py, t: 0, life: .35, r: R * 3, c: COL.pink });
   Sfx.fireLaunch();
+  Ach.use('fire');
   if (G.tut) tutEvent('fire');
 }
 function rocketPush(x, y, rad, F, dt, p) {
@@ -2623,6 +2680,7 @@ function tutGo(i) {
   G.tut.step = i;
   G.tut.advancing = false; G.tut.retrying = false; G.tut.gesture = null; G.tut.calm = false; G.tut.label = false;
   const st = TUT_STEPS[i];
+  if (st.last) Ach.unlock('tuto', true);
   tutDock();
   document.querySelectorAll('.tut-glow').forEach((e) => e.classList.remove('tut-glow'));
   if (st.glow) $(st.glow).classList.add('tut-glow');
@@ -2737,6 +2795,7 @@ const Shake = (() => {
       peaks = []; cool = t + 1200;
       G.shake = Math.max(G.shake, .35);
       pressEqual();
+      if (G.fuse) Ach.unlock('shake');
     }
   }
   function listen() { if (!listening) { window.addEventListener('devicemotion', onMotion); listening = true; } }
@@ -2922,6 +2981,7 @@ function newGame() {
   G.running = true; G.over = false; G.won = false; G.endT = -1; G.hint = null;
   G.opsCount = 0; G.hintsUsed = 0; $('#opsVal').textContent = '0';
   G.history = []; G.winBrick = null;
+  Ach.newRun();
   $('#hintBox').hidden = true;
   G.spawnPending = false;
   const gv = $('#goalVal');
@@ -2933,16 +2993,163 @@ function newGame() {
 }
 function win() {
   G.won = true; G.over = true; G.endT = 1.4; G.fwT = 0;
+  Ach.win();
   $('#hintBox').hidden = true;
   G.texts.push({ text: 'OBJECTIF ATTEINT !', x: cx, y: Math.max(H * .2, 40), t: 0, life: 2.5, c: COL.gold, size: Math.min(46, S * .11), rise: 0 });
   Sfx.win();
 }
 function timeUp() {
   G.over = true; G.endT = .9;
+  Ach.lose();
   $('#hintBox').hidden = true;
   G.texts.push({ text: 'TEMPS ÉCOULÉ', x: cx, y: Math.max(H * .2, 40), t: 0, life: 2, c: COL.red, size: Math.min(46, S * .11), rise: 0, glitch: true });
   Sfx.timeUp();
 }
+/* ================= Succès ================= */
+// Tous visibles, avec ce qu'il faut faire. Ceux qui ont un « goal » se remplissent au fil des parties (stat = compteur).
+const ACH = [
+  { cat: 'DÉBUTS', items: [
+    { id: 'tuto', icon: '🎓', t: 'Diplômé', d: "Termine le tutoriel jusqu'au bout." },
+    { id: 'brick1', icon: '🧱', t: 'Première brique', d: 'Fabrique ta première brique.' },
+    { id: 'win1', icon: '🏆', t: 'Première victoire', d: 'Gagne une partie.' },
+    { id: 'win10', icon: '🥈', t: 'Habitué', d: 'Gagne 10 parties.', stat: 'wins', goal: 10 },
+    { id: 'win50', icon: '👑', t: 'Champion', d: 'Gagne 50 parties.', stat: 'wins', goal: 50 },
+  ] },
+  { cat: 'CALCUL', items: [
+    { id: 'oneop', icon: '🎯', t: 'Du premier coup', d: 'Gagne en une seule opération.' },
+    { id: 'clean', icon: '✨', t: 'Sans faute', d: 'Gagne sans aucune opération inutile.' },
+    { id: 'noerror', icon: '✅', t: 'Propre', d: 'Gagne sans aucune erreur (ni résultat négatif, ni division qui ne tombe pas juste).' },
+    { id: 'nohint', icon: '🧠', t: 'Autodidacte', d: 'Gagne 10 parties sans utiliser l’indice.', stat: 'nohint', goal: 10 },
+    { id: 'long', icon: '🪜', t: 'Tour de force', d: 'Gagne avec un calcul de 4 opérations utiles ou plus.' },
+    { id: 'recbeat', icon: '📈', t: 'Record battu', d: 'Gagne un objectif déjà réussi en moins d’opérations qu’avant.' },
+  ] },
+  { cat: 'OPÉRATIONS', items: [
+    { id: 'sub', icon: '➖', t: 'Soustracteur', d: 'Gagne avec une soustraction dans le calcul.' },
+    { id: 'mul', icon: '✖️', t: 'Multiplicateur', d: 'Gagne avec une multiplication dans le calcul.' },
+    { id: 'div', icon: '➗', t: 'Le partage', d: 'Gagne avec une division dans le calcul.' },
+    { id: 'all4', icon: '🧮', t: 'Les quatre opérations', d: 'Gagne avec +, −, × et ÷ dans le même calcul.' },
+    { id: 'swap', icon: '🔄', t: 'Demi-tour', d: 'Retourne l’opérateur pendant une partie, puis gagne-la.' },
+    { id: 'big100', icon: '🏗️', t: 'Grande brique', d: 'Fabrique une brique de 100 ou plus.' },
+    { id: 'big1000', icon: '🗻', t: 'Géante', d: 'Fabrique une brique de 1000 ou plus.' },
+    { id: 'zero', icon: '🕳️', t: 'Zéro pointé', d: 'Fabrique une brique 0 (elle explose !).' },
+  ] },
+  { cat: 'MÉCANIQUES', items: [
+    { id: 'onlyblow', icon: '🌬️', t: 'Que du vent', d: 'Gagne en n’utilisant que BLOW.' },
+    { id: 'onlyfire', icon: '🎆', t: 'Artificier', d: 'Gagne en n’utilisant que FIREWORK.' },
+    { id: 'onlytarget', icon: '🏹', t: 'Tireur d’élite', d: 'Gagne en n’utilisant que TARGET.' },
+    { id: 'onlyauto', icon: '🤖', t: 'Pilote automatique', d: 'Gagne en n’utilisant que AUTO.' },
+    { id: 'allmech', icon: '🃏', t: 'Touche-à-tout', d: 'Utilise BLOW, FIREWORK, TARGET et AUTO dans une même partie gagnée.' },
+    { id: 'double', icon: '🎳', t: 'Coup double', d: 'Accroche deux bulles avec un seul BLOW.' },
+    { id: 'boom', icon: '💥', t: 'Démolisseur', d: 'Fais exploser 20 bulles (à 0 ou à 10).', stat: 'boom', goal: 20 },
+    { id: 'shake', icon: '📳', t: 'Secoué', d: 'Lance un calcul en secouant le téléphone (option des paramètres).' },
+  ] },
+  { cat: 'VITESSE', items: [
+    { id: 'fast30', icon: '🏃', t: 'Rapide', d: 'Gagne en moins de 30 secondes.' },
+    { id: 'fast10', icon: '⚡', t: 'Éclair', d: 'Gagne en moins de 10 secondes.' },
+    { id: 'lastsec', icon: '⏱️', t: 'Juste à temps', d: 'Gagne avec moins de 3 secondes restantes au chrono.' },
+    { id: 'streak3', icon: '🔥', t: 'En série', d: 'Gagne 3 parties d’affilée, sans perdre au temps entre deux.' },
+  ] },
+  { cat: 'DÉFIS', items: [
+    { id: 'expert', icon: '🧗', t: 'Expert', d: 'Gagne en mode expert.' },
+    { id: 'range', icon: '💪', t: 'Costaud', d: 'Gagne avec un objectif entre 100 et 999.' },
+    { id: 'range10', icon: '🦾', t: 'Titan', d: 'Gagne 10 parties avec un objectif entre 100 et 999.', stat: 'big', goal: 10 },
+    { id: 'hardcore', icon: '🐉', t: 'Sans filet', d: 'Gagne en mode expert, objectif entre 100 et 999, sans indice.' },
+    { id: 'themes5', icon: '🌍', t: 'Globe-trotter', d: 'Gagne dans 5 ambiances différentes.', stat: 'themes', goal: 5 },
+    { id: 'themesAll', icon: '🎨', t: 'Collectionneur', d: 'Gagne dans toutes les ambiances.', stat: 'themes', goal: Object.keys(THEMES).length },
+    { id: 'halloween', icon: '🎃', t: 'Frissons', d: 'Gagne une partie dans l’ambiance Halloween.' },
+  ] },
+];
+const ACH_LIST = ACH.flatMap((c) => c.items);
+const Ach = (() => {
+  const got = store.get('ach', {}), st = store.get('achStats', {});
+  let fresh = [], queue = [], showing = false;
+  const playing = () => G.running && !G.tut;
+  function unlock(id, force) {
+    if (got[id] || (!force && !playing())) return;
+    const a = ACH_LIST.find((x) => x.id === id);
+    if (!a) return;
+    got[id] = new Date().toISOString().slice(0, 10); store.set('ach', got);
+    fresh.push(a); queue.push(a); nextToast(); syncCount();
+  }
+  const count = (k) => (k === 'themes' ? (st.themes || []).length : st[k] || 0);
+  function check(k) { for (const a of ACH_LIST) if (a.stat === k && count(k) >= a.goal) unlock(a.id); }
+  function stat(k, inc = 1) { if (!playing()) return; st[k] = (st[k] || 0) + inc; store.set('achStats', st); check(k); }
+  // bandeau « succès débloqué », un à la fois
+  function nextToast() {
+    if (showing || !queue.length) return;
+    // plusieurs d'un coup (une belle victoire) : un seul bandeau qui les regroupe
+    const list = queue.splice(0), a = list[0], box = $('#achToast');
+    showing = true;
+    box.innerHTML = list.length === 1
+      ? `<span class="ic">${a.icon}</span><span><span class="k">SUCCÈS DÉBLOQUÉ</span><span class="t">${a.t}</span></span>`
+      : `<span class="ic">${list.slice(0, 4).map((x) => x.icon).join('')}</span><span><span class="k">${list.length} SUCCÈS DÉBLOQUÉS</span><span class="t">${a.t} et ${list.length - 1} autre${list.length > 2 ? 's' : ''}</span></span>`;
+    box.hidden = false; box.classList.remove('out'); void box.offsetWidth;
+    Sfx.achieve();
+    setTimeout(() => { box.classList.add('out'); }, 2400);
+    setTimeout(() => { box.hidden = true; showing = false; nextToast(); }, 2800);
+  }
+  function syncCount() { const n = Object.keys(got).length; $('#achCount').textContent = `${n}/${ACH_LIST.length}`; }
+  function render() {
+    const n = Object.keys(got).length, fmt = (d) => new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    $('#achSum').innerHTML = `<span><b>${n}</b> / ${ACH_LIST.length} débloqués</span><span class="ach-bar"><i style="width:${(n / ACH_LIST.length) * 100}%"></i></span>`;
+    $('#achBody').innerHTML = ACH.map((c) => `<div class="ach-cat">${c.cat}</div><div class="ach-list">${c.items.map((a) => {
+      const on = !!got[a.id], p = a.goal ? Math.min(a.goal, count(a.stat)) : 0;
+      const right = on ? `✓ ${fmt(got[a.id])}` : a.goal ? `${p}/${a.goal}` : '';
+      const bar = a.goal && !on ? `<span class="ach-bar"><i style="width:${(p / a.goal) * 100}%"></i></span>` : '';
+      return `<div class="ach${on ? ' on' : ''}"><span class="ic">${a.icon}</span><span><span class="t">${a.t}</span><span class="d">${a.d}</span>${bar}</span><span class="st">${right}</span></div>`;
+    }).join('')}</div>`).join('');
+  }
+  return {
+    unlock, stat, render, syncCount,
+    newRun() { fresh = []; G.run = { used: new Set(), errors: 0, swaps: 0, blows: {} }; },
+    fresh: () => fresh.slice(),
+    use(m) { if (playing() && !G.over && G.run) G.run.used.add(m); },
+    brick(v) {
+      if (!playing()) return;
+      unlock('brick1');
+      if (v >= 100) unlock('big100');
+      if (v >= 1000) unlock('big1000');
+      if (v === 0) unlock('zero');
+    },
+    // le record d'avant est lu ici, avant que l'écran de fin ne l'enregistre
+    win() {
+      if (!playing() || !G.run) return;
+      const b = G.winBrick || {}, steps = (b.steps || []).length, f = b.formula || '', run = G.run;
+      const prev = store.get('best', {})[G.goal];
+      unlock('win1'); stat('wins');
+      if (G.opsCount === 1) unlock('oneop');
+      if (G.history.length === steps) unlock('clean');
+      if (!run.errors) unlock('noerror');
+      if (!G.hintsUsed) stat('nohint');
+      if (steps >= 4) unlock('long');
+      if (prev !== undefined && G.opsCount < prev) unlock('recbeat');
+      if (f.includes('−')) unlock('sub');
+      if (f.includes('×')) unlock('mul');
+      if (f.includes('÷')) unlock('div');
+      if (['+', '−', '×', '÷'].every((o) => f.includes(o))) unlock('all4');
+      if (run.swaps) unlock('swap');
+      if (run.used.size === 1) unlock({ blow: 'onlyblow', fire: 'onlyfire', target: 'onlytarget', auto: 'onlyauto' }[[...run.used][0]]);
+      if (run.used.size === 4) unlock('allmech');
+      if (G.elapsed < 30) unlock('fast30');
+      if (G.elapsed < 10) unlock('fast10');
+      if (G.timeLimit > 0 && G.timeLeft < 3) unlock('lastsec');
+      st.streak = (st.streak || 0) + 1; store.set('achStats', st);
+      if (st.streak >= 3) unlock('streak3');
+      if (!G.easy) unlock('expert');
+      if (G.goal >= 100) { unlock('range'); stat('big'); if (!G.easy && !G.hintsUsed) unlock('hardcore'); }
+      if (!(st.themes || []).includes(TH.id)) { st.themes = [...(st.themes || []), TH.id]; store.set('achStats', st); check('themes'); }
+      if (TH.id === 'halloween') unlock('halloween');
+    },
+    lose() { st.streak = 0; store.set('achStats', st); },
+    // deux bulles accrochées par le même souffle
+    blowAttach(it) {
+      if (!playing() || !G.run || !it.blowId || it.blowId !== G.blowId) return;
+      G.run.blows[it.blowId] = (G.run.blows[it.blowId] || 0) + 1;
+      if (G.run.blows[it.blowId] >= 2) unlock('double');
+    },
+  };
+})();
+
 /* ================= High scores (locaux) ================= */
 const HS_MAX = 10;
 const hsSort = (a, b) => a.ops - b.ops || a.time - b.time || a.hints - b.hints;
@@ -3067,6 +3274,8 @@ function showEnd() {
     $('#endTitle').textContent = 'TEMPS ÉCOULÉ';
     $('#endText').innerHTML = `L'objectif était <b>${G.goal}</b>. Tu as fait ${G.opsCount} opération${G.opsCount > 1 ? 's' : ''}. Retente ta chance.`;
   }
+  const fr = Ach.fresh();
+  if (fr.length) $('#endText').insertAdjacentHTML('beforeend', `<span class="ach-line">${fr.map((a) => `<span>${a.icon} ${a.t}</span>`).join('')}</span>`);
   renderCalc();
   $('#end').classList.toggle('win', G.won);
   $('#end').hidden = false;
@@ -4790,6 +4999,7 @@ onBtn('#setBtn', () => { openSheet('#settings'); Sfx.tick(); });
 onBtn('#rulesBtn', () => { showTab(false); openSheet('#info'); Sfx.tick(); });
 onBtn('#scoresBtn', () => { showTab(true); openSheet('#info'); Sfx.tick(); });
 onBtn('#resetBtn', () => { resetSettings(); Sfx.tick(); });
+onBtn('#achBtn', () => { Ach.render(); openSheet('#achSheet'); Sfx.tick(); });
 document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => { Sfx.init(); closeSheets(); Sfx.tick(); }));
 // toucher le fond autour du panneau le ferme
 document.querySelectorAll('.overlay.sub').forEach((o) => o.addEventListener('click', (e) => { if (e.target === o) closeSheets(); }));
@@ -4949,6 +5159,7 @@ resize();
 selectTime(G.timeLimit === 60 || G.timeLimit === 300 || G.timeLimit === 600 || G.timeLimit === 0 ? G.timeLimit : 60);
 syncMute();
 syncOptions();
+Ach.syncCount();
 $('#goalVal').textContent = G.goal;
 // bulles de démonstration derrière l'écran d'accueil
 for (let i = 0; i < 4; i++) spawnBall();
