@@ -338,6 +338,24 @@ kbd {
 .end-card p b { font-family: var(--f-display); color: var(--orange); }
 .end-card p .rec { color: var(--gold); font-weight: 700; }
 .end-card p .muted2 { color: var(--muted); font-size: 15px; }
+.calc {
+  width: 100%; max-width: 520px; padding: 12px 16px; border-radius: 8px; text-align: left;
+  border: 1px solid rgba(255, 157, 46, .4); background: rgba(10, 6, 2, .75);
+  display: grid; gap: 6px;
+}
+.calc .k { font-family: var(--f-display); font-size: 11px; letter-spacing: .18em; color: var(--muted); }
+.calc .main { font-family: var(--f-display); font-weight: 700; font-size: 20px; color: var(--ice); line-height: 1.35; overflow-wrap: anywhere; }
+.calc .main b { color: var(--orange); text-shadow: 0 0 8px rgba(255, 157, 46, .7); }
+.calc ol { margin: 0; padding-left: 22px; display: grid; gap: 2px; font-family: var(--f-display); font-size: 15px; color: #cfe7ef; font-variant-numeric: tabular-nums; }
+.calc ol li::marker { color: var(--orange); }
+.calc .other { font-size: 13px; color: var(--muted); }
+.calc .other .err { color: var(--danger); }
+@media (max-height: 520px) {
+  #end.win { background: radial-gradient(ellipse at 50% 40%, rgba(3, 10, 20, .75), rgba(3, 6, 13, .88) 80%); }
+  .end-card { gap: 10px; }
+  .end-card h2 { font-size: 38px; }
+  .calc .main { font-size: 17px; }
+}
 .end-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 6px; }
 
 @media (max-height: 520px) and (min-width: 720px) {
@@ -465,6 +483,7 @@ kbd {
     <div class="end-card" id="endCard">
       <h2 id="endTitle">FÉLICITATIONS&nbsp;!</h2>
       <p id="endText"></p>
+      <div id="endCalc" class="calc" hidden></div>
       <div class="end-actions">
         <button id="againBtn" class="big-btn">REJOUER <span class="keyhint">(R)</span></button>
         <button id="homeBtn" class="big-btn alt">MENU</button>
@@ -1045,8 +1064,23 @@ function pressEqual() {
   else if (op === '×') { result = all.reduce((s, x) => s * x, 1); expr = all.join(' × '); }
   else if (op === '−') { result = sum(A) - sum(B); expr = groupText(A) + ' − ' + groupText(B); }
   else { result = sum(A) / sum(B); expr = groupText(A) + ' ÷ ' + groupText(B); }
+  // formule complète et chemin : une brique garde la trace des opérations qui l'ont fabriquée
+  const form = (it) => (it.kind === 'brick' && it.formula ? '(' + it.formula + ')' : String(it.value));
+  const grpF = (list) => (list.length > 1 ? '(' + list.map(form).join(' + ') + ')' : form(list[0]));
+  let formula;
+  if (op === '+') formula = att.map(form).join(' + ');
+  else if (op === '×') formula = att.map(form).join(' × ');
+  else {
+    const LA = att.filter((i) => i.side === 'A'), LB = att.filter((i) => i.side === 'B');
+    formula = grpF(LA) + (op === '−' ? ' − ' : ' ÷ ') + grpF(LB);
+  }
+  const step = { expr, result };
+  const steps = [];
+  for (const it of att) if (it.kind === 'brick' && it.steps) steps.push(...it.steps);
+  steps.push(step);
+  G.history.push(step);
   for (const it of att) { it.state = 'fusing'; it.r0 = it.rad; }
-  G.fuse = { t: 0, items: att, result, expr };
+  G.fuse = { t: 0, items: att, result, expr, formula, steps };
   // score : chaque calcul lancé compte comme une opération, réussi ou non
   G.opsCount++;
   const ov = $('#opsVal');
@@ -1070,9 +1104,11 @@ function updateFuse(dt) {
   const exprY = cy + OPR + R * 2.4;
   if (v < 0) {
     addText(f.expr + ' = ' + fmtNum(v), cx, exprY, COL.red, Math.min(24, S * .06), 1.8, 10);
+    f.steps[f.steps.length - 1].err = 'pas un nombre positif';
     bigError('PAS UN NOMBRE POSITIF');
   } else if (!Number.isInteger(v)) {
     addText(f.expr + ' = ' + fmtNum(v), cx, exprY, COL.red, Math.min(24, S * .06), 1.8, 10);
+    f.steps[f.steps.length - 1].err = 'pas un nombre entier';
     bigError('PAS UN NOMBRE ENTIER');
   } else {
     addText(f.expr + ' = ' + v, cx, exprY, v === 0 ? COL.red : COL.orange, Math.min(24, S * .06), 1.8, 10);
@@ -1080,6 +1116,8 @@ function updateFuse(dt) {
     burstRing(cx, cy, COL.orange, 26, OPR * 2);
     const b = makeItem('brick', v, cx, cy, 0, 0);
     b.born = G.now; b.order = ++G.order;
+    b.formula = f.formula; b.steps = f.steps;
+    if (v === 0) f.steps[f.steps.length - 1].err = 'la brique 0 explose';
     if (v === 0) {
       // une brique 0 explose comme une bulle
       b.state = 'doomed'; b.doomT = .5;
@@ -1094,7 +1132,7 @@ function updateFuse(dt) {
     }
     G.items.push(b);
     Sfx.result();
-    if (v === G.goal) win();
+    if (v === G.goal) { G.winBrick = b; win(); }
   }
 }
 function bigError(msg) {
@@ -1405,6 +1443,7 @@ function newGame() {
   G.timeLeft = G.timeLimit; G.elapsed = 0; G.lastTick = -1;
   G.running = true; G.over = false; G.won = false; G.endT = -1; G.hint = null;
   G.opsCount = 0; G.hintsUsed = 0; $('#opsVal').textContent = '0';
+  G.history = []; G.winBrick = null;
   $('#hintBox').hidden = true;
   G.spawnPending = false;
   const gv = $('#goalVal');
@@ -1472,6 +1511,39 @@ function showTab(scores) {
   if (scores) renderScores();
 }
 
+// Résumé des calculs : la formule complète du nombre final, ses étapes, et les autres essais
+const stepText = (st) => `${st.expr} = ${fmtNum(st.result)}`;
+function renderCalc() {
+  const box = $('#endCalc');
+  box.textContent = '';
+  const add = (tag, cls, text) => { const el = document.createElement(tag); if (cls) el.className = cls; if (text !== undefined) el.textContent = text; box.appendChild(el); return el; };
+  const hist = G.history || [];
+  const b = G.won ? G.winBrick : null;
+  if (b && b.steps) {
+    add('div', 'k', 'TON CALCUL');
+    const main = add('div', 'main');
+    main.append(b.formula + ' = ');
+    const strong = document.createElement('b'); strong.textContent = String(b.value); main.appendChild(strong);
+    if (b.steps.length > 1) {
+      add('div', 'k', 'ÉTAPE PAR ÉTAPE');
+      const ol = add('ol');
+      for (const st of b.steps) { const li = document.createElement('li'); li.textContent = stepText(st); ol.appendChild(li); }
+    }
+  }
+  const others = hist.filter((st) => !(b && b.steps && b.steps.includes(st)));
+  if (others.length) {
+    const div = add('div', 'other');
+    div.append(b ? 'Autres essais : ' : 'Tes opérations : ');
+    others.forEach((st, i) => {
+      if (i) div.append(' · ');
+      const sp = document.createElement('span');
+      if (st.err) { sp.className = 'err'; sp.textContent = `${st.expr} (${st.err})`; } else sp.textContent = stepText(st);
+      div.appendChild(sp);
+    });
+  }
+  box.hidden = !box.childNodes.length;
+}
+
 function showEnd() {
   const card = $('#endCard');
   if (G.won) {
@@ -1498,6 +1570,7 @@ function showEnd() {
     $('#endTitle').textContent = 'TEMPS ÉCOULÉ';
     $('#endText').innerHTML = `L'objectif était <b>${G.goal}</b>. Tu as fait ${G.opsCount} opération${G.opsCount > 1 ? 's' : ''}. Retente ta chance.`;
   }
+  renderCalc();
   $('#end').classList.toggle('win', G.won);
   $('#end').hidden = false;
   $('#againBtn').focus({ preventScroll: true });
