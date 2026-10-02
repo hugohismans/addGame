@@ -250,6 +250,11 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 #tutBox .bt .r { display: flex; gap: 8px; align-items: center; }
 #tutBox button { height: 36px; padding: 0 14px; border-radius: 6px; font-family: var(--f-display); font-weight: 700; font-size: 13px; letter-spacing: .1em; }
 #tutBox .skip { background: none; border: 0; color: var(--muted); padding: 0 4px; }
+#tutBox.confirming > :not(.confirm) { display: none; }
+#tutBox .confirm { display: grid; gap: 8px; animation: hintIn .25s cubic-bezier(.3, 1.4, .5, 1); }
+#tutBox .confirm .tt span { color: var(--gold); }
+#tutBox .confirm .sub { font-size: .85em; color: var(--muted); }
+#tutBox .confirm .skip { text-decoration: underline; text-underline-offset: 3px; }
 #tutBox .sec { background: transparent; border: 1px solid var(--cyan); color: var(--cyan); }
 #tutBox .pri { background: var(--cyan); border: 0; color: var(--void); box-shadow: 0 0 12px rgba(62, 240, 255, .6); }
 #tutBox.docked {
@@ -2751,6 +2756,7 @@ function tutGo(i) {
   document.querySelectorAll('.tut-glow').forEach((e) => e.classList.remove('tut-glow'));
   if (st.glow) $(st.glow).classList.add('tut-glow');
   const box = $('#tutBox');
+  box.classList.remove('confirming');
   const dots = TUT_STEPS.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('');
   box.innerHTML = `<div class="tt"><span>TUTO · ${st.title}</span><span class="dots">${dots}</span></div>
     <div class="tx">${st.text()}</div>
@@ -2763,9 +2769,25 @@ function tutGo(i) {
   G.tut.safeT = box.classList.contains('docked') ? 0 : Math.max(0, br.bottom - fr.top + 6);
   st.setup();
   const on = (id, fn) => { const b = document.getElementById(id); if (b) b.addEventListener('click', (e) => { Sfx.init(); Sfx.tick(); e.currentTarget.blur(); fn(); }); };
-  on('tutSkip', () => endTutorial());
+  on('tutSkip', () => tutConfirmSkip(i));
   on('tutReplay', () => tutGo(i));
   on('tutNext', () => (st.last ? endTutorial() : tutGo(i + 1)));
+}
+// Beaucoup touchent « Passer » au lieu de « Suivant » : on demande confirmation dans la bulle elle-même,
+// sans toucher à l'étape en cours (ses bulles et ses écouteurs restent en place derrière).
+function tutConfirmSkip(i) {
+  const box = $('#tutBox'), left = TUT_STEPS.length - 1 - i;
+  if (box.classList.contains('confirming')) return;
+  const c = document.createElement('div');
+  c.className = 'confirm';
+  c.innerHTML = `<div class="tt"><span>QUITTER LE TUTO ?</span></div>
+    <div class="tx">Tu es sûr ? ${left > 1 ? `Il ne reste que <b class="g">${left} étapes</b>.` : 'C’est presque fini !'} Il est conseillé de le finir pour bien comprendre le jeu.<br><span class="sub">Tu pourras le relancer avec le bouton TUTORIEL de l’accueil.</span></div>
+    <div class="bt"><button class="skip" id="tutQuit">Quitter quand même</button><span class="r"><button class="pri" id="tutStay">CONTINUER</button></span></div>`;
+  box.append(c); box.classList.add('confirming');
+  c.querySelector('#tutStay').focus({ preventScroll: true });
+  const close = () => { c.remove(); box.classList.remove('confirming'); };
+  c.querySelector('#tutStay').addEventListener('click', (e) => { Sfx.init(); Sfx.tick(); e.currentTarget.blur(); close(); });
+  c.querySelector('#tutQuit').addEventListener('click', () => { Sfx.init(); Sfx.tick(); close(); endTutorial(); });
 }
 function tutEvent(kind, data) { const st = tutStep(); if (st && st.on) st.on(kind, data); }
 function tutCheck() { const st = tutStep(); if (st && st.check) st.check(); }
@@ -2775,7 +2797,7 @@ function tutCleanup() {
   G.easy = G.tut.easy; G.ops = G.tut.ops;
   G.tut = null;
   G.hint = null;
-  $('#tutBox').hidden = true; $('#opsChip').hidden = false;
+  $('#tutBox').hidden = true; $('#tutBox').classList.remove('confirming'); $('#opsChip').hidden = false;
   $('#eqBtn').classList.remove('tut-pulse');
   document.querySelectorAll('.tut-glow').forEach((e) => e.classList.remove('tut-glow'));
   store.set('tutoDone', true);
