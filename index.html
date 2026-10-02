@@ -851,6 +851,26 @@ html[data-da="halloween"] .demo .bub { background: radial-gradient(circle at 40%
 html[data-da="halloween"] .demo .brk { background: linear-gradient(#9aa0ab, #575b66); color: #23252b; border: 0; border-radius: 50% 50% 4px 4px / 40% 40% 4px 4px; }
 html[data-da="halloween"] .big-btn { background: #ff8c1e; color: #1a0d2e; box-shadow: 0 0 20px rgba(255, 140, 30, .6); }
 
+/* ---------- Présentation de l'objectif : grande carte au centre, puis le nombre file dans la case du bas ---------- */
+#goalFly {
+  position: fixed; z-index: 9; left: 50%; top: 42%; transform: translate(-50%, -50%);
+  display: grid; justify-items: center; gap: 4px; min-width: 210px; max-width: calc(100% - 32px); padding: 14px 30px 16px; text-align: center;
+  border: 3px solid var(--orange); border-radius: 18px; background: color-mix(in srgb, var(--void) 90%, transparent);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--orange) 45%, transparent); pointer-events: none;
+  transition: background-color .3s, border-color .3s, box-shadow .3s;
+}
+#goalFly .k { font-family: var(--f-display); font-size: 14px; letter-spacing: .28em; color: var(--ice); transition: opacity .2s; }
+#goalFly b { font-family: var(--f-display); font-weight: 900; font-size: clamp(72px, 24vmin, 150px); line-height: 1; color: var(--orange); font-variant-numeric: tabular-nums; text-shadow: 0 0 18px color-mix(in srgb, var(--orange) 70%, transparent); }
+#goalFly .hint { font-size: 14px; line-height: 1.3; color: var(--muted); max-width: 24ch; transition: opacity .2s; }
+#goalFly .bravo { font-family: var(--f-display); font-weight: 900; font-size: clamp(48px, 15vmin, 96px); line-height: 1; color: var(--gold); text-shadow: 0 0 18px color-mix(in srgb, var(--gold) 70%, transparent); }
+#goalFly .bravo i { font-style: normal; margin-left: .12em; }
+#goalFly.is-bravo { border-color: var(--gold); box-shadow: 0 0 30px color-mix(in srgb, var(--gold) 45%, transparent); }
+#goalFly.flying { background-color: transparent; border-color: transparent; box-shadow: none; }
+#goalFly.flying :is(.k, .hint) { opacity: 0; }
+html[data-da="pixel"] #goalFly b { font-family: var(--f-px); font-size: clamp(48px, 15vmin, 96px); }
+html[data-da="craie"] #goalFly { border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px; }
+html[data-da="craie"] #goalFly .hint { font-family: var(--f-ui); font-size: 16px; }
+
 /* ---------- Mode de jeu (accueil) et Enchaînement ---------- */
 #chainChip b { color: var(--gold); }
 .mode-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
@@ -902,6 +922,8 @@ html[data-da="craie"] .mode-pick b { font-family: var(--f-ui); font-size: 17px; 
 #achToast.out { transition: opacity .35s, transform .35s; opacity: 0; transform: translate(-50%, -20px); }
 #achToast .ic { font-size: 28px; white-space: nowrap; letter-spacing: -.1em; }
 #achToast .k, #achToast .t { white-space: nowrap; }
+#achToast > span:last-child { min-width: 0; }
+#achToast .t { overflow: hidden; text-overflow: ellipsis; }
 #achToast .k { display: block; font-family: var(--f-display); font-size: 10px; letter-spacing: .16em; color: var(--gold); }
 #achToast .t { display: block; font-family: var(--f-display); font-size: 16px; letter-spacing: .04em; }
 @keyframes achIn { from { transform: translate(-50%, -30px) scale(.9); opacity: 0; } }
@@ -1006,6 +1028,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
 </head>
 <body>
 <div id="achToast" role="status" hidden></div>
+<div id="goalFly" aria-live="polite" hidden></div>
 <div id="app">
   <div id="field">
     <canvas id="cv" aria-label="Terrain de jeu"></canvas>
@@ -2700,6 +2723,7 @@ function startTutorial() {
   G.easy = true;                         // le tutoriel montre toutes les mécaniques, même en mode expert
   G.ops = [true, true, true, true];      // et toutes les opérations, même désactivées dans les paramètres
   G.goal = 12; G.op = 0; G.opPrev = 0;
+  hideReveal();
   $('#goalVal').textContent = '12';
   $('#easyChip').hidden = true; $('#assistChip').hidden = true; $('#opsChip').hidden = true; $('#chainChip').hidden = true;
   G.chain = null;   // le tutoriel est toujours une partie classique
@@ -3035,12 +3059,70 @@ function newGame() {
   $('#chainChip').hidden = !G.chain; $('#chainVal').textContent = '0';
   $('#hintBox').hidden = true;
   G.spawnPending = false;
-  const gv = $('#goalVal');
-  gv.textContent = G.goal; gv.classList.remove('pop'); void gv.offsetWidth; gv.classList.add('pop');
+  $('#goalVal').textContent = G.goal;
   $('#home').hidden = true; $('#end').hidden = true; closeSheets();
   for (let i = 0; i < 4; i++) spawnBall();
-  G.texts.push({ text: 'OBJECTIF ' + G.goal, x: cx, y: H * .22, t: 0, life: 1.8, c: COL.orange, size: Math.min(44, S * .1), rise: 0 });
+  // le tutoriel présente l'objectif à sa façon : on attend de savoir si c'en est un
+  setTimeout(() => { if (G.running && !G.tut) revealGoal(); }, 0);
   updateTimer(true);
+}
+// Présentation de l'objectif : une grande carte au milieu du terrain (« c'est ce nombre-là qu'il faut fabriquer »),
+// puis le nombre file se ranger dans la case du bas. En Enchaînement, la carte dit d'abord « BRAVO ! ».
+let revealId = 0;
+function hideReveal() {
+  revealId++;
+  const card = $('#goalFly'), gv = $('#goalVal');
+  card.getAnimations().forEach((a) => a.cancel());
+  card.hidden = true; card.className = ''; gv.style.visibility = '';
+}
+function revealGoal(bravo) {
+  hideReveal();
+  const id = revealId, card = $('#goalFly'), gv = $('#goalVal'), fr = field.getBoundingClientRect();
+  gv.textContent = G.goal;
+  if (reduceMotion) { gv.classList.remove('pop'); void gv.offsetWidth; gv.classList.add('pop'); return; }
+  const goalCard = (label) => { card.className = ''; card.innerHTML = `<span class="k">${label}</span><b>${G.goal}</b><span class="hint">Fabrique une brique qui vaut ce nombre</span>`; };
+  card.style.left = (fr.left + fr.width / 2) + 'px'; card.style.top = (fr.top + fr.height * (fr.height < 500 ? .5 : .42)) + 'px';
+  gv.style.visibility = 'hidden';
+  card.hidden = false;
+  const popIn = () => card.animate([
+    { transform: 'translate(-50%, -50%) scale(.3)', opacity: 0 },
+    { transform: 'translate(-50%, -50%) scale(1.08)', opacity: 1, offset: .65 },
+    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 }], { duration: 450, easing: 'ease-out' });
+  if (bravo) {
+    card.className = 'is-bravo';
+    card.innerHTML = `<span class="bravo">BRAVO<i>!</i></span><span class="k">${bravo} OBJECTIF${bravo > 1 ? 'S' : ''}</span>`;
+    popIn();
+    setTimeout(() => {
+      if (id !== revealId) return;
+      goalCard('OBJECTIF SUIVANT');
+      card.animate([{ transform: 'translate(-50%, -50%) scaleY(0)' }, { transform: 'translate(-50%, -50%) scaleY(1)' }], { duration: 260, easing: 'ease-out' });
+      setTimeout(() => flyGoal(id), 1100);
+    }, 900);
+  } else {
+    goalCard('OBJECTIF');
+    popIn();
+    setTimeout(() => flyGoal(id), 1600);
+  }
+}
+function flyGoal(id) {
+  if (id !== revealId) return;
+  const card = $('#goalFly'), gv = $('#goalVal'), num = card.querySelector('b');
+  if (!num) return;
+  const nr = num.getBoundingClientRect(), gr = gv.getBoundingClientRect(), cr = card.getBoundingClientRect();
+  const dx = gr.left + gr.width / 2 - (nr.left + nr.width / 2), dy = gr.top + gr.height / 2 - (nr.top + nr.height / 2);
+  const sc = Math.max(.12, (gr.height * .6) / nr.height);   // le chiffre arrive à la taille de celui de la case
+  card.style.transformOrigin = `${nr.left + nr.width / 2 - cr.left}px ${nr.top + nr.height / 2 - cr.top}px`;
+  card.classList.add('flying');
+  const a = card.animate([
+    { transform: 'translate(-50%, -50%) scale(1)' },
+    { transform: `translate(calc(-50% + ${dx * .15}px), calc(-50% + ${dy * .15 - 20}px)) scale(${(1 + sc) / 2})`, offset: .35 },
+    { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(${sc})` }], { duration: 650, easing: 'cubic-bezier(.5, 0, .3, 1)', fill: 'forwards' });
+  a.onfinish = () => {
+    if (id !== revealId) return;
+    hideReveal();
+    gv.classList.remove('pop'); void gv.offsetWidth; gv.classList.add('pop');
+    Sfx.attach();
+  };
 }
 function win() {
   if (G.chain) { chainGoal(); return; }
@@ -3059,14 +3141,13 @@ function chainGoal() {
   const v = $('#chainVal'); v.textContent = c.count; v.classList.remove('pop'); void v.offsetWidth; v.classList.add('pop');
   if (b && !b.dead) { burst(b.x, b.y, COL.gold, 30, BASE * 4, .7, 3); b.dead = true; }
   fireworkShow(); Sfx.win();
-  G.texts.push({ text: '+1 !', x: cx, y: Math.max(H * .2, 40), t: 0, life: 1.2, c: COL.gold, size: Math.min(46, S * .11), rise: 20 });
   G.goal = pickGoal(G.goal); G.hint = null; $('#hintBox').hidden = true;
-  const gv = $('#goalVal'); gv.textContent = G.goal; gv.classList.remove('pop'); void gv.offsetWidth; gv.classList.add('pop');
-  setTimeout(() => { if (G.running && !G.over) G.texts.push({ text: 'OBJECTIF ' + G.goal, x: cx, y: H * .22, t: 0, life: 1.6, c: COL.orange, size: Math.min(44, S * .1), rise: 0 }); }, 700);
+  revealGoal(c.count);
   c.ops0 = G.opsCount; c.t0 = G.elapsed; c.h0 = G.history.length; G.winBrick = null;
 }
 function timeUp() {
   G.over = true; G.endT = .9;
+  hideReveal();
   Ach.lose();
   $('#hintBox').hidden = true;
   // en Enchaînement, la fin du chrono n'est pas un échec si des objectifs ont été atteints
@@ -3153,7 +3234,7 @@ const Ach = (() => {
     showing = true;
     box.innerHTML = list.length === 1
       ? `<span class="ic">${a.icon}</span><span><span class="k">SUCCÈS DÉBLOQUÉ</span><span class="t">${a.t}</span></span>`
-      : `<span class="ic">${list.slice(0, 4).map((x) => x.icon).join('')}</span><span><span class="k">${list.length} SUCCÈS DÉBLOQUÉS</span><span class="t">${a.t} et ${list.length - 1} autre${list.length > 2 ? 's' : ''}</span></span>`;
+      : `<span class="ic">${list.slice(0, 3).map((x) => x.icon).join('')}</span><span><span class="k">${list.length} SUCCÈS DÉBLOQUÉS</span><span class="t">${a.t} et ${list.length - 1} autre${list.length > 2 ? 's' : ''}</span></span>`;
     box.hidden = false; box.classList.remove('out'); void box.offsetWidth;
     Sfx.achieve();
     setTimeout(() => { box.classList.add('out'); }, 2400);
@@ -3439,6 +3520,7 @@ function playerName() {
   return v || 'Joueur';
 }
 function goHome() {
+  hideReveal();
   if (G.tut) tutCleanup();
   G.running = false; G.over = false; G.won = false; G.fuse = null;
   for (const it of G.items) if (it.state === 'attached' || it.state === 'fusing') { it.state = 'free'; const a = rand(0, TAU); it.vx = Math.cos(a) * BASE; it.vy = Math.sin(a) * BASE; }
