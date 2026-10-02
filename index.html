@@ -287,16 +287,16 @@ html[data-da="craie"] #tutBox.docked .tx { font-size: 15px; }
 #hintBtn { color: var(--gold); border-color: rgba(255, 224, 102, .4); }
 #installBox { font-size: 13px; color: var(--muted); max-width: 40ch; text-align: center; }
 #installBtn { height: 40px; padding: 0 16px; font-size: 14px; margin-right: 10px; }
-#opsChip {
+:is(#opsChip, #chainChip) {
   margin-left: 8px; align-self: center; display: flex; align-items: center; gap: 6px;
   font-family: var(--f-display); font-weight: 700; font-size: 11px; letter-spacing: .14em;
   color: var(--muted); border: 1px solid rgba(255, 157, 46, .45); border-radius: 4px; padding: 3px 8px;
   background: rgba(3, 10, 18, .6);
 }
-#opsChip b { font-size: 16px; letter-spacing: 0; color: var(--orange); text-shadow: 0 0 8px rgba(255, 157, 46, .8); font-variant-numeric: tabular-nums; }
-#opsChip b.pop { animation: goalpop .5s cubic-bezier(.3, 1.6, .5, 1); }
-#opsChip .s { display: none; }
-@media (max-width: 560px) { #opsChip .l { display: none; } #opsChip .s { display: inline; } }
+:is(#opsChip, #chainChip) b { font-size: 16px; letter-spacing: 0; color: var(--orange); text-shadow: 0 0 8px rgba(255, 157, 46, .8); font-variant-numeric: tabular-nums; }
+:is(#opsChip, #chainChip) b.pop { animation: goalpop .5s cubic-bezier(.3, 1.6, .5, 1); }
+:is(#opsChip, #chainChip) .s { display: none; }
+@media (max-width: 560px) { :is(#opsChip, #chainChip) .l { display: none; } :is(#opsChip, #chainChip) .s { display: inline; } }
 #assistChip { margin-left: 8px; align-self: center; font-family: var(--f-display); font-weight: 700; font-size: 11px; letter-spacing: .14em; color: var(--green); border: 1px solid rgba(120, 255, 170, .5); border-radius: 4px; padding: 3px 7px; background: rgba(3, 10, 18, .6); }
 #assistBtn[aria-checked="true"] { color: var(--green); border-color: rgba(120, 255, 170, .5); }
 #assistBtn[aria-checked="true"] .knob { border-color: var(--green); background: rgba(120, 255, 170, .12); }
@@ -595,10 +595,10 @@ html[data-da="craie"] .da-grid button[aria-checked="true"] { border-color: var(-
 /* ================= Ambiances ajoutées : base commune ================= */
 html[data-skin] body, html[data-skin] #app { background: var(--void); }
 html[data-skin][data-flat] * { text-shadow: none !important; box-shadow: none !important; }
-html[data-skin] :is(#timer, #opsChip, #easyChip, #assistChip, .icon-btn, .set-btn, .mode, .times button, .optop, .switch, #nameInput, .ghost, .da-grid button, #clearScores) {
+html[data-skin] :is(#timer, :is(#opsChip, #chainChip), #easyChip, #assistChip, .icon-btn, .set-btn, .mode, .times button, .optop, .switch, #nameInput, .ghost, .da-grid button, #clearScores) {
   background: var(--chip); border-color: var(--line);
 }
-html[data-skin] :is(#eqBtn, .goal b, .icon-btn, .times button, .optop, .switch, .big-btn, #timer, #opsChip, #easyChip, #assistChip, #nameInput, .ghost, .da-grid button, .calc, #tutBox, #hintBox, #clearScores) { border-radius: var(--rad); }
+html[data-skin] :is(#eqBtn, .goal b, .icon-btn, .times button, .optop, .switch, .big-btn, #timer, :is(#opsChip, #chainChip), #easyChip, #assistChip, #nameInput, .ghost, .da-grid button, .calc, #tutBox, #hintBox, #clearScores) { border-radius: var(--rad); }
 html[data-skin] :is(.sheet, .rules) { border-radius: var(--rad-lg, var(--rad)); }
 html[data-skin] :is(.mode, .set-btn) { border-radius: var(--rad-pill, 22px); }
 html[data-skin] .mode .thumb { border-radius: var(--rad-pill, 19px); background: color-mix(in srgb, var(--cyan) 20%, transparent); }
@@ -658,11 +658,11 @@ html[data-da="pixel"] {
   --f-px: "Press Start 2P", ui-monospace, monospace;
 }
 /* Press Start 2P pour les chiffres et le logo ; Silkscreen pour le reste (ses capitales accentuées sont lisibles) */
-html[data-da="pixel"] :is(.logo, .goal b, #eqBtn, #timer, #opsChip b, .demo, .hs td.g, .hs td.o) { font-family: var(--f-px); }
+html[data-da="pixel"] :is(.logo, .goal b, #eqBtn, #timer, :is(#opsChip, #chainChip) b, .demo, .hs td.g, .hs td.o) { font-family: var(--f-px); }
 html[data-da="pixel"] :is(.big-btn, .label, .links button, .set-btn .t, .tabs button, .sheet-head h2, .switch, .mode .opt, .times button, .optop.mech, .da-grid button, .end-card h2, #tutBox button, #tutBox .tt, .calc .k) { font-weight: 700; }
 html[data-da="pixel"] * { letter-spacing: 0 !important; }
 html[data-da="pixel"] #field::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(180deg, transparent 0 2px, rgba(0, 0, 0, .3) 2px 3px); }
-html[data-da="pixel"] :is(.icon-btn, .times button, .optop, .switch, #nameInput, .ghost, .da-grid button, #timer, #opsChip, .goal b, #eqBtn, #opBtn, #swapBtn, .mode, .set-btn, .big-btn.alt) { border-width: 3px; border-style: solid; }
+html[data-da="pixel"] :is(.icon-btn, .times button, .optop, .switch, #nameInput, .ghost, .da-grid button, #timer, :is(#opsChip, #chainChip), .goal b, #eqBtn, #opBtn, #swapBtn, .mode, .set-btn, .big-btn.alt) { border-width: 3px; border-style: solid; }
 html[data-da="pixel"] :is(#opBtn, #swapBtn) { border-radius: 0; }
 html[data-da="pixel"] .logo { font-size: clamp(30px, 9.5vw, 64px); line-height: 1.2; text-shadow: 4px 4px 0 #2b2bff !important; }
 html[data-da="pixel"] .logo span { text-shadow: 4px 4px 0 #a03800 !important; }
@@ -692,7 +692,7 @@ html[data-da="pixel"] .hs .tag { font-size: 13px; }
 html[data-da="pixel"] .hs th { font-size: 11px; font-family: var(--f-display); }
 html[data-da="pixel"] .hs td.r, html[data-da="pixel"] .hs td.g, html[data-da="pixel"] .hs td.o { font-size: 11px; }
 html[data-da="pixel"] #timer { font-size: 13px; padding: 7px 8px; }
-html[data-da="pixel"] #opsChip { font-size: 11px; } html[data-da="pixel"] #opsChip b { font-size: 12px; }
+html[data-da="pixel"] :is(#opsChip, #chainChip) { font-size: 11px; } html[data-da="pixel"] :is(#opsChip, #chainChip) b { font-size: 12px; }
 html[data-da="pixel"] :is(#easyChip, #assistChip) { font-size: 11px; }
 html[data-da="pixel"] .mode .opt { font-size: 11px; }
 html[data-da="pixel"] .goal .lbl { font-size: 11px; font-family: var(--f-display); }
@@ -757,7 +757,7 @@ html[data-da="paper"] {
   --scrim-sub: rgba(160, 128, 85, .7); --scrim-win: radial-gradient(ellipse at 50% 50%, rgba(214, 184, 140, .85), rgba(207, 174, 127, .3) 70%);
   --f-display: "Baloo 2", "Trebuchet MS", sans-serif; --f-ui: "Baloo 2", "Trebuchet MS", sans-serif;
 }
-html[data-da="paper"] :is(.sheet, .rules, #tutBox, #hintBox, .set-btn, .big-btn, .goal b, #eqBtn, #opBtn, #swapBtn, .icon-btn, #timer, #opsChip, .calc) { filter: drop-shadow(2px 3px 0 rgba(70, 40, 10, .28)); }
+html[data-da="paper"] :is(.sheet, .rules, #tutBox, #hintBox, .set-btn, .big-btn, .goal b, #eqBtn, #opBtn, #swapBtn, .icon-btn, #timer, :is(#opsChip, #chainChip), .calc) { filter: drop-shadow(2px 3px 0 rgba(70, 40, 10, .28)); }
 html[data-da="paper"] .sheet { transform: rotate(-.4deg); }
 html[data-da="paper"] .logo { color: #fbf7ee; letter-spacing: .02em; font-weight: 800; filter: drop-shadow(3px 4px 0 rgba(70, 40, 10, .35)); }
 html[data-da="paper"] .logo span { color: #e2483c; }
@@ -777,7 +777,7 @@ html[data-da="bauhaus"] {
   --scrim-sub: rgba(242, 234, 215, .85); --scrim-win: radial-gradient(ellipse at 50% 50%, rgba(242, 234, 215, .85), rgba(242, 234, 215, .3) 70%);
   --f-display: "Jost", "Futura", "Century Gothic", sans-serif; --f-ui: "Jost", "Futura", "Century Gothic", sans-serif;
 }
-html[data-da="bauhaus"] :is(.icon-btn, .times button, .optop, .switch, #nameInput, .ghost, .da-grid button, #timer, #opsChip, .goal b, #eqBtn, .mode, .set-btn, .big-btn.alt) { border-width: 2px; border-color: #141414; }
+html[data-da="bauhaus"] :is(.icon-btn, .times button, .optop, .switch, #nameInput, .ghost, .da-grid button, #timer, :is(#opsChip, #chainChip), .goal b, #eqBtn, .mode, .set-btn, .big-btn.alt) { border-width: 2px; border-color: #141414; }
 html[data-da="bauhaus"] .logo { color: #141414; font-weight: 900; letter-spacing: .06em; }
 html[data-da="bauhaus"] .logo span { color: #d63426; }
 html[data-da="bauhaus"] .big-btn { background: #141414; color: #f6f0e2; }
@@ -851,6 +851,31 @@ html[data-da="halloween"] .demo .bub { background: radial-gradient(circle at 40%
 html[data-da="halloween"] .demo .brk { background: linear-gradient(#9aa0ab, #575b66); color: #23252b; border: 0; border-radius: 50% 50% 4px 4px / 40% 40% 4px 4px; }
 html[data-da="halloween"] .big-btn { background: #ff8c1e; color: #1a0d2e; box-shadow: 0 0 20px rgba(255, 140, 30, .6); }
 
+/* ---------- Mode de jeu (accueil) et Enchaînement ---------- */
+#chainChip b { color: var(--gold); }
+.mode-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+.mode-pick button {
+  display: grid; gap: 3px; justify-items: center; align-content: center; text-align: center; padding: 9px 8px;
+  border: 1px solid var(--line); border-radius: 10px; background: rgba(127, 127, 127, .07); color: var(--muted);
+}
+.mode-pick b { font-family: var(--f-display); font-size: 13px; letter-spacing: .12em; }
+.mode-pick span { font-size: 11.5px; line-height: 1.25; }
+.mode-pick button[aria-checked="true"] { border-color: var(--cyan); color: var(--ice); background: color-mix(in srgb, var(--cyan) 12%, transparent); }
+.mode-pick button[aria-checked="true"] b { color: var(--cyan); }
+.hs-tabs { display: flex; gap: 6px; margin: 0 0 10px; flex-wrap: wrap; }
+.hs-tabs button { height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid var(--line); background: transparent; color: var(--muted); font-family: var(--f-display); font-size: 11px; letter-spacing: .1em; }
+.hs-tabs button[aria-selected="true"] { border-color: var(--cyan); color: var(--cyan); background: color-mix(in srgb, var(--cyan) 12%, transparent); }
+.hs-tabs.sub button { height: 28px; font-size: 10.5px; }
+.hs-tabs.sub button[aria-selected="true"] { border-color: var(--gold); color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.times button:disabled { opacity: .3; cursor: not-allowed; }
+.chain-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.chain-list span { font-family: var(--f-display); font-size: 13px; padding: 2px 9px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--orange) 50%, transparent); color: var(--ice); }
+.chain-list span b { color: var(--orange); }
+@media (max-height: 520px) { .hero .demo { display: none; } .mode-pick button { padding: 5px 8px; } .mode-pick span { font-size: 10.5px; } }
+html[data-da="pixel"] .mode-pick span { font-size: 15px; } html[data-da="pixel"] .mode-pick b { font-size: 11px; font-weight: 700; }
+html[data-da="craie"] .mode-pick button { border: 2px solid rgba(246, 246, 238, .35); background: transparent; }
+html[data-da="craie"] .mode-pick b { font-family: var(--f-ui); font-size: 17px; letter-spacing: .04em; } html[data-da="craie"] .mode-pick span { font-family: var(--f-ui); font-size: 14px; }
+
 /* ---------- Succès ---------- */
 .links .cnt { font-size: .85em; opacity: .7; letter-spacing: 0; }
 .ach-sum { display: grid; gap: 6px; margin: 4px 0 2px; font-size: 13px; color: var(--muted); }
@@ -906,7 +931,7 @@ html[data-da="craie"] #bar {
 }
 /* contours « tracés à la main » */
 html[data-da="craie"] :is(#opBtn, #swapBtn, #eqBtn, .mode, .mode .thumb, .goal b, .icon-btn, .times button, .optop, .switch,
-  .big-btn, #timer, #opsChip, #easyChip, #assistChip, #nameInput, .da-switch, #clearScores) {
+  .big-btn, #timer, :is(#opsChip, #chainChip), #easyChip, #assistChip, #nameInput, .da-switch, #clearScores) {
   border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px;
 }
 html[data-da="craie"] :is(#opBtn, #swapBtn) { background: transparent; border: 2.5px solid var(--ice); }
@@ -920,10 +945,10 @@ html[data-da="craie"] .mode[data-mode="target"] .thumb { border-color: var(--gol
 html[data-da="craie"] .mode[data-mode="auto"] .thumb { border-color: var(--green); background: rgba(168, 226, 160, .1); }
 html[data-da="craie"] .mode .opt { font-family: var(--f-ui); font-size: 14px; letter-spacing: 0; }
 @media (max-width: 460px) { html[data-da="craie"] .mode .opt { font-size: 12px; } }
-html[data-da="craie"] :is(#timer, #opsChip, #easyChip, #assistChip, .icon-btn) { background: rgba(0, 0, 0, .18); }
+html[data-da="craie"] :is(#timer, :is(#opsChip, #chainChip), #easyChip, #assistChip, .icon-btn) { background: rgba(0, 0, 0, .18); }
 html[data-da="craie"] #timer { color: var(--ice); font-family: var(--f-ui); font-size: 22px; padding: 2px 12px; }
 html[data-da="craie"] #timer.hot { color: var(--danger); }
-html[data-da="craie"] #opsChip b { font-family: var(--f-ui); font-size: 20px; }
+html[data-da="craie"] :is(#opsChip, #chainChip) b { font-family: var(--f-ui); font-size: 20px; }
 html[data-da="craie"] .overlay { background: radial-gradient(ellipse at 50% 40%, rgba(44, 76, 60, .93), rgba(26, 48, 38, .98) 75%); }
 html[data-da="craie"] #end.win { background: radial-gradient(ellipse at 50% 50%, rgba(36, 66, 52, .85), rgba(26, 48, 38, .55) 75%); }
 html[data-da="craie"] .big-btn { font-family: var(--f-display); letter-spacing: .08em; }
@@ -987,7 +1012,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
     <div id="hintBox" role="status" hidden></div>
     <div id="tutBox" role="dialog" aria-label="Tutoriel" hidden></div>
     <div id="hudTop">
-      <div style="display:flex"><div id="timer" aria-live="off">1:00</div><div id="opsChip" title="Nombre d'opérations faites"><span class="l">OPÉRATIONS</span><span class="s">OPS</span> <b id="opsVal">0</b></div><div id="easyChip" hidden>EXPERT</div><div id="assistChip" class="chipx" hidden>AIDE +</div></div>
+      <div style="display:flex"><div id="timer" aria-live="off">1:00</div><div id="opsChip" title="Nombre d'opérations faites"><span class="l">OPÉRATIONS</span><span class="s">OPS</span> <b id="opsVal">0</b></div><div id="chainChip" title="Objectifs atteints" hidden><span class="l">OBJECTIFS</span><span class="s">OBJ.</span> <b id="chainVal">0</b></div><div id="easyChip" hidden>EXPERT</div><div id="assistChip" class="chipx" hidden>AIDE +</div></div>
       <div class="hud-right">
         <button id="hintBtn" class="icon-btn" aria-label="Indice, coûte 10 secondes (touche H)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>
@@ -1030,6 +1055,10 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
       <h1 class="logo" aria-label="Operand">OPE<span>RAND</span></h1>
       <div class="demo" aria-hidden="true"><i class="bub">7</i><em>+</em><i class="bub">4</i><em>=</em><i class="brk">11</i></div>
       <p class="tag">Fais rebondir les bulles, fabrique l'objectif.</p>
+      <div class="mode-pick" role="radiogroup" aria-label="Mode de jeu">
+        <button id="modeClassic" role="radio" data-chain="0" aria-checked="true"><b>CLASSIQUE</b><span>Un objectif, le plus vite possible</span></button>
+        <button id="modeChain" role="radio" data-chain="1" aria-checked="false"><b>ENCHAÎNEMENT</b><span>Le plus d'objectifs avant la fin du chrono</span></button>
+      </div>
       <div class="playrow">
         <input id="nameInput" type="text" maxlength="12" placeholder="Ton pseudo" aria-label="Pseudo pour les high scores" autocomplete="nickname" spellcheck="false">
         <button id="playBtn" class="big-btn">JOUER</button>
@@ -1128,8 +1157,17 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
           <button id="tabScoresBtn" role="tab" aria-selected="false" aria-controls="tabScores">HIGH SCORES</button>
         </div>
         <div id="tabScores" role="tabpanel" hidden>
+          <div class="hs-tabs" role="tablist" aria-label="Mode">
+            <button role="tab" data-hs="classic" aria-selected="true">CLASSIQUE</button>
+            <button role="tab" data-hs="chain" aria-selected="false">ENCHAÎNEMENT</button>
+          </div>
+          <div class="hs-tabs sub" role="tablist" aria-label="Durée" hidden>
+            <button role="tab" data-dur="60" aria-selected="false">1 MIN</button>
+            <button role="tab" data-dur="300" aria-selected="false">5 MIN</button>
+            <button role="tab" data-dur="600" aria-selected="true">10 MIN</button>
+          </div>
           <div id="hsBody"></div>
-          <div class="hs-foot"><span>Touche une partie pour voir comment elle a été gagnée. Classement : le moins d'opérations, puis le temps le plus court. Gardé sur cet appareil.</span><button id="clearScores">Effacer</button></div>
+          <div class="hs-foot"><span id="hsNote">Touche une partie pour voir comment elle a été gagnée. Classement : le moins d'opérations, puis le temps le plus court. Gardé sur cet appareil.</span><button id="clearScores">Effacer</button></div>
         </div>
         <div id="tabRules" role="tabpanel">
         <ol>
@@ -1137,6 +1175,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
           <li>Une bulle qui touche l'opérateur au centre s'y accroche. Pour <b>−</b> et <b>÷</b>, le côté compte : gauche ou haut d'abord, droite ou bas ensuite. Le bouton <b>⇄</b>, ou un glissé du doigt sur l'opérateur, le fait pivoter d'un demi-tour pour inverser les côtés.</li>
           <li>Change d'opération en touchant l'opérateur ou avec <b>⟳</b>, puis <b>garde le doigt sur l'opérateur</b> (ou appuie sur <b class="b-orange">=</b>) pour obtenir une <span class="b-orange">brique</span>. Dans les paramètres : secouer le téléphone pour calculer. Pas de résultat négatif ni de division qui tombe pas juste.</li>
           <li>Gagne en créant une brique égale à l'objectif, en le moins d'opérations possible : chaque = compte. Les meilleures parties vont dans les <b>high scores</b>. Pour corser le jeu, choisis dans les paramètres un objectif entre <b>100 et 999</b>.</li>
+          <li>Mode <b class="b-orange">Enchaînement</b> (à choisir sur l'accueil) : atteins le plus d'objectifs possible avant la fin du chrono (1, 5 ou 10 minutes). Dès qu'un objectif est atteint, un nouveau s'affiche. Il a ses propres high scores.</li>
         </ol>
         <div class="modes">
           <div><b>BLOW</b>Touche l'écran pour repousser tout ce qui est autour. Juste à côté de l'opérateur, ça décroche tout ce qui y est accroché.</div>
@@ -1832,7 +1871,7 @@ const G = {
   mode: 'blow', op: 0, opPrev: 0, opAnim: 1, swapAnim: 1,
   mechs: (() => { const o = store.get('mechs', [true, true, true, true]); return Array.isArray(o) && o.length === 4 && o.some(Boolean) ? o.map(Boolean) : [true, true, true, true]; })(),
   ops: (() => { const o = store.get('ops', [true, true, true, true]); return Array.isArray(o) && o.length === 4 && o.some(Boolean) ? o.map(Boolean) : [true, true, true, true]; })(),
-  easy: !store.get('expert', false), assist: !!store.get('assist', false), range: store.get('range', 99) === 999 ? 999 : 99, ringRot: 0, ringTarget: 0, opShake: 0,
+  easy: !store.get('expert', false), assist: !!store.get('assist', false), range: store.get('range', 99) === 999 ? 999 : 99, chainMode: !!store.get('chain', false), chain: null, ringRot: 0, ringTarget: 0, opShake: 0,
   goal: 42, timeLimit: store.get('time', 600), timeLeft: 600, elapsed: 0, lastTick: -1,
   running: false, over: false, won: false, endT: -1, fwT: 0,
   spawnPending: false, spawnT: 0, shake: 0, fuse: null, now: 0, order: 0,
@@ -2662,7 +2701,8 @@ function startTutorial() {
   G.ops = [true, true, true, true];      // et toutes les opérations, même désactivées dans les paramètres
   G.goal = 12; G.op = 0; G.opPrev = 0;
   $('#goalVal').textContent = '12';
-  $('#easyChip').hidden = true; $('#assistChip').hidden = true; $('#opsChip').hidden = true;
+  $('#easyChip').hidden = true; $('#assistChip').hidden = true; $('#opsChip').hidden = true; $('#chainChip').hidden = true;
+  G.chain = null;   // le tutoriel est toujours une partie classique
   G.texts = [];
   setMode('auto');
   updateTimer(true);
@@ -2966,14 +3006,20 @@ function updateFx(dt) {
 /* ================= Partie ================= */
 // Bouton JOUER : la toute première fois, on passe d'abord par le tutoriel
 function playFromMenu() { if (!store.get('tutoDone', false)) startTutorial(); else newGame(); }
+// sans + ni ×, les résultats restent petits : objectif entre 1 et 20 (même en mode 100 – 999) ; jamais deux fois le même d'affilée
+function pickGoal(prev) {
+  const grows = G.ops[0] || G.ops[2];
+  let g;
+  do g = !grows ? randi(1, 20) : G.range === 999 ? randi(100, 999) : randi(1, 99); while (g === prev);
+  return g;
+}
 function newGame() {
   if (G.tut) tutCleanup();
   Sfx.init();
   G.items = []; G.merges = []; G.rockets = []; G.parts = []; G.waves = []; G.texts = [];
   G.op = G.ops.indexOf(true); G.opPrev = G.op; G.opAnim = 1; G.swapAnim = 1; G.fuse = null; G.order = 0;
   // sans + ni ×, les résultats restent petits : objectif entre 1 et 20 (même en mode 100 – 999)
-  const grows = G.ops[0] || G.ops[2];
-  G.goal = !grows ? randi(1, 20) : G.range === 999 ? randi(100, 999) : randi(1, 99);
+  G.goal = pickGoal();
   $('#opBtn').disabled = G.ops.filter(Boolean).length < 2;
   $('#easyChip').hidden = G.easy;
   $('#assistChip').hidden = !G.assist;
@@ -2984,6 +3030,9 @@ function newGame() {
   G.opsCount = 0; G.hintsUsed = 0; $('#opsVal').textContent = '0';
   G.history = []; G.winBrick = null;
   Ach.newRun();
+  // Enchaînement : le compteur d'objectifs et le point de départ de l'objectif en cours (opérations, temps, historique)
+  G.chain = G.chainMode && G.timeLimit > 0 ? { count: 0, list: [], ops0: 0, t0: 0, h0: 0 } : null;
+  $('#chainChip').hidden = !G.chain; $('#chainVal').textContent = '0';
   $('#hintBox').hidden = true;
   G.spawnPending = false;
   const gv = $('#goalVal');
@@ -2994,17 +3043,35 @@ function newGame() {
   updateTimer(true);
 }
 function win() {
+  if (G.chain) { chainGoal(); return; }
   G.won = true; G.over = true; G.endT = 1.4; G.fwT = 0;
-  Ach.win();
+  Ach.win({ ops: G.opsCount, t: G.elapsed, hist: G.history.length });
   $('#hintBox').hidden = true;
   G.texts.push({ text: 'OBJECTIF ATTEINT !', x: cx, y: Math.max(H * .2, 40), t: 0, life: 2.5, c: COL.gold, size: Math.min(46, S * .11), rise: 0 });
   Sfx.win();
+}
+// Enchaînement : l'objectif atteint compte, la brique gagnante s'envole et un nouvel objectif s'affiche aussitôt
+function chainGoal() {
+  const c = G.chain, b = G.winBrick;
+  Ach.win({ ops: G.opsCount - c.ops0, t: G.elapsed - c.t0, hist: G.history.length - c.h0, chain: true });
+  c.count++; c.list.push({ goal: G.goal, ops: G.opsCount - c.ops0 });
+  Ach.chain(c.count);
+  const v = $('#chainVal'); v.textContent = c.count; v.classList.remove('pop'); void v.offsetWidth; v.classList.add('pop');
+  if (b && !b.dead) { burst(b.x, b.y, COL.gold, 30, BASE * 4, .7, 3); b.dead = true; }
+  fireworkShow(); Sfx.win();
+  G.texts.push({ text: '+1 !', x: cx, y: Math.max(H * .2, 40), t: 0, life: 1.2, c: COL.gold, size: Math.min(46, S * .11), rise: 20 });
+  G.goal = pickGoal(G.goal); G.hint = null; $('#hintBox').hidden = true;
+  const gv = $('#goalVal'); gv.textContent = G.goal; gv.classList.remove('pop'); void gv.offsetWidth; gv.classList.add('pop');
+  setTimeout(() => { if (G.running && !G.over) G.texts.push({ text: 'OBJECTIF ' + G.goal, x: cx, y: H * .22, t: 0, life: 1.6, c: COL.orange, size: Math.min(44, S * .1), rise: 0 }); }, 700);
+  c.ops0 = G.opsCount; c.t0 = G.elapsed; c.h0 = G.history.length; G.winBrick = null;
 }
 function timeUp() {
   G.over = true; G.endT = .9;
   Ach.lose();
   $('#hintBox').hidden = true;
-  G.texts.push({ text: 'TEMPS ÉCOULÉ', x: cx, y: Math.max(H * .2, 40), t: 0, life: 2, c: COL.red, size: Math.min(46, S * .11), rise: 0, glitch: true });
+  // en Enchaînement, la fin du chrono n'est pas un échec si des objectifs ont été atteints
+  const done = G.chain && G.chain.count > 0;
+  G.texts.push({ text: done ? 'FIN DU CHRONO' : 'TEMPS ÉCOULÉ', x: cx, y: Math.max(H * .2, 40), t: 0, life: 2, c: done ? COL.gold : COL.red, size: Math.min(46, S * .11), rise: 0, glitch: !done });
   Sfx.timeUp();
 }
 /* ================= Succès ================= */
@@ -3050,6 +3117,8 @@ const ACH = [
     { id: 'fast10', icon: '⚡', t: 'Éclair', d: 'Gagne en moins de 10 secondes.' },
     { id: 'lastsec', icon: '⏱️', t: 'Juste à temps', d: 'Gagne avec moins de 3 secondes restantes au chrono.' },
     { id: 'streak3', icon: '🔥', t: 'En série', d: 'Gagne 3 parties d’affilée, sans perdre au temps entre deux.' },
+    { id: 'chain5', icon: '⛓️', t: 'En chaîne', d: 'Atteins 5 objectifs dans une partie Enchaînement.' },
+    { id: 'chain15', icon: '🚂', t: 'Locomotive', d: 'Atteins 15 objectifs dans une partie Enchaînement.' },
   ] },
   { cat: 'DÉFIS', items: [
     { id: 'expert', icon: '🧗', t: 'Expert', d: 'Gagne en mode expert.' },
@@ -3114,17 +3183,18 @@ const Ach = (() => {
       if (v === 0) unlock('zero');
     },
     // le record d'avant est lu ici, avant que l'écran de fin ne l'enregistre
-    win() {
+    // c = l'objectif qui vient d'être atteint : opérations, temps et historique depuis son apparition
+    win(c) {
       if (!playing() || !G.run) return;
       const b = G.winBrick || {}, steps = (b.steps || []).length, f = b.formula || '', run = G.run;
       const prev = store.get('best', {})[G.goal];
       unlock('win1'); stat('wins');
-      if (G.opsCount === 1) unlock('oneop');
-      if (G.history.length === steps) unlock('clean');
+      if (c.ops === 1) unlock('oneop');
+      if (c.hist === steps) unlock('clean');
       if (!run.errors) unlock('noerror');
       if (!G.hintsUsed) stat('nohint');
       if (steps >= 4) unlock('long');
-      if (prev !== undefined && G.opsCount < prev) unlock('recbeat');
+      if (prev !== undefined && c.ops < prev) unlock('recbeat');
       if (f.includes('−')) unlock('sub');
       if (f.includes('×')) unlock('mul');
       if (f.includes('÷')) unlock('div');
@@ -3132,8 +3202,8 @@ const Ach = (() => {
       if (run.swaps) unlock('swap');
       if (run.used.size === 1) unlock({ blow: 'onlyblow', fire: 'onlyfire', target: 'onlytarget', auto: 'onlyauto' }[[...run.used][0]]);
       if (run.used.size === 4) unlock('allmech');
-      if (G.elapsed < 30) unlock('fast30');
-      if (G.elapsed < 10) unlock('fast10');
+      if (c.t < 30) unlock('fast30');
+      if (c.t < 10) unlock('fast10');
       if (G.timeLimit > 0 && G.timeLeft < 3) unlock('lastsec');
       st.streak = (st.streak || 0) + 1; store.set('achStats', st);
       if (st.streak >= 3) unlock('streak3');
@@ -3143,6 +3213,7 @@ const Ach = (() => {
       if (TH.id === 'halloween') unlock('halloween');
     },
     lose() { st.streak = 0; store.set('achStats', st); },
+    chain(n) { if (n >= 5) unlock('chain5'); if (n >= 15) unlock('chain15'); },
     // deux bulles accrochées par le même souffle
     blowAttach(it) {
       if (!playing() || !G.run || !it.blowId || it.blowId !== G.blowId) return;
@@ -3167,7 +3238,62 @@ function addScore(entry) {
   return rank <= HS_MAX ? rank : 0;
 }
 let lastScoreId = 0;
+// Enchaînement : un classement par durée ; le plus d'objectifs, puis le moins d'opérations
+const loadChain = (dur) => { const all = store.get('chainScores', {}); return Array.isArray(all[dur]) ? all[dur] : []; };
+function addChainScore(dur, entry) {
+  const all = store.get('chainScores', {});
+  const list = loadChain(dur).concat(entry).sort((a, b) => b.count - a.count || a.ops - b.ops || a.id - b.id);
+  const rank = list.indexOf(entry) + 1;
+  all[dur] = list.slice(0, HS_MAX); store.set('chainScores', all);
+  return rank <= HS_MAX ? rank : 0;
+}
+const hsView = { mode: 'classic', dur: 600 };
+function renderChainScores() {
+  const body = $('#hsBody'), list = loadChain(hsView.dur);
+  body.textContent = '';
+  if (!list.length) {
+    const p = document.createElement('p'); p.className = 'hs-empty';
+    p.textContent = `Pas encore de score en ${fmtDur(hsView.dur)}. Choisis ENCHAÎNEMENT sur l'accueil pour entrer au classement.`;
+    body.appendChild(p); return;
+  }
+  const t = document.createElement('table'); t.className = 'hs';
+  t.innerHTML = '<thead><tr><th>#</th><th>PSEUDO</th><th>OBJECTIFS</th><th>OPÉ.</th><th>DATE</th></tr></thead>';
+  const tb = document.createElement('tbody');
+  list.forEach((e, i) => {
+    const tr = document.createElement('tr');
+    if (e.id === lastScoreId) tr.className = 'me';
+    const d = e.date ? new Date(e.date + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '';
+    [[String(i + 1), 'r'], [e.name || 'Joueur', 'n'], [String(e.count), 'g'], [String(e.ops), 'o'], [d, '']].forEach(([txt, cls]) => { const td = document.createElement('td'); td.textContent = txt; if (cls) td.className = cls; tr.appendChild(td); });
+    const tags = [];
+    if (e.easy === false) tags.push('EXPERT');
+    if (e.big) tags.push('100–999');
+    if (e.assist) tags.push('AIDE+');
+    if (e.hints) tags.push(e.hints + ' IND.');
+    tags.forEach((g) => { const sp = document.createElement('span'); sp.className = 'tag'; sp.textContent = g; tr.children[1].appendChild(sp); });
+    // toucher une ligne montre les objectifs atteints
+    tr.classList.add('row'); tr.tabIndex = 0; tr.setAttribute('aria-expanded', 'false');
+    const det = document.createElement('tr'); det.className = 'detail'; det.hidden = true;
+    const td = document.createElement('td'); td.colSpan = 5;
+    td.innerHTML = `<div class="calc mini"><div class="chain-list">${(e.list || []).map((x) => `<span><b>${x.goal}</b> en ${x.ops} op.</span>`).join('')}</div></div>`;
+    det.appendChild(td);
+    const toggle = () => { det.hidden = !det.hidden; tr.setAttribute('aria-expanded', String(!det.hidden)); Sfx.tick(); };
+    tr.addEventListener('click', toggle);
+    tr.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); ev.stopPropagation(); toggle(); } });
+    tb.appendChild(tr); tb.appendChild(det);
+  });
+  t.appendChild(tb); body.appendChild(t);
+}
+function syncHsTabs() {
+  document.querySelectorAll('.hs-tabs [data-hs]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.hs === hsView.mode)));
+  document.querySelectorAll('.hs-tabs [data-dur]').forEach((b) => b.setAttribute('aria-selected', String(+b.dataset.dur === hsView.dur)));
+  $('.hs-tabs.sub').hidden = hsView.mode !== 'chain';
+  $('#hsNote').textContent = hsView.mode === 'chain'
+    ? 'Touche une partie pour voir les objectifs atteints. Classement : le plus d’objectifs, puis le moins d’opérations. Gardé sur cet appareil.'
+    : 'Touche une partie pour voir comment elle a été gagnée. Classement : le moins d’opérations, puis le temps le plus court. Gardé sur cet appareil.';
+}
 function renderScores() {
+  syncHsTabs();
+  if (hsView.mode === 'chain') { renderChainScores(); return; }
   const body = $('#hsBody');
   const list = loadScores();
   body.textContent = '';
@@ -3252,6 +3378,7 @@ function renderCalc() { renderCalcInto($('#endCalc'), calcData()); }
 
 function showEnd() {
   const card = $('#endCard');
+  if (G.chain) { showChainEnd(); return; }
   if (G.won) {
     card.classList.remove('lose');
     $('#endTitle').textContent = 'FÉLICITATIONS\u00a0!';
@@ -3283,6 +3410,30 @@ function showEnd() {
   $('#end').hidden = false;
   $('#againBtn').focus({ preventScroll: true });
 }
+function showChainEnd() {
+  const card = $('#endCard'), c = G.chain, n = c.count, dur = G.timeLimit;
+  card.classList.toggle('lose', !n);
+  $('#endTitle').textContent = n ? 'BRAVO\u00a0!' : 'TEMPS ÉCOULÉ';
+  let hs = '';
+  if (n) {
+    const entry = { id: Date.now(), name: playerName(), count: n, ops: G.opsCount, hints: G.hintsUsed, easy: G.easy, assist: G.assist, big: G.range === 999, list: c.list, date: new Date().toISOString().slice(0, 10) };
+    lastScoreId = entry.id;
+    const rank = addChainScore(dur, entry);
+    hs = rank === 1 ? `<br><span class="rec">Meilleur score en ${fmtDur(dur)} ! 1<sup>er</sup> du classement</span>` : rank ? `<br><span class="rec">High score : ${rank}<sup>e</sup> du classement ${fmtDur(dur)}</span>` : '';
+  }
+  $('#endText').innerHTML = n
+    ? `Tu as atteint <b>${n} objectif${n > 1 ? 's' : ''}</b> en ${fmtDur(dur)}, avec <b class="ops">${G.opsCount} opération${G.opsCount > 1 ? 's' : ''}</b>.${hs}`
+    : `Aucun objectif atteint en ${fmtDur(dur)}. Le dernier était <b>${G.goal}</b>. Retente ta chance.`;
+  const fr = Ach.fresh();
+  if (fr.length) $('#endText').insertAdjacentHTML('beforeend', `<span class="ach-line">${fr.map((a) => `<span>${a.icon} ${a.t}</span>`).join('')}</span>`);
+  const box = $('#endCalc');
+  box.innerHTML = n ? `<div class="k">LES OBJECTIFS ATTEINTS</div><div class="chain-list">${c.list.map((x) => `<span><b>${x.goal}</b> en ${x.ops} op.</span>`).join('')}</div>` : '';
+  box.hidden = !n;
+  $('#end').classList.toggle('win', n > 0);
+  $('#end').hidden = false;
+  $('#againBtn').focus({ preventScroll: true });
+}
+const fmtDur = (t) => (t >= 60 ? `${t / 60} minute${t > 60 ? 's' : ''}` : `${t} s`);
 function playerName() {
   const v = ($('#nameInput').value || '').trim().slice(0, 12);
   return v || 'Joueur';
@@ -4999,8 +5150,16 @@ onBtn('#playBtn', playFromMenu);
 onBtn('#tutoBtn', startTutorial);
 onBtn('#setBtn', () => { openSheet('#settings'); Sfx.tick(); });
 onBtn('#rulesBtn', () => { showTab(false); openSheet('#info'); Sfx.tick(); });
-onBtn('#scoresBtn', () => { showTab(true); openSheet('#info'); Sfx.tick(); });
+onBtn('#scoresBtn', () => {
+  // le classement ouvert est celui du mode choisi sur l'accueil
+  hsView.mode = G.chainMode ? 'chain' : 'classic';
+  if (G.chainMode && G.timeLimit > 0) hsView.dur = G.timeLimit;
+  showTab(true); openSheet('#info'); Sfx.tick();
+});
 onBtn('#resetBtn', () => { resetSettings(); Sfx.tick(); });
+document.querySelectorAll('.mode-pick button').forEach((b) => b.addEventListener('click', () => { Sfx.init(); setChainMode(b.dataset.chain === '1'); Sfx.tick(); }));
+document.querySelectorAll('.hs-tabs [data-hs]').forEach((b) => b.addEventListener('click', () => { Sfx.init(); hsView.mode = b.dataset.hs; renderScores(); Sfx.tick(); }));
+document.querySelectorAll('.hs-tabs [data-dur]').forEach((b) => b.addEventListener('click', () => { Sfx.init(); hsView.dur = +b.dataset.dur; renderScores(); Sfx.tick(); }));
 onBtn('#achBtn', () => { Ach.render(); openSheet('#achSheet'); Sfx.tick(); });
 document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => { Sfx.init(); closeSheets(); Sfx.tick(); }));
 // toucher le fond autour du panneau le ferme
@@ -5017,10 +5176,17 @@ function syncMute() {
   b.querySelector('.w1').style.display = b.querySelector('.w2').style.display = Sfx.muted ? 'none' : '';
 }
 function selectTime(t) {
+  if (G.chainMode && t === 0) t = 600;   // l'Enchaînement se joue en 1, 5 ou 10 minutes
   G.timeLimit = t; store.set('time', t);
   document.querySelectorAll('.times button[data-t]').forEach((b) => b.setAttribute('aria-checked', String(+b.dataset.t === t)));
   G.timeLeft = t; updateTimer(true);
   syncSummary();
+}
+function setChainMode(on) {
+  G.chainMode = on; store.set('chain', on);
+  document.querySelectorAll('.mode-pick button').forEach((b) => b.setAttribute('aria-checked', String((b.dataset.chain === '1') === on)));
+  const inf = $('#t0'); inf.disabled = on; inf.title = on ? 'Le mode Enchaînement se joue en 1, 5 ou 10 minutes' : '';
+  if (on && G.timeLimit === 0) selectTime(600);
 }
 function syncSummary() {
   const t = { 60: '1 min', 300: '5 min', 600: '10 min', 0: '∞' }[G.timeLimit] || '';
@@ -5087,7 +5253,8 @@ $('#clearScores').addEventListener('click', (e) => {
     return;
   }
   clearTimeout(clearArmed); clearArmed = 0;
-  store.set('scores', []); store.set('best', {});
+  if (hsView.mode === 'chain') { const all = store.get('chainScores', {}); delete all[hsView.dur]; store.set('chainScores', all); }
+  else { store.set('scores', []); store.set('best', {}); }
   b.textContent = 'Effacer'; b.classList.remove('armed');
   renderScores();
 });
@@ -5161,6 +5328,7 @@ resize();
 selectTime(G.timeLimit === 60 || G.timeLimit === 300 || G.timeLimit === 600 || G.timeLimit === 0 ? G.timeLimit : 600);
 syncMute();
 syncOptions();
+setChainMode(G.chainMode);
 Ach.syncCount();
 $('#goalVal').textContent = G.goal;
 // bulles de démonstration derrière l'écran d'accueil
