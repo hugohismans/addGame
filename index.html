@@ -249,7 +249,10 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 #tutBox .bt { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 #tutBox .bt .r { display: flex; gap: 8px; align-items: center; }
 #tutBox button { height: 36px; padding: 0 14px; border-radius: 6px; font-family: var(--f-display); font-weight: 700; font-size: 13px; letter-spacing: .1em; }
-#tutBox .skip { background: none; border: 0; color: var(--muted); padding: 0 4px; }
+#tutBox .skip { background: none; border: 0; color: var(--muted); padding: 0 4px; white-space: nowrap; }
+/* bulle étroite (téléphone en portrait) : « Quitter le tutoriel » ne tient pas à côté de REVOIR et SUIVANT */
+#tutBox { container-type: inline-size; }
+@container (max-width: 440px) { #tutBox:not(.docked) .skip .lg { display: none; } }
 #tutBox.confirming > :not(.confirm) { display: none; }
 #tutBox .confirm { display: grid; gap: 8px; animation: hintIn .25s cubic-bezier(.3, 1.4, .5, 1); }
 #tutBox .confirm .tt span { color: var(--gold); }
@@ -2760,7 +2763,7 @@ function tutGo(i) {
   const dots = TUT_STEPS.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('');
   box.innerHTML = `<div class="tt"><span>TUTO · ${st.title}</span><span class="dots">${dots}</span></div>
     <div class="tx">${st.text()}</div>
-    <div class="bt"><button class="skip" id="tutSkip">${st.last ? '' : 'Passer'}</button>
+    <div class="bt"><button class="skip" id="tutSkip">${st.last ? '' : 'Quitter<span class="lg"> le tutoriel</span>'}</button>
       <span class="r">${st.replay ? '<button class="sec" id="tutReplay">REVOIR</button>' : ''}
       ${st.next ? `<button class="pri" id="tutNext">${st.next.toUpperCase()}</button>` : `<span class="wait">${st.wait}</span>`}</span></div>`;
   box.hidden = false;
@@ -2773,7 +2776,7 @@ function tutGo(i) {
   on('tutReplay', () => tutGo(i));
   on('tutNext', () => (st.last ? endTutorial() : tutGo(i + 1)));
 }
-// Beaucoup touchent « Passer » au lieu de « Suivant » : on demande confirmation dans la bulle elle-même,
+// Beaucoup touchent « Passer » (devenu « Quitter le tutoriel ») au lieu de « Suivant » : on demande confirmation dans la bulle elle-même,
 // sans toucher à l'étape en cours (ses bulles et ses écouteurs restent en place derrière).
 function tutConfirmSkip(i) {
   const box = $('#tutBox'), left = TUT_STEPS.length - 1 - i;
