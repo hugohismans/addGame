@@ -1104,7 +1104,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
         <button id="easyBtn" class="switch" role="switch" aria-checked="false"><span class="txt">MODE EXPERT<small>Blow et Firework seulement, tout s'accroche au contact</small></span><span class="knob"></span></button>
         <button id="assistBtn" class="switch" role="switch" aria-checked="false"><span class="txt">AIDE +<small>Les bulles qui arrivent aident à trouver la solution</small></span><span class="knob"></span></button>
         <button id="shakeBtn" class="switch" role="switch" aria-checked="false"><span class="txt">SECOUER = CALCUL<small>Secoue le téléphone pour faire =</small></span><span class="knob"></span></button>
-        <button id="seasonBtn" class="switch" role="switch" aria-checked="true"><span class="txt">AMBIANCE DE SAISON<small>Halloween en octobre, d'autres fêtes viendront</small></span><span class="knob"></span></button>
+        <button id="seasonBtn" class="switch" role="switch" aria-checked="false"><span class="txt">AMBIANCE DE SAISON<small>Halloween en octobre, d'autres fêtes viendront</small></span><span class="knob"></span></button>
       </div>
       </div></div>
       <div id="setNote" hidden></div>
@@ -1185,6 +1185,8 @@ const store = {
 };
 // nouvel accueil : tout le monde repart une fois des réglages par défaut (toutes les opérations et mécaniques, mode normal, sans Aide +)
 if (store.get('cfgv', 0) < 1) { ['ops', 'mechs', 'expert', 'assist'].forEach((k) => store.del(k)); store.set('cfgv', 1); }
+// nouveaux réglages par défaut : 10 minutes (1 minute était trop stressant) et pas d'ambiance de saison, appliqués une fois à tous
+if (store.get('cfgv', 0) < 2) { store.set('time', 600); store.del('season'); store.set('cfgv', 2); }
 const fmtTime = (s) => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 const fmtNum = (v) => {
   if (Number.isInteger(v)) return String(v);
@@ -1244,7 +1246,7 @@ for (const [k, t] of Object.entries(THEMES)) t.id = k;
 const SKIN_IDS = ['aqua', 'pixel', 'space', 'candy', 'paper', 'bauhaus', 'billiard', 'japan', 'halloween'];
 // Ambiance de saison : Halloween d'octobre au 2 novembre, tant que l'option est active (voir les paramètres)
 const seasonTheme = () => { const d = new Date(), m = d.getMonth(); return m === 9 || (m === 10 && d.getDate() <= 2) ? 'halloween' : null; };
-const effectiveTheme = () => (store.get('season', true) && seasonTheme()) || store.get('da', 'neon');
+const effectiveTheme = () => (store.get('season', false) && seasonTheme()) || store.get('da', 'neon');
 let TH = THEMES.neon;
 let FONT = TH.font;
 const ADD = () => TH.add || (TH.chalk ? 'source-over' : 'lighter');
@@ -1831,7 +1833,7 @@ const G = {
   mechs: (() => { const o = store.get('mechs', [true, true, true, true]); return Array.isArray(o) && o.length === 4 && o.some(Boolean) ? o.map(Boolean) : [true, true, true, true]; })(),
   ops: (() => { const o = store.get('ops', [true, true, true, true]); return Array.isArray(o) && o.length === 4 && o.some(Boolean) ? o.map(Boolean) : [true, true, true, true]; })(),
   easy: !store.get('expert', false), assist: !!store.get('assist', false), range: store.get('range', 99) === 999 ? 999 : 99, ringRot: 0, ringTarget: 0, opShake: 0,
-  goal: 42, timeLimit: store.get('time', 60), timeLeft: 60, elapsed: 0, lastTick: -1,
+  goal: 42, timeLimit: store.get('time', 600), timeLeft: 600, elapsed: 0, lastTick: -1,
   running: false, over: false, won: false, endT: -1, fwT: 0,
   spawnPending: false, spawnT: 0, shake: 0, fuse: null, now: 0, order: 0,
 };
@@ -5043,14 +5045,14 @@ function closeSheets() {
 function resetSettings() {
   G.ops = [true, true, true, true]; G.easy = true; G.assist = false; G.mechs = [true, true, true, true]; G.range = 99;
   ['ops', 'expert', 'assist', 'mechs', 'range'].forEach((k) => store.del(k));
-  selectTime(60); syncOptions();
+  selectTime(600); syncOptions();
 }
 function syncOptions() {
   document.querySelectorAll('.optop:not(.mech)').forEach((b) => b.setAttribute('aria-pressed', String(G.ops[+b.dataset.op])));
   $('#easyBtn').setAttribute('aria-checked', String(!G.easy));
   $('#assistBtn').setAttribute('aria-checked', String(G.assist));
   $('#shakeBtn').setAttribute('aria-checked', String(Shake.on));
-  $('#seasonBtn').setAttribute('aria-checked', String(store.get('season', true)));
+  $('#seasonBtn').setAttribute('aria-checked', String(store.get('season', false)));
   document.querySelectorAll('.times button[data-range]').forEach((b) => b.setAttribute('aria-checked', String(+b.dataset.range === G.range)));
   syncSummary();
   document.querySelectorAll('.optop.mech').forEach((b) => {
@@ -5102,7 +5104,7 @@ document.querySelectorAll('.optop:not(.mech)').forEach((b) => b.addEventListener
 $('#easyBtn').addEventListener('click', () => { Sfx.init(); G.easy = !G.easy; store.set('expert', !G.easy); syncOptions(); Sfx.tick(); });
 $('#assistBtn').addEventListener('click', () => { Sfx.init(); G.assist = !G.assist; store.set('assist', G.assist); syncOptions(); Sfx.tick(); });
 $('#shakeBtn').addEventListener('click', async () => { Sfx.init(); await Shake.toggle(); syncOptions(); Sfx.tick(); });
-$('#seasonBtn').addEventListener('click', () => { Sfx.init(); store.set('season', !store.get('season', true)); applyTheme(effectiveTheme()); syncOptions(); Sfx.tick(); });
+$('#seasonBtn').addEventListener('click', () => { Sfx.init(); store.set('season', !store.get('season', false)); applyTheme(effectiveTheme()); syncOptions(); Sfx.tick(); });
 document.querySelectorAll('.times button[data-t]').forEach((b) => b.addEventListener('click', () => { Sfx.init(); selectTime(+b.dataset.t); Sfx.tick(); }));
 // objectif entre 1 et 99, ou entre 100 et 999 pour les bons joueurs
 document.querySelectorAll('.times button[data-range]').forEach((b) => b.addEventListener('click', () => {
@@ -5149,14 +5151,14 @@ applyTheme(effectiveTheme());
 document.querySelectorAll('.da-switch button').forEach((b) => b.addEventListener('click', () => {
   Sfx.init(); applyTheme(b.dataset.da); store.set('da', b.dataset.da);
   // choisir une autre ambiance pendant la saison coupe l'ambiance de saison
-  if (seasonTheme() && store.get('season', true) && b.dataset.da !== seasonTheme()) { store.set('season', false); syncOptions(); }
+  if (seasonTheme() && store.get('season', false) && b.dataset.da !== seasonTheme()) { store.set('season', false); syncOptions(); }
   Sfx.tick();
 }));
 // le fond (date écrite à la craie) est redessiné une fois les polices chargées
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => buildGrid());
 new ResizeObserver(resize).observe(field);
 resize();
-selectTime(G.timeLimit === 60 || G.timeLimit === 300 || G.timeLimit === 600 || G.timeLimit === 0 ? G.timeLimit : 60);
+selectTime(G.timeLimit === 60 || G.timeLimit === 300 || G.timeLimit === 600 || G.timeLimit === 0 ? G.timeLimit : 600);
 syncMute();
 syncOptions();
 Ach.syncCount();
