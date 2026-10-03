@@ -710,6 +710,7 @@ html[data-da="pixel"] .big-btn { font-size: 22px; }
 html[data-da="pixel"] .big-btn.small { font-size: 16px; }
 html[data-da="pixel"] #nameInput { font-family: var(--f-ui); font-size: 22px; }
 html[data-da="pixel"] .links button { font-size: 13px; }
+@media (max-height: 520px) { html[data-da="pixel"] .logo { font-size: 40px; } html[data-da="pixel"] .links button { font-size: 11px; } }
 html[data-da="pixel"] .set-btn { font-size: 13px; }
 html[data-da="pixel"] .set-btn .sum { font-family: var(--f-ui); font-size: 18px; }
 html[data-da="pixel"] .label { font-size: 11px; }
@@ -930,6 +931,27 @@ html[data-da="craie"] #goalFly .hint { font-family: var(--f-ui); font-size: 16px
 .chain-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .chain-list span { font-family: var(--f-display); font-size: 13px; padding: 2px 9px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--orange) 50%, transparent); color: var(--ice); }
 .chain-list span b { color: var(--orange); }
+.age-pick { width: 100%; display: grid; gap: 6px; }
+.age-lbl { font-family: var(--f-display); font-size: 10px; letter-spacing: .2em; color: var(--muted); }
+.age-row { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px; }
+.age-row button {
+  display: grid; gap: 2px; justify-items: center; align-content: center; padding: 6px 1px 5px; min-width: 0;
+  border: 1px solid var(--line); border-radius: 8px; background: rgba(127, 127, 127, .07); color: var(--muted);
+}
+.age-row b { font-family: var(--f-display); font-size: 12px; letter-spacing: .04em; white-space: nowrap; }
+.age-row small { font-size: 10px; line-height: 1.2; white-space: nowrap; max-width: 100%; overflow: hidden; }
+.age-row small i { display: block; font-style: normal; }
+.age-row button[aria-checked="true"] { border-color: var(--cyan); color: var(--ice); background: color-mix(in srgb, var(--cyan) 12%, transparent); }
+.age-row button[aria-checked="true"] b { color: var(--cyan); }
+html[data-skin] .age-row button { border-radius: var(--rad); }
+html[data-da="pixel"] .age-row b { font-size: 10px; font-weight: 700; } html[data-da="pixel"] .age-row small { font-size: 13px; line-height: 1; }
+html[data-da="craie"] .age-row button { border: 2px solid rgba(246, 246, 238, .35); background: transparent; }
+html[data-da="craie"] .age-row b { font-family: var(--f-ui); font-size: 15px; } html[data-da="craie"] .age-row small { font-family: var(--f-ui); font-size: 12px; }
+/* écran bas (paysage) : une seule ligne de détail */
+@media (max-height: 520px) {
+  .age-row small i { display: inline; margin-left: .45em; } .age-row small { font-size: 9px; } .age-row button { padding: 4px 1px; } .age-lbl { display: none; }
+  .hero { gap: 8px; } .logo { font-size: 46px; }
+}
 @media (max-height: 520px) { .hero .demo { display: none; } .mode-pick button { padding: 5px 8px; } .mode-pick span { font-size: 10.5px; } }
 html[data-da="pixel"] .mode-pick span { font-size: 15px; } html[data-da="pixel"] .mode-pick b { font-size: 11px; font-weight: 700; }
 html[data-da="craie"] .mode-pick button { border: 2px solid rgba(246, 246, 238, .35); background: transparent; }
@@ -1124,6 +1146,10 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
         <button id="modeClassic" role="radio" data-chain="0" aria-checked="true"><b data-en="CLASSIC">CLASSIQUE</b><span data-en="One goal, as fast as you can">Un objectif, le plus vite possible</span></button>
         <button id="modeChain" role="radio" data-chain="1" aria-checked="false"><b data-en="CHAIN">ENCHAÎNEMENT</b><span data-en="As many goals as you can before time runs out">Le plus d'objectifs avant la fin du chrono</span></button>
       </div>
+      <div class="age-pick">
+        <div class="age-lbl" id="ageLbl" data-en="AGE PRESETS">PRÉ-RÉGLAGES PAR ÂGE</div>
+        <div class="age-row" role="radiogroup" aria-labelledby="ageLbl"></div>
+      </div>
       <div class="playrow">
         <input id="nameInput" type="text" maxlength="12" data-en-ph="Your name" data-en-aria="Name for the high scores" placeholder="Ton pseudo" aria-label="Pseudo pour les high scores" autocomplete="nickname" spellcheck="false">
         <button id="playBtn" class="big-btn" data-en="PLAY">JOUER</button>
@@ -1244,7 +1270,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
           <li data-en="The &lt;span class=&quot;b-cyan&quot;&gt;bubbles&lt;/span&gt; are worth 1 to 9: the 1 is small and fast, the 9 big and slow. When two bubbles touch, one gains 1 and the other loses 1, never giving back the same pair (7 and 6 become 8 and 5), then they bounce off like billiard balls. A bubble that reaches 0 or 10 explodes.">Les <span class="b-cyan">bulles</span> valent de 1 à 9 : le 1 est petit et rapide, le 9 gros et lent. Quand deux bulles se touchent, l'une gagne 1 et l'autre perd 1, sans jamais redonner la même paire (7 et 6 deviennent 8 et 5), puis elles rebondissent comme des billes de billard. Une bulle 0 ou 10 explose.</li>
           <li data-en="A bubble that touches the operator in the middle sticks to it. For &lt;b&gt;−&lt;/b&gt; and &lt;b&gt;÷&lt;/b&gt;, the side matters: left or top first, right or bottom second. The &lt;b&gt;⇄&lt;/b&gt; button, or a swipe on the operator, turns it half a turn to swap the sides.">Une bulle qui touche l'opérateur au centre s'y accroche. Pour <b>−</b> et <b>÷</b>, le côté compte : gauche ou haut d'abord, droite ou bas ensuite. Le bouton <b>⇄</b>, ou un glissé du doigt sur l'opérateur, le fait pivoter d'un demi-tour pour inverser les côtés.</li>
           <li data-en="Change the operation by tapping the operator or with &lt;b&gt;⟳&lt;/b&gt;, then &lt;b&gt;hold your finger on the operator&lt;/b&gt; (or press &lt;b class=&quot;b-orange&quot;&gt;=&lt;/b&gt;) to get a &lt;span class=&quot;b-orange&quot;&gt;brick&lt;/span&gt;. In the settings: shake your phone to calculate. No negative results, and divisions must come out even.">Change d'opération en touchant l'opérateur ou avec <b>⟳</b>, puis <b>garde le doigt sur l'opérateur</b> (ou appuie sur <b class="b-orange">=</b>) pour obtenir une <span class="b-orange">brique</span>. Dans les paramètres : secouer le téléphone pour calculer. Pas de résultat négatif ni de division qui tombe pas juste.</li>
-          <li data-en="Win by making a brick equal to the goal, in as few operations as possible: every = counts. The best games go into the &lt;b&gt;high scores&lt;/b&gt;. In the settings, pick a goal between &lt;b&gt;1 and 99&lt;/b&gt;, between &lt;b&gt;100 and 999&lt;/b&gt; for a challenge, or a &lt;b&gt;custom&lt;/b&gt; range (say 10 to 30).">Gagne en créant une brique égale à l'objectif, en le moins d'opérations possible : chaque = compte. Les meilleures parties vont dans les <b>high scores</b>. Dans les paramètres, choisis un objectif entre <b>1 et 99</b>, entre <b>100 et 999</b> pour corser le jeu, ou <b>au choix</b> (par exemple de 10 à 30).</li>
+          <li data-en="Win by making a brick equal to the goal, in as few operations as possible: every = counts. The best games go into the &lt;b&gt;high scores&lt;/b&gt;. In the settings, pick a goal between &lt;b&gt;1 and 99&lt;/b&gt;, between &lt;b&gt;100 and 999&lt;/b&gt; for a challenge, or a &lt;b&gt;custom&lt;/b&gt; range (say 10 to 30). On the home screen, the &lt;b&gt;age presets&lt;/b&gt; (age 6 to 12+) set the operations and the goal in one tap.">Gagne en créant une brique égale à l'objectif, en le moins d'opérations possible : chaque = compte. Les meilleures parties vont dans les <b>high scores</b>. Dans les paramètres, choisis un objectif entre <b>1 et 99</b>, entre <b>100 et 999</b> pour corser le jeu, ou <b>au choix</b> (par exemple de 10 à 30). Sur l'accueil, les <b>pré-réglages par âge</b> (de 6 ans à 12+) choisissent les opérations et l'objectif en un geste.</li>
           <li data-en="&lt;b class=&quot;b-orange&quot;&gt;Chain&lt;/b&gt; mode (pick it on the home screen): reach as many goals as you can before the clock runs out (1, 5 or 10 minutes). As soon as a goal is reached, a new one appears. It has its own high scores.">Mode <b class="b-orange">Enchaînement</b> (à choisir sur l'accueil) : atteins le plus d'objectifs possible avant la fin du chrono (1, 5 ou 10 minutes). Dès qu'un objectif est atteint, un nouveau s'affiche. Il a ses propres high scores.</li>
         </ol>
         <div class="modes">
@@ -5381,13 +5407,45 @@ function setChainMode(on) {
   const inf = $('#t0'); inf.disabled = on; inf.title = on ? L('Le mode Enchaînement se joue en 1, 5 ou 10 minutes', 'Chain mode is played in 1, 5 or 10 minutes') : '';
   if (on && G.timeLimit === 0) selectTime(600);
 }
+// Pré-réglages par âge (accueil) : opérations et plage de l'objectif, mode normal (pas expert), toutes les mécaniques.
+// Le bouton allumé est celui qui correspond aux réglages en cours (aucun si on a tout réglé à la main).
+const PRESETS = [
+  { age: 6, ops: [true, true, false, false], lo: 1, hi: 20 },
+  { age: 7, ops: [true, true, false, false], lo: 1, hi: 30 },
+  { age: 8, ops: [true, true, false, false], lo: 1, hi: 50 },
+  { age: 9, ops: [true, true, true, false], lo: 1, hi: 50 },
+  { age: 10, ops: [true, true, true, true], lo: 1, hi: 50 },
+  { age: 12, ops: [true, true, true, true], lo: 1, hi: 99, plus: true },   // le mode normal, celui des réglages par défaut
+];
+const presetName = (pr) => (pr.plus ? `${pr.age}+` : L(`${pr.age} ans`, `age ${pr.age}`));
+function currentPreset() {
+  const [lo, hi] = goalBounds();
+  return PRESETS.find((pr) => G.easy && pr.lo === lo && pr.hi === hi && pr.ops.every((v, i) => v === G.ops[i])) || null;
+}
+function applyPreset(pr) {
+  G.ops = pr.ops.slice(); G.easy = true; G.mechs = [true, true, true, true];
+  if (pr.lo === 1 && pr.hi === 99) G.range = 99; else { G.range = 'custom'; G.rmin = pr.lo; G.rmax = pr.hi; store.set('rangeMin', pr.lo); store.set('rangeMax', pr.hi); }
+  store.set('ops', G.ops); store.set('expert', false); store.set('mechs', G.mechs); store.set('range', G.range);
+  syncOptions();
+}
+function syncPresets() {
+  const cur = currentPreset(), row = $('.age-row');
+  row.innerHTML = PRESETS.map((pr) => `<button role="radio" data-age="${pr.age}" aria-checked="${pr === cur}"><b>${presetName(pr).toUpperCase()}</b><small>${OPS.filter((o, i) => pr.ops[i]).join(' ')}<i>${pr.lo}–${pr.hi}</i></small></button>`).join('');
+}
+$('.age-row').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-age]'); if (!b) return;
+  Sfx.init(); applyPreset(PRESETS.find((pr) => pr.age === +b.dataset.age)); Sfx.tick();
+});
 function syncSummary() {
   const t = { 60: '1 min', 300: '5 min', 600: '10 min', 0: '∞' }[G.timeLimit] || '';
+  const pr = currentPreset();
   const parts = [t, OPS.filter((o, i) => G.ops[i]).join(' ')];
+  if (pr && !pr.plus) parts.unshift(presetName(pr));
   if (G.range !== 99) parts.push(rangeText());
   if (!G.easy) parts.push('Expert');
   if (G.assist) parts.push(L('Aide +', 'Assist +'));
   $('#cfgSum').textContent = parts.join(' · ');
+  syncPresets();
 }
 // Panneaux par-dessus l'accueil : paramètres, règles et high scores
 function openSheet(id) {
