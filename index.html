@@ -489,6 +489,44 @@ kbd {
 .set-btn .sum { color: var(--muted); font-size: 12px; letter-spacing: .06em; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .set-btn .sum::before { content: "·"; margin-right: 8px; }
 
+/* ---------- Les π ---------- */
+.pi-chip {
+  position: absolute; z-index: 1; top: calc(12px + env(safe-area-inset-top, 0px)); left: max(12px, env(safe-area-inset-left, 0px));
+  height: 38px; padding: 0 14px; border: 1px solid var(--gold); border-radius: 19px; background: rgba(3, 10, 18, .6);
+  font-family: var(--f-display); font-weight: 700; font-size: 15px; color: var(--gold); letter-spacing: .04em;
+}
+.pi-chip b { font-size: 16px; }
+html[data-skin] .pi-chip { background: var(--panel); border-radius: calc(var(--rad) + 3px); }
+.da-lbl { display: flex; justify-content: space-between; align-items: baseline; }
+.pi-bal { color: var(--gold); letter-spacing: .1em; font-weight: 700; }
+.da-grid button { position: relative; }
+.da-grid button.locked { color: var(--muted); }
+.da-grid button.locked .sw { filter: grayscale(.7) brightness(.8); opacity: .55; }
+.da-grid button.locked > span { opacity: .7; }
+.da-grid .price { font-style: normal; font-size: 9.5px; letter-spacing: .02em; color: var(--gold); white-space: nowrap; font-family: var(--f-ui, inherit); font-weight: 700; }
+.ach .st { display: grid; justify-items: end; gap: 2px; }
+.ach .pts { font-style: normal; font-size: 11px; color: var(--muted); }
+.ach.on .pts { color: var(--gold); font-weight: 700; }
+.pi-line { display: block; margin-top: 10px; font-family: var(--f-display); font-weight: 700; font-size: 20px; color: var(--gold); }
+.pi-line small { font-size: 12px; color: var(--muted); font-weight: 400; }
+/* aperçu d'une ambiance à acheter */
+.preview-bar {
+  position: fixed; z-index: 13; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  width: min(560px, calc(100% - 24px)); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 12px 14px; border: 2px solid var(--gold); border-radius: 14px; background: var(--panel); color: var(--ice);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .45); animation: achIn .35s cubic-bezier(.3, 1.4, .5, 1);
+}
+.preview-bar[hidden] { display: none; }
+.pv-txt { display: grid; gap: 1px; }
+.pv-txt .k { font-family: var(--f-display); font-size: 10px; letter-spacing: .2em; color: var(--gold); }
+.pv-txt b { font-family: var(--f-display); font-size: 18px; letter-spacing: .08em; }
+.pv-have { font-size: 12px; color: var(--muted); }
+.pv-btns { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+.pv-btns .big-btn { height: 44px; padding: 0 18px; font-size: 14px; }
+.pv-btns .big-btn:disabled { opacity: .5; box-shadow: none; cursor: not-allowed; }
+html.previewing #home { pointer-events: none; }
+html.previewing #home .hero { opacity: .9; }
+
 /* ---------- Langue ---------- */
 .lang-pick {
   position: absolute; z-index: 1; top: calc(12px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
@@ -1150,6 +1188,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
   </div>
 
   <section data-en-aria="Home" id="home" class="overlay" aria-label="Accueil">
+    <button id="piChip" class="pi-chip" data-en-title="Your π: earned with achievements, they unlock themes" title="Tes π : gagnés avec les succès, ils débloquent des ambiances"><b id="piVal">0</b> π</button>
     <div class="lang-pick" role="radiogroup" aria-label="Langue · Language">
       <button role="radio" data-lang="fr" aria-checked="true" lang="fr">FR</button><button role="radio" data-lang="en" aria-checked="false" lang="en">EN</button>
     </div>
@@ -1185,7 +1224,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
     <div class="sheet">
       <div class="sheet-head"><h2 data-en="SETTINGS">PARAMÈTRES</h2><button class="icon-btn close" data-close data-en-aria="Close" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       <div class="grp">
-        <div class="label" id="daLbl" data-en="THEME">AMBIANCE</div>
+        <div class="label da-lbl" id="daLbl"><span data-en="THEME">AMBIANCE</span><span id="piBal" class="pi-bal"></span></div>
         <div class="da-switch da-grid" role="radiogroup" aria-labelledby="daLbl">
           <button role="radio" data-da="neon" aria-checked="true"><i class="sw"></i><span data-en="NEON">NÉON</span></button>
           <button role="radio" data-da="craie" aria-checked="false"><i class="sw"></i><span data-en="CHALKBOARD">TABLEAU</span></button>
@@ -1289,6 +1328,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
           <li data-en="Win by making a brick equal to the goal, in as few operations as possible: every = counts. The best games go into the &lt;b&gt;high scores&lt;/b&gt;. In the settings, pick a goal between &lt;b&gt;1 and 99&lt;/b&gt;, between &lt;b&gt;100 and 999&lt;/b&gt; for a challenge, or a &lt;b&gt;custom&lt;/b&gt; range (say 10 to 30). On the home screen, the &lt;b&gt;presets&lt;/b&gt; (from 🐣 to 👽) set the operations and the goal in one tap.">Gagne en créant une brique égale à l'objectif, en le moins d'opérations possible : chaque = compte. Les meilleures parties vont dans les <b>high scores</b>. Dans les paramètres, choisis un objectif entre <b>1 et 99</b>, entre <b>100 et 999</b> pour corser le jeu, ou <b>au choix</b> (par exemple de 10 à 30). Sur l'accueil, les <b>pré-réglages</b> (du 🐣 au 👽) choisissent les opérations et l'objectif en un geste.</li>
           <li data-en="&lt;b class=&quot;b-orange&quot;&gt;Chain&lt;/b&gt; mode (pick it on the home screen): reach as many goals as you can before the clock runs out (1, 5 or 10 minutes). As soon as a goal is reached, a new one appears. It has its own high scores.">Mode <b class="b-orange">Enchaînement</b> (à choisir sur l'accueil) : atteins le plus d'objectifs possible avant la fin du chrono (1, 5 ou 10 minutes). Dès qu'un objectif est atteint, un nouveau s'affiche. Il a ses propres high scores.</li>
         </ol>
+        <div class="keys pi-rule" data-en="&lt;b class=&quot;b-orange&quot;&gt;π&lt;/b&gt;: every achievement earns π (10 to 100 depending on difficulty), plus 1 π per win or per Chain goal. Spend them in the &lt;b&gt;settings&lt;/b&gt; to unlock new themes: tap a locked theme to preview it."><b class="b-orange">π</b> : chaque succès rapporte des π (de 10 à 100 selon la difficulté), et chaque victoire ou objectif d’Enchaînement 1 π de plus. Dépense-les dans les <b>paramètres</b> pour débloquer de nouvelles ambiances : touche une ambiance fermée pour la voir en aperçu.</div>
         <div class="modes">
           <div data-en="&lt;b&gt;BLOW&lt;/b&gt;Tap the screen to push away everything around. Right next to the operator, it knocks off everything stuck to it."><b>BLOW</b>Touche l'écran pour repousser tout ce qui est autour. Juste à côté de l'opérateur, ça décroche tout ce qui y est accroché.</div>
           <div class="fire" data-en="&lt;b&gt;FIREWORK&lt;/b&gt;Launches a crazy rocket that zooms around for 2 to 3 seconds, knocks away everything it grazes, drops firecrackers and ends in a burst."><b>FIREWORK</b>Lance une fusée folle qui fonce 2 à 3 secondes, éjecte tout ce qu'elle frôle, lâche des pétards et finit en bouquet.</div>
@@ -1299,6 +1339,11 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
         </div>
     </div>
   </section>
+
+  <div id="previewBar" class="preview-bar" role="dialog" aria-live="polite" hidden>
+    <div class="pv-txt"><span class="k" data-en="PREVIEW">APERÇU</span><b id="pvName"></b><span id="pvHave" class="pv-have"></span></div>
+    <div class="pv-btns"><button id="pvBack" class="ghost" data-en="Back">Retour</button><button id="pvBuy" class="big-btn small"></button></div>
+  </div>
 
   <section id="langAsk" class="overlay" aria-label="Langue · Language" hidden>
     <div class="lang-ask">
@@ -3280,6 +3325,7 @@ function win() {
   if (G.chain) { chainGoal(); return; }
   G.won = true; G.over = true; G.endT = 1.4; G.fwT = 0;
   Ach.win({ ops: G.opsCount, t: G.elapsed, hist: G.history.length });
+  if (!G.tut) Pi.bonus(1);
   $('#hintBox').hidden = true;
   G.texts.push({ text: L('OBJECTIF ATTEINT !', 'GOAL REACHED!'), x: cx, y: Math.max(H * .2, 40), t: 0, life: 2.5, c: COL.gold, size: Math.min(46, S * .11), rise: 0 });
   Sfx.win();
@@ -3290,6 +3336,7 @@ function chainGoal() {
   Ach.win({ ops: G.opsCount - c.ops0, t: G.elapsed - c.t0, hist: G.history.length - c.h0, chain: true });
   c.count++; c.list.push({ goal: G.goal, ops: G.opsCount - c.ops0 });
   Ach.chain(c.count);
+  if (!G.tut) Pi.bonus(1);
   const v = $('#chainVal'); v.textContent = c.count; v.classList.remove('pop'); void v.offsetWidth; v.classList.add('pop');
   if (b && !b.dead) { burst(b.x, b.y, COL.gold, 30, BASE * 4, .7, 3); b.dead = true; }
   fireworkShow(); Sfx.win();
@@ -3311,56 +3358,56 @@ function timeUp() {
 // Tous visibles, avec ce qu'il faut faire. Ceux qui ont un « goal » se remplissent au fil des parties (stat = compteur).
 const ACH = [
   { cat: ['DÉBUTS', 'FIRST STEPS'], items: [
-    { id: 'tuto', icon: '🎓', t: ['Diplômé', 'Graduate'], d: ["Termine le tutoriel jusqu'au bout.", 'Finish the tutorial all the way through.'] },
-    { id: 'brick1', icon: '🧱', t: ['Première brique', 'First brick'], d: ['Fabrique ta première brique.', 'Make your first brick.'] },
-    { id: 'win1', icon: '🏆', t: ['Première victoire', 'First win'], d: ['Gagne une partie.', 'Win a game.'] },
-    { id: 'win10', icon: '🥈', t: ['Habitué', 'Regular'], d: ['Gagne 10 parties.', 'Win 10 games.'], stat: 'wins', goal: 10 },
-    { id: 'win50', icon: '👑', t: ['Champion', 'Champion'], d: ['Gagne 50 parties.', 'Win 50 games.'], stat: 'wins', goal: 50 },
+    { id: 'tuto', p: 10, icon: '🎓', t: ['Diplômé', 'Graduate'], d: ["Termine le tutoriel jusqu'au bout.", 'Finish the tutorial all the way through.'] },
+    { id: 'brick1', p: 10, icon: '🧱', t: ['Première brique', 'First brick'], d: ['Fabrique ta première brique.', 'Make your first brick.'] },
+    { id: 'win1', p: 10, icon: '🏆', t: ['Première victoire', 'First win'], d: ['Gagne une partie.', 'Win a game.'] },
+    { id: 'win10', p: 25, icon: '🥈', t: ['Habitué', 'Regular'], d: ['Gagne 10 parties.', 'Win 10 games.'], stat: 'wins', goal: 10 },
+    { id: 'win50', p: 100, icon: '👑', t: ['Champion', 'Champion'], d: ['Gagne 50 parties.', 'Win 50 games.'], stat: 'wins', goal: 50 },
   ] },
   { cat: ['CALCUL', 'MATH'], items: [
-    { id: 'oneop', icon: '🎯', t: ['Du premier coup', 'First try'], d: ['Gagne en une seule opération.', 'Win with a single operation.'] },
-    { id: 'clean', icon: '✨', t: ['Sans faute', 'Flawless'], d: ['Gagne sans aucune opération inutile.', 'Win without a single useless operation.'] },
-    { id: 'noerror', icon: '✅', t: ['Propre', 'Spotless'], d: ['Gagne sans aucune erreur (ni résultat négatif, ni division qui ne tombe pas juste).', 'Win without any error (no negative result, no division that doesn’t come out even).'] },
-    { id: 'nohint', icon: '🧠', t: ['Autodidacte', 'Self-taught'], d: ['Gagne 10 parties sans utiliser l’indice.', 'Win 10 games without using a hint.'], stat: 'nohint', goal: 10 },
-    { id: 'long', icon: '🪜', t: ['Tour de force', 'Tour de force'], d: ['Gagne avec un calcul de 4 opérations utiles ou plus.', 'Win with a calculation of 4 or more useful operations.'] },
-    { id: 'recbeat', icon: '📈', t: ['Record battu', 'Record broken'], d: ['Gagne un objectif déjà réussi en moins d’opérations qu’avant.', 'Win a goal you already beat, in fewer operations than before.'] },
+    { id: 'oneop', p: 25, icon: '🎯', t: ['Du premier coup', 'First try'], d: ['Gagne en une seule opération.', 'Win with a single operation.'] },
+    { id: 'clean', p: 25, icon: '✨', t: ['Sans faute', 'Flawless'], d: ['Gagne sans aucune opération inutile.', 'Win without a single useless operation.'] },
+    { id: 'noerror', p: 10, icon: '✅', t: ['Propre', 'Spotless'], d: ['Gagne sans aucune erreur (ni résultat négatif, ni division qui ne tombe pas juste).', 'Win without any error (no negative result, no division that doesn’t come out even).'] },
+    { id: 'nohint', p: 25, icon: '🧠', t: ['Autodidacte', 'Self-taught'], d: ['Gagne 10 parties sans utiliser l’indice.', 'Win 10 games without using a hint.'], stat: 'nohint', goal: 10 },
+    { id: 'long', p: 50, icon: '🪜', t: ['Tour de force', 'Tour de force'], d: ['Gagne avec un calcul de 4 opérations utiles ou plus.', 'Win with a calculation of 4 or more useful operations.'] },
+    { id: 'recbeat', p: 25, icon: '📈', t: ['Record battu', 'Record broken'], d: ['Gagne un objectif déjà réussi en moins d’opérations qu’avant.', 'Win a goal you already beat, in fewer operations than before.'] },
   ] },
   { cat: ['OPÉRATIONS', 'OPERATIONS'], items: [
-    { id: 'sub', icon: '➖', t: ['Soustracteur', 'Subtractor'], d: ['Gagne avec une soustraction dans le calcul.', 'Win with a subtraction in the calculation.'] },
-    { id: 'mul', icon: '✖️', t: ['Multiplicateur', 'Multiplier'], d: ['Gagne avec une multiplication dans le calcul.', 'Win with a multiplication in the calculation.'] },
-    { id: 'div', icon: '➗', t: ['Le partage', 'Fair share'], d: ['Gagne avec une division dans le calcul.', 'Win with a division in the calculation.'] },
-    { id: 'all4', icon: '🧮', t: ['Les quatre opérations', 'All four'], d: ['Gagne avec +, −, × et ÷ dans le même calcul.', 'Win with +, −, × and ÷ in the same calculation.'] },
-    { id: 'swap', icon: '🔄', t: ['Demi-tour', 'U-turn'], d: ['Retourne l’opérateur pendant une partie, puis gagne-la.', 'Flip the operator during a game, then win it.'] },
-    { id: 'big100', icon: '🏗️', t: ['Grande brique', 'Big brick'], d: ['Fabrique une brique de 100 ou plus.', 'Make a brick of 100 or more.'] },
-    { id: 'big1000', icon: '🗻', t: ['Géante', 'Giant'], d: ['Fabrique une brique de 1000 ou plus.', 'Make a brick of 1000 or more.'] },
-    { id: 'zero', icon: '🕳️', t: ['Zéro pointé', 'Big zero'], d: ['Fabrique une brique 0 (elle explose !).', 'Make a 0 brick (it explodes!).'] },
+    { id: 'sub', p: 10, icon: '➖', t: ['Soustracteur', 'Subtractor'], d: ['Gagne avec une soustraction dans le calcul.', 'Win with a subtraction in the calculation.'] },
+    { id: 'mul', p: 10, icon: '✖️', t: ['Multiplicateur', 'Multiplier'], d: ['Gagne avec une multiplication dans le calcul.', 'Win with a multiplication in the calculation.'] },
+    { id: 'div', p: 25, icon: '➗', t: ['Le partage', 'Fair share'], d: ['Gagne avec une division dans le calcul.', 'Win with a division in the calculation.'] },
+    { id: 'all4', p: 50, icon: '🧮', t: ['Les quatre opérations', 'All four'], d: ['Gagne avec +, −, × et ÷ dans le même calcul.', 'Win with +, −, × and ÷ in the same calculation.'] },
+    { id: 'swap', p: 10, icon: '🔄', t: ['Demi-tour', 'U-turn'], d: ['Retourne l’opérateur pendant une partie, puis gagne-la.', 'Flip the operator during a game, then win it.'] },
+    { id: 'big100', p: 25, icon: '🏗️', t: ['Grande brique', 'Big brick'], d: ['Fabrique une brique de 100 ou plus.', 'Make a brick of 100 or more.'] },
+    { id: 'big1000', p: 50, icon: '🗻', t: ['Géante', 'Giant'], d: ['Fabrique une brique de 1000 ou plus.', 'Make a brick of 1000 or more.'] },
+    { id: 'zero', p: 25, icon: '🕳️', t: ['Zéro pointé', 'Big zero'], d: ['Fabrique une brique 0 (elle explose !).', 'Make a 0 brick (it explodes!).'] },
   ] },
   { cat: ['MÉCANIQUES', 'MECHANICS'], items: [
-    { id: 'onlyblow', icon: '🌬️', t: ['Que du vent', 'Gone with the wind'], d: ['Gagne en n’utilisant que BLOW.', 'Win using only BLOW.'] },
-    { id: 'onlyfire', icon: '🎆', t: ['Artificier', 'Pyrotechnician'], d: ['Gagne en n’utilisant que FIREWORK.', 'Win using only FIREWORK.'] },
-    { id: 'onlytarget', icon: '🏹', t: ['Tireur d’élite', 'Sharpshooter'], d: ['Gagne en n’utilisant que TARGET.', 'Win using only TARGET.'] },
-    { id: 'onlyauto', icon: '🤖', t: ['Pilote automatique', 'Autopilot'], d: ['Gagne en n’utilisant que AUTO.', 'Win using only AUTO.'] },
-    { id: 'allmech', icon: '🃏', t: ['Touche-à-tout', 'Jack of all trades'], d: ['Utilise BLOW, FIREWORK, TARGET et AUTO dans une même partie gagnée.', 'Use BLOW, FIREWORK, TARGET and AUTO in the same winning game.'] },
-    { id: 'double', icon: '🎳', t: ['Coup double', 'Double hit'], d: ['Accroche deux bulles avec un seul BLOW.', 'Attach two bubbles with a single BLOW.'] },
-    { id: 'boom', icon: '💥', t: ['Démolisseur', 'Demolisher'], d: ['Fais exploser 20 bulles (à 0 ou à 10).', 'Blow up 20 bubbles (at 0 or 10).'], stat: 'boom', goal: 20 },
-    { id: 'shake', icon: '📳', t: ['Secoué', 'Shaken'], d: ['Lance un calcul en secouant le téléphone (option des paramètres).', 'Trigger a calculation by shaking your phone (settings option).'] },
+    { id: 'onlyblow', p: 25, icon: '🌬️', t: ['Que du vent', 'Gone with the wind'], d: ['Gagne en n’utilisant que BLOW.', 'Win using only BLOW.'] },
+    { id: 'onlyfire', p: 50, icon: '🎆', t: ['Artificier', 'Pyrotechnician'], d: ['Gagne en n’utilisant que FIREWORK.', 'Win using only FIREWORK.'] },
+    { id: 'onlytarget', p: 25, icon: '🏹', t: ['Tireur d’élite', 'Sharpshooter'], d: ['Gagne en n’utilisant que TARGET.', 'Win using only TARGET.'] },
+    { id: 'onlyauto', p: 10, icon: '🤖', t: ['Pilote automatique', 'Autopilot'], d: ['Gagne en n’utilisant que AUTO.', 'Win using only AUTO.'] },
+    { id: 'allmech', p: 25, icon: '🃏', t: ['Touche-à-tout', 'Jack of all trades'], d: ['Utilise BLOW, FIREWORK, TARGET et AUTO dans une même partie gagnée.', 'Use BLOW, FIREWORK, TARGET and AUTO in the same winning game.'] },
+    { id: 'double', p: 50, icon: '🎳', t: ['Coup double', 'Double hit'], d: ['Accroche deux bulles avec un seul BLOW.', 'Attach two bubbles with a single BLOW.'] },
+    { id: 'boom', p: 25, icon: '💥', t: ['Démolisseur', 'Demolisher'], d: ['Fais exploser 20 bulles (à 0 ou à 10).', 'Blow up 20 bubbles (at 0 or 10).'], stat: 'boom', goal: 20 },
+    { id: 'shake', p: 10, icon: '📳', t: ['Secoué', 'Shaken'], d: ['Lance un calcul en secouant le téléphone (option des paramètres).', 'Trigger a calculation by shaking your phone (settings option).'] },
   ] },
   { cat: ['VITESSE', 'SPEED'], items: [
-    { id: 'fast30', icon: '🏃', t: ['Rapide', 'Quick'], d: ['Gagne en moins de 30 secondes.', 'Win in under 30 seconds.'] },
-    { id: 'fast10', icon: '⚡', t: ['Éclair', 'Lightning'], d: ['Gagne en moins de 10 secondes.', 'Win in under 10 seconds.'] },
-    { id: 'lastsec', icon: '⏱️', t: ['Juste à temps', 'Just in time'], d: ['Gagne avec moins de 3 secondes restantes au chrono.', 'Win with less than 3 seconds left on the clock.'] },
-    { id: 'streak3', icon: '🔥', t: ['En série', 'On a roll'], d: ['Gagne 3 parties d’affilée, sans perdre au temps entre deux.', 'Win 3 games in a row, without running out of time in between.'] },
-    { id: 'chain5', icon: '⛓️', t: ['En chaîne', 'Chain reaction'], d: ['Atteins 5 objectifs dans une partie Enchaînement.', 'Reach 5 goals in a Chain game.'] },
-    { id: 'chain15', icon: '🚂', t: ['Locomotive', 'Locomotive'], d: ['Atteins 15 objectifs dans une partie Enchaînement.', 'Reach 15 goals in a Chain game.'] },
+    { id: 'fast30', p: 10, icon: '🏃', t: ['Rapide', 'Quick'], d: ['Gagne en moins de 30 secondes.', 'Win in under 30 seconds.'] },
+    { id: 'fast10', p: 50, icon: '⚡', t: ['Éclair', 'Lightning'], d: ['Gagne en moins de 10 secondes.', 'Win in under 10 seconds.'] },
+    { id: 'lastsec', p: 50, icon: '⏱️', t: ['Juste à temps', 'Just in time'], d: ['Gagne avec moins de 3 secondes restantes au chrono.', 'Win with less than 3 seconds left on the clock.'] },
+    { id: 'streak3', p: 25, icon: '🔥', t: ['En série', 'On a roll'], d: ['Gagne 3 parties d’affilée, sans perdre au temps entre deux.', 'Win 3 games in a row, without running out of time in between.'] },
+    { id: 'chain5', p: 25, icon: '⛓️', t: ['En chaîne', 'Chain reaction'], d: ['Atteins 5 objectifs dans une partie Enchaînement.', 'Reach 5 goals in a Chain game.'] },
+    { id: 'chain15', p: 100, icon: '🚂', t: ['Locomotive', 'Locomotive'], d: ['Atteins 15 objectifs dans une partie Enchaînement.', 'Reach 15 goals in a Chain game.'] },
   ] },
   { cat: ['DÉFIS', 'CHALLENGES'], items: [
-    { id: 'expert', icon: '🧗', t: ['Expert', 'Expert'], d: ['Gagne en mode expert.', 'Win in expert mode.'] },
-    { id: 'range', icon: '💪', t: ['Costaud', 'Strong'], d: ['Gagne avec un objectif entre 100 et 999.', 'Win with a goal between 100 and 999.'] },
-    { id: 'range10', icon: '🦾', t: ['Titan', 'Titan'], d: ['Gagne 10 parties avec un objectif entre 100 et 999.', 'Win 10 games with a goal between 100 and 999.'], stat: 'big', goal: 10 },
-    { id: 'hardcore', icon: '🐉', t: ['Sans filet', 'No safety net'], d: ['Gagne en mode expert, objectif entre 100 et 999, sans indice.', 'Win in expert mode, goal between 100 and 999, without a hint.'] },
-    { id: 'themes5', icon: '🌍', t: ['Globe-trotter', 'Globetrotter'], d: ['Gagne dans 5 ambiances différentes.', 'Win in 5 different themes.'], stat: 'themes', goal: 5 },
-    { id: 'themesAll', icon: '🎨', t: ['Collectionneur', 'Collector'], d: ['Gagne dans toutes les ambiances.', 'Win in every theme.'], stat: 'themes', goal: Object.keys(THEMES).length },
-    { id: 'halloween', icon: '🎃', t: ['Frissons', 'Chills'], d: ['Gagne une partie dans l’ambiance Halloween.', 'Win a game in the Halloween theme.'] },
+    { id: 'expert', p: 50, icon: '🧗', t: ['Expert', 'Expert'], d: ['Gagne en mode expert.', 'Win in expert mode.'] },
+    { id: 'range', p: 50, icon: '💪', t: ['Costaud', 'Strong'], d: ['Gagne avec un objectif entre 100 et 999.', 'Win with a goal between 100 and 999.'] },
+    { id: 'range10', p: 100, icon: '🦾', t: ['Titan', 'Titan'], d: ['Gagne 10 parties avec un objectif entre 100 et 999.', 'Win 10 games with a goal between 100 and 999.'], stat: 'big', goal: 10 },
+    { id: 'hardcore', p: 100, icon: '🐉', t: ['Sans filet', 'No safety net'], d: ['Gagne en mode expert, objectif entre 100 et 999, sans indice.', 'Win in expert mode, goal between 100 and 999, without a hint.'] },
+    { id: 'themes5', p: 50, icon: '🌍', t: ['Globe-trotter', 'Globetrotter'], d: ['Gagne dans 5 ambiances différentes.', 'Win in 5 different themes.'], stat: 'themes', goal: 5 },
+    { id: 'themesAll', p: 100, icon: '🎨', t: ['Collectionneur', 'Collector'], d: ['Gagne dans toutes les ambiances.', 'Win in every theme.'], stat: 'themes', goal: Object.keys(THEMES).length },
+    { id: 'halloween', p: 25, icon: '🎃', t: ['Frissons', 'Chills'], d: ['Gagne une partie dans l’ambiance Halloween.', 'Win a game in the Halloween theme.'] },
   ] },
 ];
 const ACH_LIST = ACH.flatMap((c) => c.items);
@@ -3373,7 +3420,7 @@ const Ach = (() => {
     const a = ACH_LIST.find((x) => x.id === id);
     if (!a) return;
     got[id] = new Date().toISOString().slice(0, 10); store.set('ach', got);
-    fresh.push(a); queue.push(a); nextToast(); syncCount();
+    fresh.push(a); queue.push(a); nextToast(); syncCount(); syncPi();
   }
   const count = (k) => (k === 'themes' ? (st.themes || []).length : st[k] || 0);
   function check(k) { for (const a of ACH_LIST) if (a.stat === k && count(k) >= a.goal) unlock(a.id); }
@@ -3385,8 +3432,8 @@ const Ach = (() => {
     const list = queue.splice(0), a = list[0], box = $('#achToast');
     showing = true;
     box.innerHTML = list.length === 1
-      ? `<span class="ic">${a.icon}</span><span><span class="k">${L('SUCCÈS DÉBLOQUÉ', 'ACHIEVEMENT UNLOCKED')}</span><span class="t">${tr(a.t)}</span></span>`
-      : `<span class="ic">${list.slice(0, 3).map((x) => x.icon).join('')}</span><span><span class="k">${L(`${list.length} SUCCÈS DÉBLOQUÉS`, `${list.length} ACHIEVEMENTS UNLOCKED`)}</span><span class="t">${tr(a.t)} ${L(`et ${list.length - 1} autre${list.length > 2 ? 's' : ''}`, `and ${list.length - 1} more`)}</span></span>`;
+      ? `<span class="ic">${a.icon}</span><span><span class="k">${L('SUCCÈS DÉBLOQUÉ', 'ACHIEVEMENT UNLOCKED')} · +${a.p} π</span><span class="t">${tr(a.t)}</span></span>`
+      : `<span class="ic">${list.slice(0, 3).map((x) => x.icon).join('')}</span><span><span class="k">${L(`${list.length} SUCCÈS DÉBLOQUÉS`, `${list.length} ACHIEVEMENTS UNLOCKED`)} · +${list.reduce((n, x) => n + x.p, 0)} π</span><span class="t">${tr(a.t)} ${L(`et ${list.length - 1} autre${list.length > 2 ? 's' : ''}`, `and ${list.length - 1} more`)}</span></span>`;
     box.hidden = false; box.classList.remove('out'); void box.offsetWidth;
     Sfx.achieve();
     setTimeout(() => { box.classList.add('out'); }, 2400);
@@ -3395,17 +3442,18 @@ const Ach = (() => {
   function syncCount() { const n = Object.keys(got).length; $('#achCount').textContent = `${n}/${ACH_LIST.length}`; }
   function render() {
     const n = Object.keys(got).length, fmt = (d) => new Date(d + 'T12:00:00').toLocaleDateString(LOCALE(), { day: 'numeric', month: 'short' });
-    $('#achSum').innerHTML = `<span><b>${n}</b> / ${ACH_LIST.length} ${L('débloqués', 'unlocked')}</span><span class="ach-bar"><i style="width:${(n / ACH_LIST.length) * 100}%"></i></span>`;
+    $('#achSum').innerHTML = `<span><b>${n}</b> / ${ACH_LIST.length} ${L('débloqués', 'unlocked')} · <b>${Ach.points()} π</b> ${L('gagnés', 'earned')}</span><span class="ach-bar"><i style="width:${(n / ACH_LIST.length) * 100}%"></i></span>`;
     $('#achBody').innerHTML = ACH.map((c) => `<div class="ach-cat">${tr(c.cat)}</div><div class="ach-list">${c.items.map((a) => {
       const on = !!got[a.id], p = a.goal ? Math.min(a.goal, count(a.stat)) : 0;
       const right = on ? `✓ ${fmt(got[a.id])}` : a.goal ? `${p}/${a.goal}` : '';
       const bar = a.goal && !on ? `<span class="ach-bar"><i style="width:${(p / a.goal) * 100}%"></i></span>` : '';
-      return `<div class="ach${on ? ' on' : ''}"><span class="ic">${a.icon}</span><span><span class="t">${tr(a.t)}</span><span class="d">${tr(a.d)}</span>${bar}</span><span class="st">${right}</span></div>`;
+      return `<div class="ach${on ? ' on' : ''}"><span class="ic">${a.icon}</span><span><span class="t">${tr(a.t)}</span><span class="d">${tr(a.d)}</span>${bar}</span><span class="st">${right}<em class="pts">${on ? '+' : ''}${a.p} π</em></span></div>`;
     }).join('')}</div>`).join('');
   }
   return {
     unlock, stat, render, syncCount,
-    newRun() { fresh = []; G.run = { used: new Set(), errors: 0, swaps: 0, blows: {} }; },
+    points: () => ACH_LIST.reduce((n, a) => n + (got[a.id] ? a.p : 0), 0),
+    newRun() { fresh = []; G.run = { used: new Set(), errors: 0, swaps: 0, blows: {}, pi: 0 }; },
     fresh: () => fresh.slice(),
     use(m) { if (playing() && !G.over && G.run) G.run.used.add(m); },
     brick(v) {
@@ -3455,6 +3503,48 @@ const Ach = (() => {
     },
   };
 })();
+
+/* ================= Les π ================= */
+// Gagnés avec les succès (selon leur difficulté) et +1 par victoire ou objectif d'Enchaînement, dépensés en ambiances.
+// Solde = succès + bonus − dépensé ; seul Néon est offert (et l'ambiance qu'utilisaient les joueurs d'avant).
+const THEME_PRICE = { neon: 0, craie: 50, paper: 50, aqua: 100, candy: 100, pixel: 100, space: 150, bauhaus: 150, billiard: 150, halloween: 150, japan: 200 };
+if (store.get('owned', null) === null) {
+  const da = store.get('da', 'neon');
+  store.set('owned', da !== 'neon' && THEMES[da] ? ['neon', da] : ['neon']);
+}
+const Pi = {
+  owned: () => store.get('owned', ['neon']),
+  has: (id) => id === 'neon' || Pi.owned().includes(id),
+  balance: () => Math.max(0, Ach.points() + store.get('piBonus', 0) - store.get('piSpent', 0)),
+  bonus(n) {
+    if (!G.running) return;
+    store.set('piBonus', store.get('piBonus', 0) + n);
+    if (G.run) G.run.pi = (G.run.pi || 0) + n;
+    syncPi();
+  },
+  buy(id) {
+    const price = THEME_PRICE[id] || 0;
+    if (Pi.has(id) || Pi.balance() < price) return false;
+    store.set('piSpent', store.get('piSpent', 0) + price);
+    store.set('owned', [...Pi.owned(), id]);
+    syncPi();
+    return true;
+  },
+};
+if (!Pi.has(store.get('da', 'neon'))) store.set('da', 'neon');
+// compteur de l'accueil, solde des paramètres, cadenas et prix des ambiances
+function syncPi() {
+  const n = Pi.balance();
+  $('#piVal').textContent = n;
+  $('#piBal').textContent = `${n} π`;
+  document.querySelectorAll('.da-grid button').forEach((b) => {
+    const id = b.dataset.da, locked = !Pi.has(id);
+    b.classList.toggle('locked', locked);
+    let pr = b.querySelector('.price');
+    if (locked && !pr) { pr = document.createElement('em'); pr.className = 'price'; b.appendChild(pr); }
+    if (pr) { if (locked) pr.textContent = `🔒 ${THEME_PRICE[id]} π`; else pr.remove(); }
+  });
+}
 
 /* ================= High scores (locaux) ================= */
 const HS_MAX = 10;
@@ -3641,6 +3731,7 @@ function showEnd() {
   }
   const fr = Ach.fresh();
   if (fr.length) $('#endText').insertAdjacentHTML('beforeend', `<span class="ach-line">${fr.map((a) => `<span>${a.icon} ${tr(a.t)}</span>`).join('')}</span>`);
+  $('#endText').insertAdjacentHTML('beforeend', endPiLine(fr));
   renderCalc();
   $('#end').classList.toggle('win', G.won);
   $('#end').hidden = false;
@@ -3662,12 +3753,18 @@ function showChainEnd() {
     : L(`Aucun objectif atteint en ${fmtDur(dur)}. Le dernier était <b>${G.goal}</b>. Retente ta chance.`, `No goal reached in ${fmtDur(dur)}. The last one was <b>${G.goal}</b>. Give it another try.`);
   const fr = Ach.fresh();
   if (fr.length) $('#endText').insertAdjacentHTML('beforeend', `<span class="ach-line">${fr.map((a) => `<span>${a.icon} ${tr(a.t)}</span>`).join('')}</span>`);
+  $('#endText').insertAdjacentHTML('beforeend', endPiLine(fr));
   const box = $('#endCalc');
   box.innerHTML = n ? `<div class="k">${L('LES OBJECTIFS ATTEINTS', 'GOALS REACHED')}</div><div class="chain-list">${c.list.map((x) => `<span><b>${x.goal}</b> ${L('en', 'in')} ${x.ops} op.</span>`).join('')}</div>` : '';
   box.hidden = !n;
   $('#end').classList.toggle('win', n > 0);
   $('#end').hidden = false;
   $('#againBtn').focus({ preventScroll: true });
+}
+// « +36 π » sous le texte de fin : succès de la partie + bonus de victoire
+function endPiLine(fr) {
+  const n = fr.reduce((s, a) => s + a.p, 0) + ((G.run && G.run.pi) || 0);
+  return n ? `<span class="pi-line">+${n} π <small>· ${L('total', 'total')} ${Pi.balance()} π</small></span>` : '';
 }
 const fmtDur = (t) => (t >= 60 ? `${t / 60} minute${t > 60 ? 's' : ''}` : `${t} s`);
 const ordEn = (n) => n + ((n % 100 >= 11 && n % 100 <= 13) ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th');
@@ -5576,6 +5673,7 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (!$('#langAsk').hidden) return;   // choix de la langue : seuls ses deux boutons répondent
+  if (preview) { if (k === 'Escape') endPreview(false); return; }   // aperçu d'une ambiance
   const homeOpen = !$('#home').hidden, endOpen = !$('#end').hidden;
   if (document.querySelector('.overlay.sub:not([hidden])')) {
     if (k === 'Escape') closeSheets();
@@ -5670,18 +5768,56 @@ function askLang() {
 
 /* ================= Démarrage ================= */
 applyTheme(effectiveTheme());
-document.querySelectorAll('.da-switch button').forEach((b) => b.addEventListener('click', () => {
-  Sfx.init(); applyTheme(b.dataset.da); store.set('da', b.dataset.da);
+function chooseTheme(id) {
+  applyTheme(id); store.set('da', id);
   // choisir une autre ambiance pendant la saison coupe l'ambiance de saison
-  if (seasonTheme() && store.get('season', false) && b.dataset.da !== seasonTheme()) { store.set('season', false); syncOptions(); }
+  if (seasonTheme() && store.get('season', false) && id !== seasonTheme()) { store.set('season', false); syncOptions(); }
+}
+// ambiance pas encore achetée : aperçu en plein écran, puis ACHETER ou RETOUR
+let preview = null;
+function startPreview(id) {
+  preview = { id };
+  closeSheets();
+  applyTheme(id);
+  document.documentElement.classList.add('previewing');
+  const price = THEME_PRICE[id], have = Pi.balance(), miss = price - have, buy = $('#pvBuy');
+  $('#pvName').textContent = document.querySelector(`.da-grid [data-da="${id}"] > span`).textContent;
+  $('#pvHave').textContent = L(`Tu as ${have} π`, `You have ${have} π`);
+  buy.disabled = miss > 0;
+  buy.textContent = miss > 0 ? L(`IL TE MANQUE ${miss} π`, `${miss} π MISSING`) : L(`ACHETER · ${price} π`, `BUY · ${price} π`);
+  $('#previewBar').hidden = false;
+  (miss > 0 ? $('#pvBack') : buy).focus({ preventScroll: true });
+}
+function endPreview(bought) {
+  if (!preview) return;
+  const id = preview.id;
+  preview = null;
+  $('#previewBar').hidden = true;
+  document.documentElement.classList.remove('previewing');
+  if (bought) {
+    chooseTheme(id);
+    Sfx.win(); for (let k = 0; k < 3; k++) setTimeout(fireworkShow, k * 260);
+    $('#playBtn').focus({ preventScroll: true });
+  } else {
+    applyTheme(effectiveTheme());
+    openSheet('#settings');
+  }
+}
+$('#pvBuy').addEventListener('click', () => { Sfx.init(); if (preview && Pi.buy(preview.id)) endPreview(true); });
+$('#pvBack').addEventListener('click', () => { Sfx.init(); Sfx.tick(); endPreview(false); });
+document.querySelectorAll('.da-switch button').forEach((b) => b.addEventListener('click', () => {
+  Sfx.init();
+  if (Pi.has(b.dataset.da)) chooseTheme(b.dataset.da); else startPreview(b.dataset.da);
   Sfx.tick();
 }));
+onBtn('#piChip', () => { openSheet('#settings'); Sfx.tick(); });
 // le fond (date écrite à la craie) est redessiné une fois les polices chargées
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => buildGrid());
 new ResizeObserver(resize).observe(field);
 resize();
 selectTime(G.timeLimit === 60 || G.timeLimit === 300 || G.timeLimit === 600 || G.timeLimit === 0 ? G.timeLimit : 600);
 applyLang(LANG, false);   // + son, réglages, mode
+syncPi();
 if (!langAsked) askLang();
 Ach.syncCount();
 $('#goalVal').textContent = G.goal;
