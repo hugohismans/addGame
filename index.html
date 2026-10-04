@@ -497,6 +497,9 @@ kbd {
   background: radial-gradient(circle at 34% 28%, #fff8cf 0, #ffd84f 38%, #eaa513 78%, #c98400 100%);
   border: .09em solid #b07205; box-shadow: inset 0 -.1em 0 rgba(120, 70, 0, .25), 0 0 .35em rgba(255, 200, 60, .35);
 }
+.amt { display: inline-flex; align-items: center; white-space: nowrap; vertical-align: middle; line-height: 1; }
+.amt .coin { vertical-align: 0; }
+.da-grid .price, .ach .pts, .pi-bal { display: inline-flex; align-items: center; gap: .3em; }
 .coin.fly { position: fixed; left: 0; top: 0; z-index: 70; margin: 0; font-size: 24px; pointer-events: none; }
 #walletFloat.wallet-float { position: fixed; z-index: 60; top: calc(84px + env(safe-area-inset-top, 0px)); left: max(12px, env(safe-area-inset-left, 0px)); display: flex; align-items: center; transition: opacity .3s, transform .3s; animation: achIn .35s cubic-bezier(.3, 1.4, .5, 1); }
 .wallet-float.out { opacity: 0; transform: translateY(-8px); }
@@ -3448,8 +3451,8 @@ const Ach = (() => {
     const list = queue.splice(0), a = list[0], box = $('#achToast');
     showing = true;
     box.innerHTML = list.length === 1
-      ? `<span class="ic">${a.icon}</span><span><span class="k">${L('SUCCÈS DÉBLOQUÉ', 'ACHIEVEMENT UNLOCKED')} · +${a.p}${COIN}</span><span class="t">${tr(a.t)}</span></span>`
-      : `<span class="ic">${list.slice(0, 3).map((x) => x.icon).join('')}</span><span><span class="k">${L(`${list.length} SUCCÈS DÉBLOQUÉS`, `${list.length} ACHIEVEMENTS UNLOCKED`)} · +${list.reduce((n, x) => n + x.p, 0)}${COIN}</span><span class="t">${tr(a.t)} ${L(`et ${list.length - 1} autre${list.length > 2 ? 's' : ''}`, `and ${list.length - 1} more`)}</span></span>`;
+      ? `<span class="ic">${a.icon}</span><span><span class="k">${L('SUCCÈS DÉBLOQUÉ', 'ACHIEVEMENT UNLOCKED')} · ${amt('+' + a.p)}</span><span class="t">${tr(a.t)}</span></span>`
+      : `<span class="ic">${list.slice(0, 3).map((x) => x.icon).join('')}</span><span><span class="k">${L(`${list.length} SUCCÈS DÉBLOQUÉS`, `${list.length} ACHIEVEMENTS UNLOCKED`)} · ${amt('+' + list.reduce((n, x) => n + x.p, 0))}</span><span class="t">${tr(a.t)} ${L(`et ${list.length - 1} autre${list.length > 2 ? 's' : ''}`, `and ${list.length - 1} more`)}</span></span>`;
     box.hidden = false; box.classList.remove('out'); void box.offsetWidth;
     Sfx.achieve();
     // les π du succès partent de l'icône du bandeau
@@ -3460,12 +3463,12 @@ const Ach = (() => {
   function syncCount() { const n = Object.keys(got).length; $('#achCount').textContent = `${n}/${ACH_LIST.length}`; }
   function render() {
     const n = Object.keys(got).length, fmt = (d) => new Date(d + 'T12:00:00').toLocaleDateString(LOCALE(), { day: 'numeric', month: 'short' });
-    $('#achSum').innerHTML = `<span><b>${n}</b> / ${ACH_LIST.length} ${L('débloqués', 'unlocked')} · <b>${Ach.points()}</b>${COIN} ${L('gagnés', 'earned')}</span><span class="ach-bar"><i style="width:${(n / ACH_LIST.length) * 100}%"></i></span>`;
+    $('#achSum').innerHTML = `<span><b>${n}</b> / ${ACH_LIST.length} ${L('débloqués', 'unlocked')} · <b>${amt(Ach.points())}</b> ${L('gagnés', 'earned')}</span><span class="ach-bar"><i style="width:${(n / ACH_LIST.length) * 100}%"></i></span>`;
     $('#achBody').innerHTML = ACH.map((c) => `<div class="ach-cat">${tr(c.cat)}</div><div class="ach-list">${c.items.map((a) => {
       const on = !!got[a.id], p = a.goal ? Math.min(a.goal, count(a.stat)) : 0;
       const right = on ? `✓ ${fmt(got[a.id])}` : a.goal ? `${p}/${a.goal}` : '';
       const bar = a.goal && !on ? `<span class="ach-bar"><i style="width:${(p / a.goal) * 100}%"></i></span>` : '';
-      return `<div class="ach${on ? ' on' : ''}"><span class="ic">${a.icon}</span><span><span class="t">${tr(a.t)}</span><span class="d">${tr(a.d)}</span>${bar}</span><span class="st">${right}<em class="pts">${on ? '+' : ''}${a.p}${COIN}</em></span></div>`;
+      return `<div class="ach${on ? ' on' : ''}"><span class="ic">${a.icon}</span><span><span class="t">${tr(a.t)}</span><span class="d">${tr(a.d)}</span>${bar}</span><span class="st">${right}<em class="pts">${amt((on ? '+' : '') + a.p)}</em></span></div>`;
     }).join('')}</div>`).join('');
   }
   return {
@@ -3524,6 +3527,8 @@ const Ach = (() => {
 
 /* ================= Les π ================= */
 const COIN = '<i class="coin">π</i>';
+// le nombre et sa pièce, centrés l'un sur l'autre (la pièce est plus haute que les chiffres)
+const amt = (n) => `<span class="amt">${n}${COIN}</span>`;
 // Gagnés avec les succès (selon leur difficulté) et +1 par victoire ou objectif d'Enchaînement, dépensés en ambiances.
 // Solde = succès + bonus − dépensé ; seul Néon est offert (et l'ambiance qu'utilisaient les joueurs d'avant).
 const THEME_PRICE = { neon: 0, craie: 50, paper: 50, aqua: 100, candy: 100, pixel: 100, space: 150, bauhaus: 150, billiard: 150, halloween: 150, japan: 200 };
@@ -3597,13 +3602,13 @@ function coinFly(x, y, amount) {
 function syncPi() {
   const n = Pi.balance();
   showPi(n - piPending);
-  $('#piBal').innerHTML = `${n}${COIN}`;
+  $('#piBal').innerHTML = amt(n);
   document.querySelectorAll('.da-grid button').forEach((b) => {
     const id = b.dataset.da, locked = !Pi.has(id);
     b.classList.toggle('locked', locked);
     let pr = b.querySelector('.price');
     if (locked && !pr) { pr = document.createElement('em'); pr.className = 'price'; b.appendChild(pr); }
-    if (pr) { if (locked) pr.innerHTML = `🔒 ${THEME_PRICE[id]}${COIN}`; else pr.remove(); }
+    if (pr) { if (locked) pr.innerHTML = `🔒 ${amt(THEME_PRICE[id])}`; else pr.remove(); }
   });
 }
 
@@ -3825,7 +3830,7 @@ function showChainEnd() {
 // « +36 π » sous le texte de fin : succès de la partie + bonus de victoire
 function endPiLine(fr) {
   const n = fr.reduce((s, a) => s + a.p, 0) + ((G.run && G.run.pi) || 0);
-  return n ? `<span class="pi-line">+${n}${COIN} <small>· ${L('total', 'total')} ${Pi.balance()}${COIN}</small></span>` : '';
+  return n ? `<span class="pi-line">${amt('+' + n)} <small>· ${L('total', 'total')} ${amt(Pi.balance())}</small></span>` : '';
 }
 const fmtDur = (t) => (t >= 60 ? `${t / 60} minute${t > 60 ? 's' : ''}` : `${t} s`);
 const ordEn = (n) => n + ((n % 100 >= 11 && n % 100 <= 13) ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th');
@@ -5843,9 +5848,9 @@ function startPreview(id) {
   document.documentElement.classList.add('previewing');
   const price = THEME_PRICE[id], have = Pi.balance(), miss = price - have, buy = $('#pvBuy');
   $('#pvName').textContent = document.querySelector(`.da-grid [data-da="${id}"] > span`).textContent;
-  $('#pvHave').innerHTML = L(`Tu as ${have}${COIN}`, `You have ${have}${COIN}`);
+  $('#pvHave').innerHTML = L(`Tu as ${amt(have)}`, `You have ${amt(have)}`);
   buy.disabled = miss > 0;
-  buy.innerHTML = miss > 0 ? L(`IL TE MANQUE ${miss}${COIN}`, `${miss}${COIN} MISSING`) : L(`ACHETER · ${price}${COIN}`, `BUY · ${price}${COIN}`);
+  buy.innerHTML = miss > 0 ? L(`IL TE MANQUE ${amt(miss)}`, `${amt(miss)} MISSING`) : L(`ACHETER · ${amt(price)}`, `BUY · ${amt(price)}`);
   $('#previewBar').hidden = false;
   (miss > 0 ? $('#pvBack') : buy).focus({ preventScroll: true });
 }
