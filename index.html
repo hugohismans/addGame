@@ -931,25 +931,26 @@ html[data-da="craie"] #goalFly .hint { font-family: var(--f-ui); font-size: 16px
 .chain-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .chain-list span { font-family: var(--f-display); font-size: 13px; padding: 2px 9px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--orange) 50%, transparent); color: var(--ice); }
 .chain-list span b { color: var(--orange); }
-.age-pick { width: 100%; display: grid; gap: 6px; }
-.age-lbl { font-family: var(--f-display); font-size: 10px; letter-spacing: .2em; color: var(--muted); }
-.age-row { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px; }
-.age-row button {
-  display: grid; gap: 2px; justify-items: center; align-content: center; padding: 6px 1px 5px; min-width: 0;
+.lvl-pick { width: 100%; display: grid; gap: 6px; }
+.lvl-lbl { font-family: var(--f-display); font-size: 10px; letter-spacing: .2em; color: var(--muted); }
+.lvl-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.lvl-row button {
+  display: grid; gap: 3px; justify-items: center; align-content: center; padding: 6px 1px 6px; min-width: 0;
   border: 1px solid var(--line); border-radius: 8px; background: rgba(127, 127, 127, .07); color: var(--muted);
 }
-.age-row b { font-family: var(--f-display); font-size: 12px; letter-spacing: .04em; white-space: nowrap; }
-.age-row small { font-size: 10px; line-height: 1.2; white-space: nowrap; max-width: 100%; overflow: hidden; }
-.age-row small i { display: block; font-style: normal; }
-.age-row button[aria-checked="true"] { border-color: var(--cyan); color: var(--ice); background: color-mix(in srgb, var(--cyan) 12%, transparent); }
-.age-row button[aria-checked="true"] b { color: var(--cyan); }
-html[data-skin] .age-row button { border-radius: var(--rad); }
-html[data-da="pixel"] .age-row b { font-size: 10px; font-weight: 700; } html[data-da="pixel"] .age-row small { font-size: 13px; line-height: 1; }
-html[data-da="craie"] .age-row button { border: 2px solid rgba(246, 246, 238, .35); background: transparent; }
-html[data-da="craie"] .age-row b { font-family: var(--f-ui); font-size: 15px; } html[data-da="craie"] .age-row small { font-family: var(--f-ui); font-size: 12px; }
+.lvl-row b { font-size: 24px; line-height: 1; font-weight: 400; filter: grayscale(.55); opacity: .75; transition: filter .2s, opacity .2s, transform .2s; }
+.lvl-row small { font-size: 10px; line-height: 1.2; white-space: nowrap; max-width: 100%; overflow: hidden; }
+.lvl-row small i { display: block; font-style: normal; }
+.lvl-row button[aria-checked="true"] { border-color: var(--cyan); color: var(--ice); background: color-mix(in srgb, var(--cyan) 12%, transparent); }
+.lvl-row button[aria-checked="true"] b, .lvl-row button:hover b { filter: none; opacity: 1; }
+.lvl-row button[aria-checked="true"] b { transform: scale(1.12); }
+html[data-skin] .lvl-row button { border-radius: var(--rad); }
+html[data-da="pixel"] .lvl-row small { font-size: 13px; line-height: 1; }
+html[data-da="craie"] .lvl-row button { border: 2px solid rgba(246, 246, 238, .35); background: transparent; }
+html[data-da="craie"] .lvl-row small { font-family: var(--f-ui); font-size: 12px; }
 /* écran bas (paysage) : une seule ligne de détail */
 @media (max-height: 520px) {
-  .age-row small i { display: inline; margin-left: .45em; } .age-row small { font-size: 9px; } .age-row button { padding: 4px 1px; } .age-lbl { display: none; }
+  .lvl-row button { grid-template-columns: auto auto; justify-content: center; align-items: center; column-gap: 6px; padding: 4px 2px; } .lvl-row small { font-size: 9.5px; text-align: left; } .lvl-row b { font-size: 20px; } .lvl-lbl { display: none; }
   .hero { gap: 8px; } .logo { font-size: 46px; }
 }
 @media (max-height: 520px) { .hero .demo { display: none; } .mode-pick button { padding: 5px 8px; } .mode-pick span { font-size: 10.5px; } }
@@ -1146,9 +1147,9 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
         <button id="modeClassic" role="radio" data-chain="0" aria-checked="true"><b data-en="CLASSIC">CLASSIQUE</b><span data-en="One goal, as fast as you can">Un objectif, le plus vite possible</span></button>
         <button id="modeChain" role="radio" data-chain="1" aria-checked="false"><b data-en="CHAIN">ENCHAÎNEMENT</b><span data-en="As many goals as you can before time runs out">Le plus d'objectifs avant la fin du chrono</span></button>
       </div>
-      <div class="age-pick">
-        <div class="age-lbl" id="ageLbl" data-en="AGE PRESETS">PRÉ-RÉGLAGES PAR ÂGE</div>
-        <div class="age-row" role="radiogroup" aria-labelledby="ageLbl"></div>
+      <div class="lvl-pick">
+        <div class="lvl-lbl" id="lvlLbl" data-en="PRESETS">PRÉ-RÉGLAGES</div>
+        <div class="lvl-row" role="radiogroup" aria-labelledby="lvlLbl"></div>
       </div>
       <div class="playrow">
         <input id="nameInput" type="text" maxlength="12" data-en-ph="Your name" data-en-aria="Name for the high scores" placeholder="Ton pseudo" aria-label="Pseudo pour les high scores" autocomplete="nickname" spellcheck="false">
@@ -1270,7 +1271,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
           <li data-en="The &lt;span class=&quot;b-cyan&quot;&gt;bubbles&lt;/span&gt; are worth 1 to 9: the 1 is small and fast, the 9 big and slow. When two bubbles touch, one gains 1 and the other loses 1, never giving back the same pair (7 and 6 become 8 and 5), then they bounce off like billiard balls. A bubble that reaches 0 or 10 explodes.">Les <span class="b-cyan">bulles</span> valent de 1 à 9 : le 1 est petit et rapide, le 9 gros et lent. Quand deux bulles se touchent, l'une gagne 1 et l'autre perd 1, sans jamais redonner la même paire (7 et 6 deviennent 8 et 5), puis elles rebondissent comme des billes de billard. Une bulle 0 ou 10 explose.</li>
           <li data-en="A bubble that touches the operator in the middle sticks to it. For &lt;b&gt;−&lt;/b&gt; and &lt;b&gt;÷&lt;/b&gt;, the side matters: left or top first, right or bottom second. The &lt;b&gt;⇄&lt;/b&gt; button, or a swipe on the operator, turns it half a turn to swap the sides.">Une bulle qui touche l'opérateur au centre s'y accroche. Pour <b>−</b> et <b>÷</b>, le côté compte : gauche ou haut d'abord, droite ou bas ensuite. Le bouton <b>⇄</b>, ou un glissé du doigt sur l'opérateur, le fait pivoter d'un demi-tour pour inverser les côtés.</li>
           <li data-en="Change the operation by tapping the operator or with &lt;b&gt;⟳&lt;/b&gt;, then &lt;b&gt;hold your finger on the operator&lt;/b&gt; (or press &lt;b class=&quot;b-orange&quot;&gt;=&lt;/b&gt;) to get a &lt;span class=&quot;b-orange&quot;&gt;brick&lt;/span&gt;. In the settings: shake your phone to calculate. No negative results, and divisions must come out even.">Change d'opération en touchant l'opérateur ou avec <b>⟳</b>, puis <b>garde le doigt sur l'opérateur</b> (ou appuie sur <b class="b-orange">=</b>) pour obtenir une <span class="b-orange">brique</span>. Dans les paramètres : secouer le téléphone pour calculer. Pas de résultat négatif ni de division qui tombe pas juste.</li>
-          <li data-en="Win by making a brick equal to the goal, in as few operations as possible: every = counts. The best games go into the &lt;b&gt;high scores&lt;/b&gt;. In the settings, pick a goal between &lt;b&gt;1 and 99&lt;/b&gt;, between &lt;b&gt;100 and 999&lt;/b&gt; for a challenge, or a &lt;b&gt;custom&lt;/b&gt; range (say 10 to 30). On the home screen, the &lt;b&gt;age presets&lt;/b&gt; (age 6 to 12+) set the operations and the goal in one tap.">Gagne en créant une brique égale à l'objectif, en le moins d'opérations possible : chaque = compte. Les meilleures parties vont dans les <b>high scores</b>. Dans les paramètres, choisis un objectif entre <b>1 et 99</b>, entre <b>100 et 999</b> pour corser le jeu, ou <b>au choix</b> (par exemple de 10 à 30). Sur l'accueil, les <b>pré-réglages par âge</b> (de 6 ans à 12+) choisissent les opérations et l'objectif en un geste.</li>
+          <li data-en="Win by making a brick equal to the goal, in as few operations as possible: every = counts. The best games go into the &lt;b&gt;high scores&lt;/b&gt;. In the settings, pick a goal between &lt;b&gt;1 and 99&lt;/b&gt;, between &lt;b&gt;100 and 999&lt;/b&gt; for a challenge, or a &lt;b&gt;custom&lt;/b&gt; range (say 10 to 30). On the home screen, the &lt;b&gt;presets&lt;/b&gt; (from 🐣 to 👽) set the operations and the goal in one tap.">Gagne en créant une brique égale à l'objectif, en le moins d'opérations possible : chaque = compte. Les meilleures parties vont dans les <b>high scores</b>. Dans les paramètres, choisis un objectif entre <b>1 et 99</b>, entre <b>100 et 999</b> pour corser le jeu, ou <b>au choix</b> (par exemple de 10 à 30). Sur l'accueil, les <b>pré-réglages</b> (du 🐣 au 👽) choisissent les opérations et l'objectif en un geste.</li>
           <li data-en="&lt;b class=&quot;b-orange&quot;&gt;Chain&lt;/b&gt; mode (pick it on the home screen): reach as many goals as you can before the clock runs out (1, 5 or 10 minutes). As soon as a goal is reached, a new one appears. It has its own high scores.">Mode <b class="b-orange">Enchaînement</b> (à choisir sur l'accueil) : atteins le plus d'objectifs possible avant la fin du chrono (1, 5 ou 10 minutes). Dès qu'un objectif est atteint, un nouveau s'affiche. Il a ses propres high scores.</li>
         </ol>
         <div class="modes">
@@ -5407,17 +5408,16 @@ function setChainMode(on) {
   const inf = $('#t0'); inf.disabled = on; inf.title = on ? L('Le mode Enchaînement se joue en 1, 5 ou 10 minutes', 'Chain mode is played in 1, 5 or 10 minutes') : '';
   if (on && G.timeLimit === 0) selectTime(600);
 }
-// Pré-réglages par âge (accueil) : opérations et plage de l'objectif, mode normal (pas expert), toutes les mécaniques.
+// Pré-réglages (accueil), du poussin à l'alien : opérations et plage de l'objectif, mode normal (pas expert), toutes les mécaniques.
+// Pas d'âge affiché (vexant pour un enfant « en retard » ou un adulte débutant).
 // Le bouton allumé est celui qui correspond aux réglages en cours (aucun si on a tout réglé à la main).
 const PRESETS = [
-  { age: 6, ops: [true, true, false, false], lo: 1, hi: 20 },
-  { age: 7, ops: [true, true, false, false], lo: 1, hi: 30 },
-  { age: 8, ops: [true, true, false, false], lo: 1, hi: 50 },
-  { age: 9, ops: [true, true, true, false], lo: 1, hi: 50 },
-  { age: 10, ops: [true, true, true, true], lo: 1, hi: 50 },
-  { age: 12, ops: [true, true, true, true], lo: 1, hi: 99, plus: true },   // le mode normal, celui des réglages par défaut
+  { id: 1, icon: '🐣', ops: [true, false, false, false], lo: 1, hi: 20 },
+  { id: 2, icon: '🐰', ops: [true, true, false, false], lo: 1, hi: 30 },
+  { id: 3, icon: '🦊', ops: [true, true, true, false], lo: 1, hi: 50 },
+  { id: 4, icon: '🐯', ops: [true, true, true, true], lo: 1, hi: 99, normal: true },   // le mode normal, celui des réglages par défaut
+  { id: 5, icon: '👽', ops: [true, true, true, true], lo: 1, hi: 999 },
 ];
-const presetName = (pr) => (pr.plus ? `${pr.age}+` : L(`${pr.age} ans`, `age ${pr.age}`));
 function currentPreset() {
   const [lo, hi] = goalBounds();
   return PRESETS.find((pr) => G.easy && pr.lo === lo && pr.hi === hi && pr.ops.every((v, i) => v === G.ops[i])) || null;
@@ -5429,18 +5429,18 @@ function applyPreset(pr) {
   syncOptions();
 }
 function syncPresets() {
-  const cur = currentPreset(), row = $('.age-row');
-  row.innerHTML = PRESETS.map((pr) => `<button role="radio" data-age="${pr.age}" aria-checked="${pr === cur}"><b>${presetName(pr).toUpperCase()}</b><small>${OPS.filter((o, i) => pr.ops[i]).join(' ')}<i>${pr.lo}–${pr.hi}</i></small></button>`).join('');
+  const cur = currentPreset(), row = $('.lvl-row');
+  row.innerHTML = PRESETS.map((pr) => `<button role="radio" data-preset="${pr.id}" aria-checked="${pr === cur}" aria-label="${L('Niveau', 'Level')} ${pr.id}"><b aria-hidden="true">${pr.icon}</b><small>${OPS.filter((o, i) => pr.ops[i]).join(' ')}<i>${pr.lo}–${pr.hi}</i></small></button>`).join('');
 }
-$('.age-row').addEventListener('click', (e) => {
-  const b = e.target.closest('button[data-age]'); if (!b) return;
-  Sfx.init(); applyPreset(PRESETS.find((pr) => pr.age === +b.dataset.age)); Sfx.tick();
+$('.lvl-row').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-preset]'); if (!b) return;
+  Sfx.init(); applyPreset(PRESETS.find((pr) => pr.id === +b.dataset.preset)); Sfx.tick();
 });
 function syncSummary() {
   const t = { 60: '1 min', 300: '5 min', 600: '10 min', 0: '∞' }[G.timeLimit] || '';
   const pr = currentPreset();
   const parts = [t, OPS.filter((o, i) => G.ops[i]).join(' ')];
-  if (pr && !pr.plus) parts.unshift(presetName(pr));
+  if (pr && !pr.normal) parts.unshift(pr.icon);
   if (G.range !== 99) parts.push(rangeText());
   if (!G.easy) parts.push('Expert');
   if (G.assist) parts.push(L('Aide +', 'Assist +'));
