@@ -490,12 +490,25 @@ kbd {
 .set-btn .sum::before { content: "·"; margin-right: 8px; }
 
 /* ---------- Les π ---------- */
+/* le π dans une pièce dorée, partout où il sert d'unité */
+.coin {
+  display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; margin-left: .18em; border-radius: 50%; vertical-align: -.28em;
+  font: italic 700 .82em/1 Georgia, 'Times New Roman', serif; color: #7a4600; text-shadow: 0 1px 0 rgba(255, 246, 196, .7); letter-spacing: 0;
+  background: radial-gradient(circle at 34% 28%, #fff8cf 0, #ffd84f 38%, #eaa513 78%, #c98400 100%);
+  border: .09em solid #b07205; box-shadow: inset 0 -.1em 0 rgba(120, 70, 0, .25), 0 0 .35em rgba(255, 200, 60, .35);
+}
+.coin.fly { position: fixed; left: 0; top: 0; z-index: 70; margin: 0; font-size: 24px; pointer-events: none; }
+#walletFloat.wallet-float { position: fixed; z-index: 60; top: calc(84px + env(safe-area-inset-top, 0px)); left: max(12px, env(safe-area-inset-left, 0px)); display: flex; align-items: center; transition: opacity .3s, transform .3s; animation: achIn .35s cubic-bezier(.3, 1.4, .5, 1); }
+.wallet-float.out { opacity: 0; transform: translateY(-8px); }
+.wallet-float[hidden] { display: none; }
 .pi-chip {
   position: absolute; z-index: 1; top: calc(12px + env(safe-area-inset-top, 0px)); left: max(12px, env(safe-area-inset-left, 0px));
   height: 38px; padding: 0 14px; border: 1px solid var(--gold); border-radius: 19px; background: rgba(3, 10, 18, .6);
   font-family: var(--f-display); font-weight: 700; font-size: 15px; color: var(--gold); letter-spacing: .04em;
 }
+.pi-chip { display: inline-flex; align-items: center; }
 .pi-chip b { font-size: 16px; }
+.pi-chip .coin { font-size: 15px; margin-left: .35em; vertical-align: 0; }
 html[data-skin] .pi-chip { background: var(--panel); border-radius: calc(var(--rad) + 3px); }
 .da-lbl { display: flex; justify-content: space-between; align-items: baseline; }
 .pi-bal { color: var(--gold); letter-spacing: .1em; font-weight: 700; }
@@ -1188,7 +1201,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
   </div>
 
   <section data-en-aria="Home" id="home" class="overlay" aria-label="Accueil">
-    <button id="piChip" class="pi-chip" data-en-title="Your π: earned with achievements, they unlock themes" title="Tes π : gagnés avec les succès, ils débloquent des ambiances"><b id="piVal">0</b> π</button>
+    <button id="piChip" class="pi-chip" data-en-title="Your π: earned with achievements, they unlock themes" title="Tes π : gagnés avec les succès, ils débloquent des ambiances"><b id="piVal">0</b><i class="coin">π</i></button>
     <div class="lang-pick" role="radiogroup" aria-label="Langue · Language">
       <button role="radio" data-lang="fr" aria-checked="true" lang="fr">FR</button><button role="radio" data-lang="en" aria-checked="false" lang="en">EN</button>
     </div>
@@ -1328,7 +1341,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
           <li data-en="Win by making a brick equal to the goal, in as few operations as possible: every = counts. The best games go into the &lt;b&gt;high scores&lt;/b&gt;. In the settings, pick a goal between &lt;b&gt;1 and 99&lt;/b&gt;, between &lt;b&gt;100 and 999&lt;/b&gt; for a challenge, or a &lt;b&gt;custom&lt;/b&gt; range (say 10 to 30). On the home screen, the &lt;b&gt;presets&lt;/b&gt; (from 🐣 to 👽) set the operations and the goal in one tap.">Gagne en créant une brique égale à l'objectif, en le moins d'opérations possible : chaque = compte. Les meilleures parties vont dans les <b>high scores</b>. Dans les paramètres, choisis un objectif entre <b>1 et 99</b>, entre <b>100 et 999</b> pour corser le jeu, ou <b>au choix</b> (par exemple de 10 à 30). Sur l'accueil, les <b>pré-réglages</b> (du 🐣 au 👽) choisissent les opérations et l'objectif en un geste.</li>
           <li data-en="&lt;b class=&quot;b-orange&quot;&gt;Chain&lt;/b&gt; mode (pick it on the home screen): reach as many goals as you can before the clock runs out (1, 5 or 10 minutes). As soon as a goal is reached, a new one appears. It has its own high scores.">Mode <b class="b-orange">Enchaînement</b> (à choisir sur l'accueil) : atteins le plus d'objectifs possible avant la fin du chrono (1, 5 ou 10 minutes). Dès qu'un objectif est atteint, un nouveau s'affiche. Il a ses propres high scores.</li>
         </ol>
-        <div class="keys pi-rule" data-en="&lt;b class=&quot;b-orange&quot;&gt;π&lt;/b&gt;: every achievement earns π (10 to 100 depending on difficulty), plus 1 π per win or per Chain goal. Spend them in the &lt;b&gt;settings&lt;/b&gt; to unlock new themes: tap a locked theme to preview it."><b class="b-orange">π</b> : chaque succès rapporte des π (de 10 à 100 selon la difficulté), et chaque victoire ou objectif d’Enchaînement 1 π de plus. Dépense-les dans les <b>paramètres</b> pour débloquer de nouvelles ambiances : touche une ambiance fermée pour la voir en aperçu.</div>
+        <div class="keys pi-rule" data-en="&lt;i class=&quot;coin&quot;&gt;π&lt;/i&gt; &lt;b class=&quot;b-orange&quot;&gt;π&lt;/b&gt;: every achievement earns π (10 to 100 depending on difficulty), plus 1 π per win or per Chain goal. Spend them in the &lt;b&gt;settings&lt;/b&gt; to unlock new themes: tap a locked theme to preview it."><i class="coin">π</i> <b class="b-orange">π</b> : chaque succès rapporte des π (de 10 à 100 selon la difficulté), et chaque victoire ou objectif d’Enchaînement 1 π de plus. Dépense-les dans les <b>paramètres</b> pour débloquer de nouvelles ambiances : touche une ambiance fermée pour la voir en aperçu.</div>
         <div class="modes">
           <div data-en="&lt;b&gt;BLOW&lt;/b&gt;Tap the screen to push away everything around. Right next to the operator, it knocks off everything stuck to it."><b>BLOW</b>Touche l'écran pour repousser tout ce qui est autour. Juste à côté de l'opérateur, ça décroche tout ce qui y est accroché.</div>
           <div class="fire" data-en="&lt;b&gt;FIREWORK&lt;/b&gt;Launches a crazy rocket that zooms around for 2 to 3 seconds, knocks away everything it grazes, drops firecrackers and ends in a burst."><b>FIREWORK</b>Lance une fusée folle qui fonce 2 à 3 secondes, éjecte tout ce qu'elle frôle, lâche des pétards et finit en bouquet.</div>
@@ -1340,6 +1353,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
     </div>
   </section>
 
+  <div id="walletFloat" class="pi-chip wallet-float" aria-hidden="true" hidden><b id="walletVal">0</b><i class="coin">π</i></div>
   <div id="previewBar" class="preview-bar" role="dialog" aria-live="polite" hidden>
     <div class="pv-txt"><span class="k" data-en="PREVIEW">APERÇU</span><b id="pvName"></b><span id="pvHave" class="pv-have"></span></div>
     <div class="pv-btns"><button id="pvBack" class="ghost" data-en="Back">Retour</button><button id="pvBuy" class="big-btn small"></button></div>
@@ -1689,6 +1703,7 @@ const Sfx = (() => {
       noise({ t: .4, v: .25, f: rand(800, 1600), f2: 150, q: .7 });
     },
     timeUp() { [440, 330, 220].forEach((f, i) => tone({ type: 'square', f, t: .25, v: .08, delay: i * .18 })); },
+    coin() { tone({ type: 'square', f: 988, t: .05, v: .045 }); tone({ type: 'square', f: 1319, t: .14, v: .045, delay: .05 }); },
     achieve() { [784, 988, 1175, 1568].forEach((f, i) => tone({ type: 'triangle', f, t: .25, v: .11, delay: i * .07 })); tone({ f: 2093, t: .6, v: .05, delay: .3 }); },
   };
 
@@ -3325,7 +3340,7 @@ function win() {
   if (G.chain) { chainGoal(); return; }
   G.won = true; G.over = true; G.endT = 1.4; G.fwT = 0;
   Ach.win({ ops: G.opsCount, t: G.elapsed, hist: G.history.length });
-  if (!G.tut) Pi.bonus(1);
+  if (!G.tut) Pi.bonus(1, G.winBrick);
   $('#hintBox').hidden = true;
   G.texts.push({ text: L('OBJECTIF ATTEINT !', 'GOAL REACHED!'), x: cx, y: Math.max(H * .2, 40), t: 0, life: 2.5, c: COL.gold, size: Math.min(46, S * .11), rise: 0 });
   Sfx.win();
@@ -3336,7 +3351,7 @@ function chainGoal() {
   Ach.win({ ops: G.opsCount - c.ops0, t: G.elapsed - c.t0, hist: G.history.length - c.h0, chain: true });
   c.count++; c.list.push({ goal: G.goal, ops: G.opsCount - c.ops0 });
   Ach.chain(c.count);
-  if (!G.tut) Pi.bonus(1);
+  if (!G.tut) Pi.bonus(1, b);
   const v = $('#chainVal'); v.textContent = c.count; v.classList.remove('pop'); void v.offsetWidth; v.classList.add('pop');
   if (b && !b.dead) { burst(b.x, b.y, COL.gold, 30, BASE * 4, .7, 3); b.dead = true; }
   fireworkShow(); Sfx.win();
@@ -3420,6 +3435,7 @@ const Ach = (() => {
     const a = ACH_LIST.find((x) => x.id === id);
     if (!a) return;
     got[id] = new Date().toISOString().slice(0, 10); store.set('ach', got);
+    piPending += a.p;
     fresh.push(a); queue.push(a); nextToast(); syncCount(); syncPi();
   }
   const count = (k) => (k === 'themes' ? (st.themes || []).length : st[k] || 0);
@@ -3432,22 +3448,24 @@ const Ach = (() => {
     const list = queue.splice(0), a = list[0], box = $('#achToast');
     showing = true;
     box.innerHTML = list.length === 1
-      ? `<span class="ic">${a.icon}</span><span><span class="k">${L('SUCCÈS DÉBLOQUÉ', 'ACHIEVEMENT UNLOCKED')} · +${a.p} π</span><span class="t">${tr(a.t)}</span></span>`
-      : `<span class="ic">${list.slice(0, 3).map((x) => x.icon).join('')}</span><span><span class="k">${L(`${list.length} SUCCÈS DÉBLOQUÉS`, `${list.length} ACHIEVEMENTS UNLOCKED`)} · +${list.reduce((n, x) => n + x.p, 0)} π</span><span class="t">${tr(a.t)} ${L(`et ${list.length - 1} autre${list.length > 2 ? 's' : ''}`, `and ${list.length - 1} more`)}</span></span>`;
+      ? `<span class="ic">${a.icon}</span><span><span class="k">${L('SUCCÈS DÉBLOQUÉ', 'ACHIEVEMENT UNLOCKED')} · +${a.p}${COIN}</span><span class="t">${tr(a.t)}</span></span>`
+      : `<span class="ic">${list.slice(0, 3).map((x) => x.icon).join('')}</span><span><span class="k">${L(`${list.length} SUCCÈS DÉBLOQUÉS`, `${list.length} ACHIEVEMENTS UNLOCKED`)} · +${list.reduce((n, x) => n + x.p, 0)}${COIN}</span><span class="t">${tr(a.t)} ${L(`et ${list.length - 1} autre${list.length > 2 ? 's' : ''}`, `and ${list.length - 1} more`)}</span></span>`;
     box.hidden = false; box.classList.remove('out'); void box.offsetWidth;
     Sfx.achieve();
+    // les π du succès partent de l'icône du bandeau
+    setTimeout(() => { const ic = box.querySelector('.ic').getBoundingClientRect(); coinFly(ic.left + ic.width / 2, ic.top + ic.height / 2, list.reduce((n, x) => n + x.p, 0)); }, 450);
     setTimeout(() => { box.classList.add('out'); }, 2400);
     setTimeout(() => { box.hidden = true; showing = false; nextToast(); }, 2800);
   }
   function syncCount() { const n = Object.keys(got).length; $('#achCount').textContent = `${n}/${ACH_LIST.length}`; }
   function render() {
     const n = Object.keys(got).length, fmt = (d) => new Date(d + 'T12:00:00').toLocaleDateString(LOCALE(), { day: 'numeric', month: 'short' });
-    $('#achSum').innerHTML = `<span><b>${n}</b> / ${ACH_LIST.length} ${L('débloqués', 'unlocked')} · <b>${Ach.points()} π</b> ${L('gagnés', 'earned')}</span><span class="ach-bar"><i style="width:${(n / ACH_LIST.length) * 100}%"></i></span>`;
+    $('#achSum').innerHTML = `<span><b>${n}</b> / ${ACH_LIST.length} ${L('débloqués', 'unlocked')} · <b>${Ach.points()}</b>${COIN} ${L('gagnés', 'earned')}</span><span class="ach-bar"><i style="width:${(n / ACH_LIST.length) * 100}%"></i></span>`;
     $('#achBody').innerHTML = ACH.map((c) => `<div class="ach-cat">${tr(c.cat)}</div><div class="ach-list">${c.items.map((a) => {
       const on = !!got[a.id], p = a.goal ? Math.min(a.goal, count(a.stat)) : 0;
       const right = on ? `✓ ${fmt(got[a.id])}` : a.goal ? `${p}/${a.goal}` : '';
       const bar = a.goal && !on ? `<span class="ach-bar"><i style="width:${(p / a.goal) * 100}%"></i></span>` : '';
-      return `<div class="ach${on ? ' on' : ''}"><span class="ic">${a.icon}</span><span><span class="t">${tr(a.t)}</span><span class="d">${tr(a.d)}</span>${bar}</span><span class="st">${right}<em class="pts">${on ? '+' : ''}${a.p} π</em></span></div>`;
+      return `<div class="ach${on ? ' on' : ''}"><span class="ic">${a.icon}</span><span><span class="t">${tr(a.t)}</span><span class="d">${tr(a.d)}</span>${bar}</span><span class="st">${right}<em class="pts">${on ? '+' : ''}${a.p}${COIN}</em></span></div>`;
     }).join('')}</div>`).join('');
   }
   return {
@@ -3505,6 +3523,7 @@ const Ach = (() => {
 })();
 
 /* ================= Les π ================= */
+const COIN = '<i class="coin">π</i>';
 // Gagnés avec les succès (selon leur difficulté) et +1 par victoire ou objectif d'Enchaînement, dépensés en ambiances.
 // Solde = succès + bonus − dépensé ; seul Néon est offert (et l'ambiance qu'utilisaient les joueurs d'avant).
 const THEME_PRICE = { neon: 0, craie: 50, paper: 50, aqua: 100, candy: 100, pixel: 100, space: 150, bauhaus: 150, billiard: 150, halloween: 150, japan: 200 };
@@ -3516,11 +3535,14 @@ const Pi = {
   owned: () => store.get('owned', ['neon']),
   has: (id) => id === 'neon' || Pi.owned().includes(id),
   balance: () => Math.max(0, Ach.points() + store.get('piBonus', 0) - store.get('piSpent', 0)),
-  bonus(n) {
+  // bonus de victoire : la pièce part de la brique gagnante
+  bonus(n, it) {
     if (!G.running) return;
     store.set('piBonus', store.get('piBonus', 0) + n);
     if (G.run) G.run.pi = (G.run.pi || 0) + n;
-    syncPi();
+    piPending += n; syncPi();
+    const r = cvs.getBoundingClientRect();
+    setTimeout(() => coinFly(r.left + (it ? it.x : cx), r.top + (it ? it.y : cy), n), 300);
   },
   buy(id) {
     const price = THEME_PRICE[id] || 0;
@@ -3532,17 +3554,56 @@ const Pi = {
   },
 };
 if (!Pi.has(store.get('da', 'neon'))) store.set('da', 'neon');
+// Les π gagnés s'affichent quand leurs pièces arrivent dans le porte-monnaie : en attendant, le compteur montre solde − en vol.
+let piPending = 0, coinsFlying = 0, walletTimer = 0;
+const showPi = (v) => { $('#piVal').textContent = v; $('#walletVal').textContent = v; };
+// une ou plusieurs pièces partent de (x, y), montent, puis filent vers le compteur (accueil) ou un porte-monnaie qui apparaît en haut
+function coinFly(x, y, amount) {
+  if (!amount) return;
+  if (reduceMotion) { piPending = Math.max(0, piPending - amount); syncPi(); return; }
+  let target = $('#piChip');
+  if ($('#home').hidden || document.querySelector('.overlay.sub:not([hidden])')) {
+    const w = $('#walletFloat');
+    clearTimeout(walletTimer); w.hidden = false; w.classList.remove('out');
+    target = w;
+  }
+  const r = target.getBoundingClientRect(), coin = target.querySelector('.coin').getBoundingClientRect();
+  const tx = coin.left + coin.width / 2, ty = coin.top + coin.height / 2;
+  const n = clamp(Math.round(amount / 10), 1, 8), share = amount / n;
+  let left = amount;
+  for (let k = 0; k < n; k++) {
+    coinsFlying++;
+    const el = document.createElement('i'); el.className = 'coin fly'; el.textContent = 'π';
+    document.body.appendChild(el);
+    const sx = x + (k - (n - 1) / 2) * 14, up = 46 + (k % 3) * 12;
+    const a = el.animate([
+      { transform: `translate(${sx}px, ${y}px) translate(-50%, -50%) scale(.3)`, opacity: 0 },
+      { transform: `translate(${sx}px, ${y - up}px) translate(-50%, -50%) scale(1.15)`, opacity: 1, offset: .32 },
+      { transform: `translate(${tx}px, ${ty}px) translate(-50%, -50%) scale(.7)`, opacity: 1 }],
+      { duration: 820, delay: k * 110, easing: 'cubic-bezier(.45, 0, .3, 1)', fill: 'backwards' });
+    a.onfinish = () => {
+      el.remove(); coinsFlying--;
+      const got = k === n - 1 ? left : Math.round(share); left -= got;
+      piPending = Math.max(0, piPending - got);
+      showPi(Pi.balance() - piPending);
+      target.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.18)' }, { transform: 'scale(1)' }], { duration: 220 });
+      Sfx.coin();
+      if (!coinsFlying) { syncPi(); if (target.id === 'walletFloat') walletTimer = setTimeout(() => { target.classList.add('out'); walletTimer = setTimeout(() => { target.hidden = true; }, 300); }, 900); }
+    };
+  }
+  void r;
+}
 // compteur de l'accueil, solde des paramètres, cadenas et prix des ambiances
 function syncPi() {
   const n = Pi.balance();
-  $('#piVal').textContent = n;
-  $('#piBal').textContent = `${n} π`;
+  showPi(n - piPending);
+  $('#piBal').innerHTML = `${n}${COIN}`;
   document.querySelectorAll('.da-grid button').forEach((b) => {
     const id = b.dataset.da, locked = !Pi.has(id);
     b.classList.toggle('locked', locked);
     let pr = b.querySelector('.price');
     if (locked && !pr) { pr = document.createElement('em'); pr.className = 'price'; b.appendChild(pr); }
-    if (pr) { if (locked) pr.textContent = `🔒 ${THEME_PRICE[id]} π`; else pr.remove(); }
+    if (pr) { if (locked) pr.innerHTML = `🔒 ${THEME_PRICE[id]}${COIN}`; else pr.remove(); }
   });
 }
 
@@ -3764,7 +3825,7 @@ function showChainEnd() {
 // « +36 π » sous le texte de fin : succès de la partie + bonus de victoire
 function endPiLine(fr) {
   const n = fr.reduce((s, a) => s + a.p, 0) + ((G.run && G.run.pi) || 0);
-  return n ? `<span class="pi-line">+${n} π <small>· ${L('total', 'total')} ${Pi.balance()} π</small></span>` : '';
+  return n ? `<span class="pi-line">+${n}${COIN} <small>· ${L('total', 'total')} ${Pi.balance()}${COIN}</small></span>` : '';
 }
 const fmtDur = (t) => (t >= 60 ? `${t / 60} minute${t > 60 ? 's' : ''}` : `${t} s`);
 const ordEn = (n) => n + ((n % 100 >= 11 && n % 100 <= 13) ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th');
@@ -5782,9 +5843,9 @@ function startPreview(id) {
   document.documentElement.classList.add('previewing');
   const price = THEME_PRICE[id], have = Pi.balance(), miss = price - have, buy = $('#pvBuy');
   $('#pvName').textContent = document.querySelector(`.da-grid [data-da="${id}"] > span`).textContent;
-  $('#pvHave').textContent = L(`Tu as ${have} π`, `You have ${have} π`);
+  $('#pvHave').innerHTML = L(`Tu as ${have}${COIN}`, `You have ${have}${COIN}`);
   buy.disabled = miss > 0;
-  buy.textContent = miss > 0 ? L(`IL TE MANQUE ${miss} π`, `${miss} π MISSING`) : L(`ACHETER · ${price} π`, `BUY · ${price} π`);
+  buy.innerHTML = miss > 0 ? L(`IL TE MANQUE ${miss}${COIN}`, `${miss}${COIN} MISSING`) : L(`ACHETER · ${price}${COIN}`, `BUY · ${price}${COIN}`);
   $('#previewBar').hidden = false;
   (miss > 0 ? $('#pvBack') : buy).focus({ preventScroll: true });
 }
