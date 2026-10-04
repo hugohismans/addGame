@@ -259,6 +259,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 #tutBox .confirm .sub { font-size: .85em; color: var(--muted); }
 #tutBox .confirm .skip { text-decoration: underline; text-underline-offset: 3px; }
 #tutBox .sec { background: transparent; border: 1px solid var(--cyan); color: var(--cyan); }
+#tutBox .sec.on { border-color: var(--green); color: var(--green); }
 #tutBox .pri { background: var(--cyan); border: 0; color: var(--void); box-shadow: 0 0 12px rgba(62, 240, 255, .6); }
 #tutBox.docked {
   left: 10px; top: 10px; max-height: calc(100% - 20px);   /* recouvre le chrono, qui n'affiche que TUTO */
@@ -306,9 +307,18 @@ html[data-da="craie"] #tutBox.docked .tx { font-size: 15px; }
 :is(#opsChip, #chainChip) .s { display: none; }
 @media (max-width: 560px) { :is(#opsChip, #chainChip) .l { display: none; } :is(#opsChip, #chainChip) .s { display: inline; } }
 #assistChip { margin-left: 8px; align-self: center; font-family: var(--f-display); font-weight: 700; font-size: 11px; letter-spacing: .14em; color: var(--green); border: 1px solid rgba(120, 255, 170, .5); border-radius: 4px; padding: 3px 7px; background: rgba(3, 10, 18, .6); }
-#assistBtn[aria-checked="true"] { color: var(--green); border-color: rgba(120, 255, 170, .5); }
-#assistBtn[aria-checked="true"] .knob { border-color: var(--green); background: rgba(120, 255, 170, .12); }
-#assistBtn[aria-checked="true"] .knob::after { background: var(--green); box-shadow: 0 0 10px var(--green); }
+:is(#assistBtn, #assistHome)[aria-checked="true"] { color: var(--green); border-color: rgba(120, 255, 170, .5); }
+:is(#assistBtn, #assistHome)[aria-checked="true"] .knob { border-color: var(--green); background: rgba(120, 255, 170, .12); }
+:is(#assistBtn, #assistHome)[aria-checked="true"] .knob::after { background: var(--green); box-shadow: 0 0 10px var(--green); }
+/* Aide + sur l'accueil, sous les pré-réglages */
+.assist-home { justify-self: center; height: 34px; padding: 0 14px 0 5px; gap: 8px; max-width: 100%; }
+.assist-home .knob { width: 34px; height: 22px; flex: none; }
+.assist-home .knob::after { width: 14px; height: 14px; }
+.assist-home[aria-checked="true"] .knob::after { transform: translateX(12px); }
+.assist-home .txt { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; overflow: hidden; }
+.assist-home small { font-family: var(--f-ui, inherit); font-size: 11.5px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+html[data-da="pixel"] .assist-home small { font-size: 15px; }
+html[data-da="craie"] .assist-home small { font-size: 14px; }
 #easyChip {
   margin-left: 8px; align-self: center;
   font-family: var(--f-display); font-weight: 700; font-size: 11px; letter-spacing: .14em;
@@ -658,6 +668,7 @@ html[data-skin] .big-btn { background: var(--cyan); color: var(--on); }
 html[data-skin] .big-btn.alt { background: transparent; color: var(--cyan); border-color: var(--cyan); }
 html[data-skin] #tutBox .pri { background: var(--cyan); color: var(--on); }
 html[data-skin] #tutBox .sec { border-color: var(--cyan); color: var(--cyan); }
+html[data-skin] #tutBox .sec.on { border-color: var(--green); color: var(--green); }
 html[data-skin] :is(.times button[aria-checked="true"], .optop[aria-pressed="true"], .da-grid button[aria-checked="true"]) {
   color: var(--sel, var(--cyan)); border-color: var(--sel, var(--cyan)); background: color-mix(in srgb, var(--sel, var(--cyan)) 15%, var(--chip-solid, transparent));
 }
@@ -669,7 +680,7 @@ html[data-skin] .tabs button[aria-selected="true"] { color: var(--cyan); border-
 html[data-skin] .switch .knob { background: color-mix(in srgb, var(--ice) 6%, transparent); }
 html[data-skin] .switch .knob::after { background: var(--muted); }
 html[data-skin] .switch[aria-checked="true"] .knob::after { background: var(--gold); }
-html[data-skin] #assistBtn[aria-checked="true"] .knob::after { background: var(--green); }
+html[data-skin] :is(#assistBtn, #assistHome)[aria-checked="true"] .knob::after { background: var(--green); }
 html[data-skin] .hs tr.me td { background: color-mix(in srgb, var(--gold) 14%, transparent); }
 
 /* ---------- Aquarium ---------- */
@@ -710,7 +721,7 @@ html[data-da="pixel"] .big-btn { font-size: 22px; }
 html[data-da="pixel"] .big-btn.small { font-size: 16px; }
 html[data-da="pixel"] #nameInput { font-family: var(--f-ui); font-size: 22px; }
 html[data-da="pixel"] .links button { font-size: 13px; }
-@media (max-height: 520px) { html[data-da="pixel"] .logo { font-size: 40px; } html[data-da="pixel"] .links button { font-size: 11px; } }
+@media (max-height: 520px) { html[data-da="pixel"] .logo { font-size: 38px; } html[data-da="pixel"] .links button { font-size: 11px; padding: 0 7px; letter-spacing: .08em; } }
 html[data-da="pixel"] .set-btn { font-size: 13px; }
 html[data-da="pixel"] .set-btn .sum { font-family: var(--f-ui); font-size: 18px; }
 html[data-da="pixel"] .label { font-size: 11px; }
@@ -950,9 +961,12 @@ html[data-da="craie"] .lvl-row button { border: 2px solid rgba(246, 246, 238, .3
 html[data-da="craie"] .lvl-row small { font-family: var(--f-ui); font-size: 12px; }
 /* écran bas (paysage) : une seule ligne de détail */
 @media (max-height: 520px) {
+  .assist-home { height: 28px; } .assist-home small { font-size: 10.5px; }
   .lvl-row button { grid-template-columns: auto auto; justify-content: center; align-items: center; column-gap: 6px; padding: 4px 2px; } .lvl-row small { font-size: 9.5px; text-align: left; } .lvl-row b { font-size: 20px; } .lvl-lbl { display: none; }
-  .hero { gap: 8px; } .logo { font-size: 46px; }
+  .hero { gap: 6px; } .logo { font-size: 44px; }
 }
+/* petit téléphone en portrait : l'exemple 7 + 4 = 11 laisse la place aux réglages */
+@media (max-height: 700px) and (orientation: portrait) { .hero .demo { display: none; } }
 @media (max-height: 520px) { .hero .demo { display: none; } .mode-pick button { padding: 5px 8px; } .mode-pick span { font-size: 10.5px; } }
 html[data-da="pixel"] .mode-pick span { font-size: 15px; } html[data-da="pixel"] .mode-pick b { font-size: 11px; font-weight: 700; }
 html[data-da="craie"] .mode-pick button { border: 2px solid rgba(246, 246, 238, .35); background: transparent; }
@@ -1150,6 +1164,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
       <div class="lvl-pick">
         <div class="lvl-lbl" id="lvlLbl" data-en="PRESETS">PRÉ-RÉGLAGES</div>
         <div class="lvl-row" role="radiogroup" aria-labelledby="lvlLbl"></div>
+        <button id="assistHome" class="switch assist-home" role="switch" aria-checked="false"><span class="knob"></span><span class="txt" data-en="ASSIST +&lt;small&gt;incoming bubbles help you&lt;/small&gt;">AIDE +<small>les bulles qui arrivent t’aident</small></span></button>
       </div>
       <div class="playrow">
         <input id="nameInput" type="text" maxlength="12" data-en-ph="Your name" data-en-aria="Name for the high scores" placeholder="Ton pseudo" aria-label="Pseudo pour les high scores" autocomplete="nickname" spellcheck="false">
@@ -1278,7 +1293,7 @@ html[data-da="craie"] .da-switch button { font-family: var(--f-ui); font-size: 1
           <div data-en="&lt;b&gt;BLOW&lt;/b&gt;Tap the screen to push away everything around. Right next to the operator, it knocks off everything stuck to it."><b>BLOW</b>Touche l'écran pour repousser tout ce qui est autour. Juste à côté de l'opérateur, ça décroche tout ce qui y est accroché.</div>
           <div class="fire" data-en="&lt;b&gt;FIREWORK&lt;/b&gt;Launches a crazy rocket that zooms around for 2 to 3 seconds, knocks away everything it grazes, drops firecrackers and ends in a burst."><b>FIREWORK</b>Lance une fusée folle qui fonce 2 à 3 secondes, éjecte tout ce qu'elle frôle, lâche des pétards et finit en bouquet.</div>
         </div>
-        <div class="keys" data-en="&lt;b class=&quot;b-orange&quot;&gt;Assist +&lt;/b&gt;: new bubbles are picked to bring you closer to the solution (goal 63 with a 21 brick: a 3 shows up). The rules don&#x27;t change."><b class="b-orange">Aide +</b> : les bulles qui apparaissent sont choisies pour rapprocher la solution (objectif 63 avec une brique 21 : il arrive un 3). Les règles ne changent pas.</div>
+        <div class="keys" data-en="&lt;b class=&quot;b-orange&quot;&gt;Assist +&lt;/b&gt; (switch on the home screen): new bubbles are picked to bring you closer to the solution (goal 63 with a 21 brick: a 3 shows up). The rules don&#x27;t change."><b class="b-orange">Aide +</b> (interrupteur sur l’accueil) : les bulles qui apparaissent sont choisies pour rapprocher la solution (objectif 63 avec une brique 21 : il arrive un 3). Les règles ne changent pas.</div>
         <div class="keys" data-en="&lt;b class=&quot;b-orange&quot;&gt;By default&lt;/b&gt;, nothing sticks by accident: a bubble only sticks if you pushed it (golden ring for 2.5 s). In the &lt;b&gt;settings&lt;/b&gt;, pick the mechanics you want. Two more besides Blow and Firework: &lt;b&gt;TARGET&lt;/b&gt;, grab a bubble (even a moving one), drag and release to throw it that way; &lt;b&gt;AUTO&lt;/b&gt;, tap a bubble to send it to the operator, tap it again to release it. &lt;b class=&quot;b-orange&quot;&gt;Expert mode&lt;/b&gt;: Blow and Firework only, and everything sticks on contact."><b class="b-orange">Par défaut</b>, rien ne s'accroche par hasard : une bulle ne s'accroche que si tu l'as poussée (anneau doré pendant 2,5 s). Dans les <b>paramètres</b>, choisis les mécaniques que tu veux. Deux en plus de Blow et Firework : <b>TARGET</b>, attrape une bulle (même en mouvement), glisse et lâche pour la lancer dans cette direction ; <b>AUTO</b>, touche une bulle pour l'envoyer sur l'opérateur, retouche-la pour la décrocher. <b class="b-orange">Mode expert</b> : Blow et Firework uniquement, et tout s'accroche au contact.</div>
         <div class="keys" data-en="Keyboard: &lt;kbd&gt;Enter&lt;/kbd&gt; or &lt;kbd&gt;Space&lt;/kbd&gt; calculate · &lt;kbd&gt;O&lt;/kbd&gt; or &lt;kbd&gt;Tab&lt;/kbd&gt; operation · &lt;kbd&gt;S&lt;/kbd&gt; swap · &lt;kbd&gt;H&lt;/kbd&gt; hint · &lt;kbd&gt;M&lt;/kbd&gt; mode (&lt;kbd&gt;B&lt;/kbd&gt; &lt;kbd&gt;F&lt;/kbd&gt; &lt;kbd&gt;T&lt;/kbd&gt; &lt;kbd&gt;A&lt;/kbd&gt;) · &lt;kbd&gt;R&lt;/kbd&gt; play again · click to act">Clavier : <kbd>Entrée</kbd> ou <kbd>Espace</kbd> calculer · <kbd>O</kbd> ou <kbd>Tab</kbd> opération · <kbd>S</kbd> inverser · <kbd>H</kbd> indice · <kbd>M</kbd> mode (<kbd>B</kbd> <kbd>F</kbd> <kbd>T</kbd> <kbd>A</kbd>) · <kbd>R</kbd> rejouer · clic pour agir</div>
         </div>
@@ -2779,6 +2794,9 @@ const TUT_STEPS = [
       } else tutRetry(L(`${v} : presque ! Il faut 3 × 4`, `${v}: almost! You need 3 × 4`));
     },
     on(kind) { if (kind === 'error') tutRetry(L('Raté : il faut 3 × 4', 'Missed: you need 3 × 4')); } },
+  { title: ['AIDE +', 'ASSIST +'], text: () => L(`Tu bloques ? Active <b class="gr">AIDE +</b> : les bulles qui arrivent sont choisies pour t'aider.<br>Objectif <b class="o">12</b> avec une brique <b class="o">3</b> : il arrive un <b class="c">4</b>. Les règles ne changent pas. Le bouton est aussi sur l'accueil.`, `Stuck? Turn on <b class="gr">ASSIST +</b>: incoming bubbles are picked to help you.<br>Goal <b class="o">12</b> with a <b class="o">3</b> brick: a <b class="c">4</b> shows up. The rules stay the same. The switch is also on the home screen.`),
+    setup() { $('#eqBtn').classList.remove('tut-pulse'); G.tut.frozen = true; G.tut.label = false; G.tut.gesture = null; G.hint = null; },
+    assist: true, next: ['Suivant', 'Next'] },
   { title: ['RÉCAP', 'RECAP'], text: () => L(`<div class="recap">
       <b class="k">Toucher</b><span>l'opérateur : changer d'opération</span>
       <b class="k">Glisser</b><span>sur l'opérateur : échanger les côtés</span>
@@ -2864,6 +2882,7 @@ function tutGo(i) {
     <div class="tx">${st.text()}</div>
     <div class="bt"><button class="skip" id="tutSkip">${st.last ? '' : L('Quitter<span class="lg"> le tutoriel</span>', 'Quit<span class="lg"> tutorial</span>')}</button>
       <span class="r">${st.replay ? `<button class="sec" id="tutReplay">${L('REVOIR', 'REPLAY')}</button>` : ''}
+      ${st.assist ? `<button class="sec${G.assist ? ' on' : ''}" id="tutAssist" aria-pressed="${G.assist}">${G.assist ? L('AIDE + ✓', 'ASSIST + ✓') : L('ACTIVER', 'TURN ON')}</button>` : ''}
       ${st.next ? `<button class="pri" id="tutNext">${tr(st.next).toUpperCase()}</button>` : `<span class="wait">${tr(st.wait)}</span>`}</span></div>`;
   box.hidden = false;
   // la bulle posée en haut cache le haut du terrain : les étapes placent leurs bulles en dessous
@@ -2873,6 +2892,7 @@ function tutGo(i) {
   const on = (id, fn) => { const b = document.getElementById(id); if (b) b.addEventListener('click', (e) => { Sfx.init(); Sfx.tick(); e.currentTarget.blur(); fn(); }); };
   on('tutSkip', () => tutConfirmSkip(i));
   on('tutReplay', () => tutGo(i));
+  on('tutAssist', () => { G.assist = !G.assist; store.set('assist', G.assist); syncOptions(); tutGo(i); });
   on('tutNext', () => (st.last ? endTutorial() : tutGo(i + 1)));
 }
 // Beaucoup touchent « Passer » (devenu « Quitter le tutoriel ») au lieu de « Suivant » : on demande confirmation dans la bulle elle-même,
@@ -5468,6 +5488,7 @@ function syncOptions() {
   document.querySelectorAll('.optop:not(.mech)').forEach((b) => b.setAttribute('aria-pressed', String(G.ops[+b.dataset.op])));
   $('#easyBtn').setAttribute('aria-checked', String(!G.easy));
   $('#assistBtn').setAttribute('aria-checked', String(G.assist));
+  $('#assistHome').setAttribute('aria-checked', String(G.assist));
   $('#shakeBtn').setAttribute('aria-checked', String(Shake.on));
   $('#seasonBtn').setAttribute('aria-checked', String(store.get('season', false)));
   document.querySelectorAll('.times button[data-range]').forEach((b) => b.setAttribute('aria-checked', String(String(G.range) === b.dataset.range)));
@@ -5522,7 +5543,9 @@ document.querySelectorAll('.optop:not(.mech)').forEach((b) => b.addEventListener
   G.ops[i] = !G.ops[i]; store.set('ops', G.ops); syncOptions(); Sfx.tick();
 }));
 $('#easyBtn').addEventListener('click', () => { Sfx.init(); G.easy = !G.easy; store.set('expert', !G.easy); syncOptions(); Sfx.tick(); });
-$('#assistBtn').addEventListener('click', () => { Sfx.init(); G.assist = !G.assist; store.set('assist', G.assist); syncOptions(); Sfx.tick(); });
+const toggleAssist = () => { Sfx.init(); G.assist = !G.assist; store.set('assist', G.assist); syncOptions(); Sfx.tick(); };
+$('#assistBtn').addEventListener('click', toggleAssist);
+$('#assistHome').addEventListener('click', toggleAssist);
 $('#shakeBtn').addEventListener('click', async () => { Sfx.init(); await Shake.toggle(); syncOptions(); Sfx.tick(); });
 $('#seasonBtn').addEventListener('click', () => { Sfx.init(); store.set('season', !store.get('season', false)); applyTheme(effectiveTheme()); syncOptions(); Sfx.tick(); });
 document.querySelectorAll('.times button[data-t]').forEach((b) => b.addEventListener('click', () => { Sfx.init(); selectTime(+b.dataset.t); Sfx.tick(); }));
